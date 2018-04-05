@@ -8,15 +8,18 @@ class ClassLoader
 	
 	public function __construct()
 	{
+		if (!defined('ANFORA_PATH')) {
+			define('ANFORA_PATH', __DIR__);
+		}
+		if (!isset($GLOBALS['ANFORA_IMPORT'])) {
+			$GLOBALS['ANFORA_IMPORT'] = [];
+		}
 	}
 	
 	public static function getLoader()
 	{
 		if (null !== self::$instance) {
 			return self::$instance;
-		}
-		if (!defined('ANFORA_PATH')) {
-			define('ANFORA_PATH', __DIR__);
 		}
         self::$instance = new \Anfora\ClassLoader();
         self::$instance->register(true);
@@ -36,7 +39,7 @@ class ClassLoader
 	public function loadClass($class)
 	{
 		if ($file = $this->findFile($class)) {
-			include_file($file);
+			Import($file);
 			return true;
 		}
 		return false;
@@ -66,6 +69,7 @@ class ClassLoader
 	}
 }
 
-function include_file($file) {
-	return include_once $file;
+function Import($file) {
+	$GLOBALS['ANFORA_IMPORT'][] = $file;
+	return include $file;
 }
