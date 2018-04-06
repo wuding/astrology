@@ -48,6 +48,7 @@ class ClassLoader
 	public function findFile($class)
 	{
 		$file = $class;
+		$match = false;
 		$rule = [
 			'Anfora' => ANFORA_PATH . '/..',
 		];
@@ -62,8 +63,12 @@ class ClassLoader
 			if (preg_match($parttern, $class, $matches)) {
 				eval("\$value = \"" . $value . "\";");
 				$file = $value . '/' . $class;
+				$match = true;
 				break;
 			}
+		}
+		if (!$match && defined('ANFORA_LIBRARY')) {
+			$file = ANFORA_LIBRARY . '/' . $class;
 		}
 		return $file .= '.php';
 	}

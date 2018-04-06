@@ -130,7 +130,7 @@ class Route
 	public function getParam($name = null, $default = null, $data = null)
 	{
 		if (!$data) {
-			$data = $this->getParams();
+			$data = $GLOBALS['PARAMS'] ? : $this->getParams();
 		}
 		if (isset($data[$name])) {
 			return $data[$name];

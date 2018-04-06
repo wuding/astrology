@@ -14,6 +14,7 @@ if (isset($_GET['phpinfo']) || '/phpinfo' == @$_SERVER['PATH_INFO']) {
 
 /* 启动 Astrology */
 require __DIR__ . '/../app/bootstrap.php';
+new Text\Test();
 new Astrology\Start();
 
 

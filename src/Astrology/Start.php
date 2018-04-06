@@ -67,7 +67,7 @@ class Start
 		$shift = $GLOBALS['SHIFT'];
 		$action = $route->getActionName('index', $shift + 1);
 		$params = $route->getParams(null, null, $shift + 2);
-		$GLOBALS['ACTION_NAME'] = $action;
+		$GLOBALS['ACTION_NAME'] = $GLOBALS['METHOD_NAME'] = $action;
 		$GLOBALS['PARAMS'] = $params;
 		
 		/* 创建控制器类的实例 */
