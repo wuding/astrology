@@ -172,6 +172,11 @@ class Route
 	
 	public function getControllers()
 	{
-		return scandir(APP_PATH . '/' . $GLOBALS['MODULE_NAME'] . '/Controller');
+		$dir = scandir(APP_PATH . '/' . $GLOBALS['MODULE_NAME'] . '/Controller');
+		$arr = [];
+		foreach ($dir as $file) {
+			$arr[] = str_replace('.php', '', $file);
+		}
+		return $arr;
 	}
 }

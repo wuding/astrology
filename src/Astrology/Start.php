@@ -23,19 +23,23 @@ class Start
 		
 		/* 检测模块目录 */
 		$module = $route->getModuleName('index');
-		$modules = $route->getModules();
-		if (!in_array($module, $modules)) {
-			$module = '_Module';
-			$shift--;
+		if (APP_MODULES) {
+			$GLOBALS['MODULES'] = is_array(APP_MODULES) ? array_keys(APP_MODULES) : $route->getModules();
+			if (!in_array($module, $GLOBALS['MODULES'])) {
+				$module = '_Module';
+				$shift--;
+			}
 		}
 		$GLOBALS['MODULE_NAME'] = $module;
 		
 		/* 检测控制器文件 */
 		$controller = $route->getControllerName('index', $shift);
-		$controllers = $route->getControllers();
-		if (!in_array($controller . '.php', $controllers)) {
-			$controller = '_Controller';
-			$shift--;
+		if (APP_MODULES) {
+			$GLOBALS['CONTROLLERS'] = is_array(APP_MODULES) && isset(APP_MODULES[$module]) ? APP_MODULES[$module] : $route->getControllers();
+			if (!in_array($controller, $GLOBALS['CONTROLLERS'])) {
+				$controller = '_Controller';
+				$shift--;
+			}
 		}
 		$GLOBALS['CONTROLLER_NAME'] = $controller;
 		$GLOBALS['SHIFT'] = $shift;
@@ -65,10 +69,8 @@ class Start
 		/* 获取动作方法和请求参数 */
 		$route = Route::getInstance();
 		$shift = $GLOBALS['SHIFT'];
-		$action = $route->getActionName('index', $shift + 1);
-		$params = $route->getParams(null, null, $shift + 2);
-		$GLOBALS['ACTION_NAME'] = $GLOBALS['METHOD_NAME'] = $action;
-		$GLOBALS['PARAMS'] = $params;
+		$GLOBALS['ACTION_NAME'] = $GLOBALS['METHOD_NAME'] = $route->getActionName('index', $shift + 1);
+		$GLOBALS['PARAMS'] = $route->getParams(null, null, $shift + 2);
 		
 		/* 创建控制器类的实例 */
 		if (class_exists($class_name)) {

@@ -45,30 +45,49 @@ class ClassLoader
 		return false;
 	}
 	
-	public function findFile($class)
+	public function findFile($name)
 	{
-		$file = $class;
-		$match = false;
+		$file = $name;
+		// 兼容 PEAR 类命名和加载规则
+		if (preg_match('/[a-z0-9]_/i', $name)) {
+			$arr = explode('_', $name);
+			$filename = array_pop($arr);
+			$file = implode('/', $arr) . '/' . $filename;
+		}
+		
+		/* 定义规则 */
 		$rule = [
 			'Anfora' => ANFORA_PATH . '/..',
 		];
 		if (defined('ANFORA_AUTOLOAD') && is_array(ANFORA_AUTOLOAD)) {
 			$rule = array_merge($rule, ANFORA_AUTOLOAD);
 		}
-		foreach ($rule as $key => $value) {
+		
+		/* 匹配规则 */
+		foreach ($rule as $key => $path) {
 			$parttern = "/^($key)(\\\.+|)$/i";
+			// 自定义正则
 			if (preg_match('/^\//', $key)) {
 				$parttern = $key;
 			}
-			if (preg_match($parttern, $class, $matches)) {
-				eval("\$value = \"" . $value . "\";");
-				$file = $value . '/' . $class;
-				$match = true;
+			if (preg_match($parttern, $name, $matches)) {
+				if (is_array($path)) {
+					// 增强的自定义规则
+					if (isset($path['eval'])) {
+						eval($path['eval']);
+					}
+				} else {
+					// 兼容 PEAR 类命名和加载规则
+					if (preg_match('/[a-z0-9]_/i', $name)) {
+						$arr = explode('_', $name);
+						$name = array_pop($arr);
+						$path = $path . '/' . implode('/', $arr);
+					}
+					eval("\$path = \"" . $path . "\";");
+				}
+				$file = $path . '/' . $name;
 				break;
 			}
-		}
-		if (!$match && defined('ANFORA_LIBRARY')) {
-			$file = ANFORA_LIBRARY . '/' . $class;
 		}
 		return $file .= '.php';
 	}
@@ -76,5 +95,5 @@ class ClassLoader
 
 function Import($file) {
 	$GLOBALS['ANFORA_IMPORT'][] = $file;
-	return include $file;
+	return @include $file;
 }
