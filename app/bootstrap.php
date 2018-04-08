@@ -8,11 +8,11 @@ define('APP_PATH', __DIR__);
  * true 检测模块目录和控制器文件是否存在
  * false 不检测
  */
-define('APP_MODULES', /*false*/
+define('APP_MODULES', true/*
 	[
 		'_Module' => ['_Controller', 'Robot'],
 		'Robot' => ['_Controller'],
-	]
+	]*/
 );
 
 /**

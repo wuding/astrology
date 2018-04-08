@@ -63,8 +63,7 @@ class Route
 	public function getPath($key = 0, $default = null)
 	{
 		$path = explode('/', $this->getRequestPath());
-		if (isset($path[$key])) {
-			$name = $path[$key];
+		if (isset($path[$key]) && ($name = $path[$key])) {
 			return $name;
 		}
 		return $default;

@@ -10,10 +10,19 @@ namespace Plugin\Robot;
 
 class Kubozy extends \Plugin\Robot
 {
-	public $func_format = 'json';
+	# public $func_format = 'json';
 	
-	public function __construct()
+	public function __construct($arg = null)
 	{
-		# parent::__construct();
+		parent::__construct($arg);
+		$this->cache_dir = $this->cache_root . '/www.kubozy.net/' . date('Y-m') . '/';
+		
+		$this->urls = [
+			'http://api.kbzyapi.com/inc/api.php?ac=videolist&wd=&t=&h=0&ids=&pg=%1',
+		];
+		
+		$this->paths = [
+			$this->cache_dir . '%1.xml',
+		];
 	}
 }
