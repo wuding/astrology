@@ -3,6 +3,7 @@
 namespace Plugin;
 
 use Astrology\Extension\Filesystem;
+use Astrology\Extension\SimpleXML;
 
 class Robot
 {
@@ -49,6 +50,84 @@ class Robot
 	}
 	
 	/**
+	 * 解析列表
+	 */
+	public function parseList()
+	{
+		$key = $this->_url_list_key;
+		$data = $this->getPathContents($key, $this->attr['page']);
+		$rss = $this->getSimpleXMLElement($data);
+		$video = [];
+		if (is_object($rss)) {
+			$video = $rss->list[0]->children();
+			
+		} elseif (is_array($rss)) {
+			print_r([$rss, __FILE__, __LINE__]);
+			exit;
+		}
+		
+		$arr = [];
+		foreach ($video as $r) {
+			$data = $this->xmlData($r);
+			$data['site_id'] = $this->site_id;
+			$arr[] = $data;
+		}
+		print_r($arr);
+		exit;
+		return ['result' => $arr];
+	}
+	
+	public function xmlData($r)
+	{
+		$arr = $url = $tags = [];
+		$dd = $r->dl->children();
+		foreach ($dd as $d) {
+			$url[] = (string) $d;
+		}
+		$arr['url'] = implode(PHP_EOL, $url);
+		$arr['description'] = strip_tags((string) $r->des, '<img><a>');
+		
+		$table = [
+			'last' => 'modified',
+			'id' => 'detail_id',
+			'tid' => 'category_id',
+			'name' => 1,
+			'type' => 'category_name',
+			'pic' => 'poster',
+			'lang' => 'language',
+			'area' => 1,
+			'year' => 1,
+			'state' => 'detail_status',
+			'note' => 1,
+			'actor' => 1,
+			'director' => 1,
+			'dl' => 0,
+			'des' => 0,
+		];
+		$keys = array_keys($table);
+		
+		$tag = $r->children();
+		foreach ($tag as $t) {
+			$n = $t->getName();
+			if (!in_array($n, $keys)) {
+				print_r([$tags, __FILE__, __LINE__]);
+				exit;
+			}
+			
+			$field = $table[$n];
+			if (0 !== $field) {
+				if (1 === $field) {
+					$field = $n;
+				}
+				$arr[$field] = (string) $r->$n;
+				$tags[$n] = $field;
+			}
+		}
+		
+		return $arr;
+	}
+	
+	/**
 	 * 获取属性配置
 	 */
 	public function getProp($key = 0, $property = 'urls')
@@ -82,5 +161,27 @@ class Robot
 	{
 		$file = $this->getProp($key, 'urls', $_1);
 		return $str = Filesystem::getContents($file);
+	}
+	
+	/**
+	 * 获取本地文件
+	 */
+	public function getPathContents($key = 0, $_1 = null)
+	{
+		$file = $this->getProp($key, 'paths', $_1);
+		return $str = Filesystem::getContents($file);
+	}
+	
+	public function getSimpleXMLElement($data)
+	{
+		$rss = null;
+		try {
+			$rss = new \SimpleXMLElement($data);
+			# $sx = new SimpleXML($data);
+			# $rss = $sx->element;
+		} catch (\Exception $e) {
+			$rss = [$e->getMessage()];
+		}
+		return $rss;
 	}
 }

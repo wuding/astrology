@@ -8,6 +8,7 @@ class _Controller extends \Astrology\Controller
 {
 	public function __construct()
 	{
+		header("Access-Control-Allow-Origin: *");
 		$this->page = $this->_get('page', 1, FILTER_VALIDATE_INT);
 	}
 	/*
@@ -46,12 +47,12 @@ class _Controller extends \Astrology\Controller
 		parse_str($_SERVER['QUERY_STRING'], $query_data);		
 		if ($this->page < $result['pageCount']) {
 			$query_data['page'] = $this->page + 1;
-			$encoded_string = http_build_query($query_data);
-			header("Access-Control-Allow-Origin: *");
+			$encoded_string = http_build_query($query_data);			
 			$msg = 'http://lan.urlnk.com' . $url_path .'?'. $encoded_string;
 
 		} else {
 			$code = 1;
+			$msg = 'final';
 		}
 		
 		$value = [

@@ -11,6 +11,7 @@ namespace Plugin\Robot;
 class Kubozy extends \Plugin\Robot
 {
 	# public $func_format = 'json';
+	public $site_id = 41;
 	
 	public function __construct($arg = null)
 	{
