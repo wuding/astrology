@@ -8,7 +8,7 @@ class _Controller extends \Astrology\Controller
 {
 	public function __construct()
 	{
-		header("Access-Control-Allow-Origin: *");
+		# header("Access-Control-Allow-Origin: *");
 		$this->page = $this->_get('page', 1, FILTER_VALIDATE_INT);
 	}
 	/*

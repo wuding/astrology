@@ -83,7 +83,7 @@ class Controller
 	{
 		$variables = $this->_run();
 		echo $variables = is_array($variables) ? print_r($variables, true) : $variables;
-		exit;
-		print_r([$variables, __FILE__, __LINE__]);
+		# exit;
+		# print_r([$variables, __FILE__, __LINE__]);
 	}
 }

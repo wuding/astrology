@@ -4,6 +4,7 @@ namespace Plugin;
 
 use Astrology\Extension\Filesystem;
 use Astrology\Extension\SimpleXML;
+use DbTable\VideoCollect;
 
 class Robot
 {
@@ -54,6 +55,13 @@ class Robot
 	 */
 	public function parseList()
 	{
+		$VideoCollect = new VideoCollect(['user' => 'root', 'password' => 'root']);
+		/*$all = $VideoCollect::query("SELECT * FROM `video_collect` LIMIT 50");
+		foreach ($all as $key => $value) {
+			print_r([$key, $value]);
+		}*/
+		# print_r(get_defined_constants());
+		# exit;
 		$key = $this->_url_list_key;
 		$data = $this->getPathContents($key, $this->attr['page']);
 		$rss = $this->getSimpleXMLElement($data);
@@ -70,10 +78,10 @@ class Robot
 		foreach ($video as $r) {
 			$data = $this->xmlData($r);
 			$data['site_id'] = $this->site_id;
-			$arr[] = $data;
+			$arr[] = $VideoCollect->check($data);
 		}
-		print_r($arr);
-		exit;
+		# print_r($arr);
+		# exit;
 		return ['result' => $arr];
 	}
 	
