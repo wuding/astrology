@@ -9,7 +9,7 @@ return array(
 		'driver' => 'pdo_mysql',
 		'host' => 'localhost',
 		'port' => 3306,
-		'db_name' => 'com_urlnk',
+		# 'db_name' => 'com_urlnk',
 		'user' => 'root',
 		'password' => 'root',
 	),

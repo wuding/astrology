@@ -8,14 +8,20 @@ class Database
 	public $driver = 'pdo_mysql';
 	public $host = 'localhost';
 	public $port = 3306;
-	public $user = null;
-	public $password = null;
+	public $user = 'root';
+	public $password = 'root';
 	public $db_name = 'mysql';
 	public $table_name = 'user';
 	public $primary_key = null;
+	public $join = '';
+	public $group_by = '';
+	public $having = '';
 	
 	public function __construct($arg = [])
 	{
+		if (!$arg) {
+			$arg = $GLOBALS['CONFIG']['database'];
+		}
 		$this->init($arg);
 	}
 	
@@ -120,5 +126,58 @@ class Database
 		}
 		$sql .= " LIMIT $limit";
 		return self::$adapter->find($sql);
+	}
+	
+	public function select($where = null, $column = '*', $order = null, $limit = 10)
+	{
+		$db_table = $this->from();
+		$sql = "SELECT $column FROM $db_table";
+		if ($this->join) {
+			$sql .= " $this->join";
+		}
+		
+		$where = $this->sqlWhere($where);
+		if ($where) {
+			$sql .= " WHERE $where";
+		}
+		
+		if ($this->group_by) {
+			$sql .= " GROUP BY $this->group_by";
+			if ($this->having) {
+				$sql .= " HAVING $this->having";
+			}
+		}
+		
+		if ($order) {
+			$sql .= " ORDER BY $order";
+		}
+		$sql .= " LIMIT $limit";
+		return self::$adapter->select($sql);
+	}
+	
+	public function update($set = [], $where = null, $order = null, $limit = null)
+	{
+		$db_table = $this->from();
+		$sql = "UPDATE $db_table SET ";
+		$sql .= $this->sqlSet($set);
+		
+		$where = $this->sqlWhere($where);
+		if ($where) {
+			$sql .= " WHERE $where";
+		}
+		
+		if ($order) {
+			$sql .= " ORDER BY $order";
+		}
+		if (null !== $limit) {
+			$sql .= " LIMIT $limit";
+		}
+		# echo $sql;exit;
+		return $this->exec($sql);
+	}
+	
+	public function __call($name, $arguments)
+	{
+		return self::$adapter->$name($arguments[0]);
 	}
 }

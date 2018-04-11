@@ -1,0 +1,83 @@
+-- Adminer 4.6.2 MySQL dump
+
+SET NAMES utf8;
+SET time_zone = '+00:00';
+SET foreign_key_checks = 0;
+SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
+
+DROP TABLE IF EXISTS `video_category`;
+CREATE TABLE `video_category` (
+  `category_id` int(11) NOT NULL AUTO_INCREMENT,
+  `upper_id` int(10) DEFAULT NULL,
+  `site_id` int(10) DEFAULT NULL,
+  `bind_id` int(10) DEFAULT NULL,
+  `identification` text,
+  `name` text,
+  `status` tinyint(1) DEFAULT NULL,
+  `created` int(10) DEFAULT NULL,
+  `updated` int(10) DEFAULT NULL,
+  PRIMARY KEY (`category_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+DROP TABLE IF EXISTS `video_collect`;
+CREATE TABLE `video_collect` (
+  `collect_id` int(11) NOT NULL AUTO_INCREMENT,
+  `entry_id` int(10) DEFAULT '0',
+  `site_id` int(5) DEFAULT '0',
+  `detail_id` int(10) DEFAULT '0',
+  `category_id` int(5) DEFAULT '0',
+  `category_name` text,
+  `name` text,
+  `year` int(4) DEFAULT '0',
+  `language` text,
+  `area` text,
+  `actor` text,
+  `director` text,
+  `poster` text,
+  `url` text,
+  `description` text,
+  `note` text,
+  `detail_status` text,
+  `modified` datetime DEFAULT NULL,
+  `created` int(10) DEFAULT '0',
+  `updated` int(10) DEFAULT '0',
+  `modifies` int(5) DEFAULT '0',
+  `updates` int(5) DEFAULT '0',
+  `status` tinyint(1) DEFAULT '0',
+  `stage` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`collect_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+DROP TABLE IF EXISTS `video_entry`;
+CREATE TABLE `video_entry` (
+  `entry_id` int(11) NOT NULL AUTO_INCREMENT,
+  `category_id` int(3) DEFAULT '0',
+  `name` text,
+  `year` int(4) DEFAULT '0',
+  `language` text,
+  `area` text,
+  `actor` text,
+  `director` text,
+  `poster` text,
+  `description` text,
+  `status` tinyint(1) DEFAULT '0',
+  `modified` int(10) DEFAULT '0',
+  `created` int(10) DEFAULT '0',
+  `updated` int(10) DEFAULT '0',
+  `modifies` int(5) DEFAULT '0',
+  `updates` int(5) DEFAULT '0',
+  PRIMARY KEY (`entry_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+-- 2018-04-11 18:54:28
+
+
+CREATE VIEW view_video_collect AS 
+SELECT A.collect_id, A.entry_id, A.site_id, A.detail_id, A.name, A.year, A.language, A.area, A.actor, A.director, A.poster, A.url, A.description, A.note, A.detail_status, A.modified, B.bind_id AS class_id 
+FROM video_collect A 
+LEFT JOIN video_category B ON B.site_id = A.site_id AND B.identification = A.category_id 
+WHERE A.collect_id < 10 
+LIMIT 100

@@ -39,7 +39,7 @@ class _Controller extends \Astrology\Controller
 		$method = lcfirst($route->fixName($action . ' ' . $type));
 		
 		$result = $robot->$method();
-		$result['pageCount'] = 542;
+		$result['pageCount'] = 1084;# 542
 		
 		$code = 0;
 		$msg = '';

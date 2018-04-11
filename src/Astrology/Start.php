@@ -6,7 +6,7 @@ class Start
 {
 	public function __construct()
 	{
-		$config = \Anfora\Import(APP_PATH . '/config.php');
+		$GLOBALS['CONFIG'] = \Anfora\Import(APP_PATH . '/config.php');
 		# print_r($config);
 		$this->initRoute();
 		$this->loadController();

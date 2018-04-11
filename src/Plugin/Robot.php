@@ -5,6 +5,7 @@ namespace Plugin;
 use Astrology\Extension\Filesystem;
 use Astrology\Extension\SimpleXML;
 use DbTable\VideoCollect;
+use Astrology\Database;
 
 class Robot
 {
@@ -56,12 +57,6 @@ class Robot
 	public function parseList()
 	{
 		$VideoCollect = new VideoCollect(['user' => 'root', 'password' => 'root']);
-		/*$all = $VideoCollect::query("SELECT * FROM `video_collect` LIMIT 50");
-		foreach ($all as $key => $value) {
-			print_r([$key, $value]);
-		}*/
-		# print_r(get_defined_constants());
-		# exit;
 		$key = $this->_url_list_key;
 		$data = $this->getPathContents($key, $this->attr['page']);
 		$rss = $this->getSimpleXMLElement($data);
@@ -80,9 +75,50 @@ class Robot
 			$data['site_id'] = $this->site_id;
 			$arr[] = $VideoCollect->check($data);
 		}
-		# print_r($arr);
-		# exit;
 		return ['result' => $arr];
+	}
+	
+	/**
+	 * 解析分类
+	 */
+	public function parseCategoryArray()
+	{
+		$cat = new \DbTable\VideoCategory;
+		$class = $this->classes;
+		$result = [];
+		foreach ($class as $key => $value) {
+			if (!is_numeric($value)) {
+				$arr = [
+					'site_id' => $this->site_id,
+					'identification' => $key,
+					'name' => $value,
+				];
+				$result[] = $cat->check($arr);
+			}
+		}
+		
+		return [
+			'result' => $result,
+			'pageCount' => 1,
+		];
+	}
+	
+	
+	public function bindList()
+	{
+		$db = new Database(['db_name' => 'xyz_yingmi', 'table_name' => 'view_video_collect']);
+		$entry = new \DbTable\VideoEntry;
+		$offset = $this->attr['page'] * 10 - 10;
+		$all = $db->select(null, 'collect_id,name,class_id,entry_id', 'collect_id', "$offset,10");# 'entry_id = 0'
+		$db->table_name = 'video_collect';
+		$arr = [];
+		foreach ($all as $row) {
+			if (!$row->entry_id) {
+				$entry_id = $entry->check(['name' => $row->name, 'category_id' => $row->class_id]);
+				$arr[] = $db->update(['entry_id' => $entry_id], ['collect_id' => $row->collect_id]);
+			}
+		}
+		return $arr;
 	}
 	
 	public function xmlData($r)

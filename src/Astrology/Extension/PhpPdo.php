@@ -51,4 +51,15 @@ class PhpPdo
 		$sth = $this->sth($sql, $input_parameters);
 		return $sth->fetchObject();
 	}
+	
+	public function select($sql = null, $input_parameters = [], $fetch_style = \PDO::FETCH_OBJ)
+	{
+		$sth = $this->sth($sql, $input_parameters);
+		return $sth->fetchAll($fetch_style);
+	}
+	
+	public function __call($name, $arguments)
+	{
+		return self::$dbh->$name($arguments[0]);
+	}
 }

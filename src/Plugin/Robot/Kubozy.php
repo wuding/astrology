@@ -25,5 +25,17 @@ class Kubozy extends \Plugin\Robot
 		$this->paths = [
 			$this->cache_dir . '%1.xml',
 		];
+		
+		$this->classes = [0,
+			'电影', '连续剧', '综艺', '动漫', '动作片',
+			'喜剧片', '爱情片', '科幻片', '恐怖片', '剧情片',
+			'战争片', '国产剧', '港台剧', '福利', '欧美剧',
+			'伦理片', '泰剧', '记录片', '韩剧', '日剧',
+		];
+	}
+	
+	public function parseCategory()
+	{
+		return $this->parseCategoryArray();
 	}
 }
