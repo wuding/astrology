@@ -1,3 +1,11 @@
+CREATE VIEW view_video_collect AS 
+SELECT A.collect_id, A.entry_id, A.site_id, A.detail_id, A.name, A.year, A.language, A.area, A.actor, A.director, A.poster, A.url, A.description, A.note, A.detail_status, A.modified, B.bind_id AS class_id 
+FROM video_collect A 
+LEFT JOIN video_category B ON B.site_id = A.site_id AND B.identification = A.category_id 
+WHERE A.collect_id < 10 
+LIMIT 100
+
+--------------------------
 -- Adminer 4.6.2 MySQL dump
 
 SET NAMES utf8;
@@ -11,12 +19,15 @@ CREATE TABLE `video_category` (
   `upper_id` int(10) DEFAULT NULL,
   `site_id` int(10) DEFAULT NULL,
   `bind_id` int(10) DEFAULT NULL,
-  `identification` text,
-  `name` text,
+  `identification` varchar(256) DEFAULT NULL,
+  `name` varchar(256) DEFAULT NULL,
   `status` tinyint(1) DEFAULT NULL,
   `created` int(10) DEFAULT NULL,
   `updated` int(10) DEFAULT NULL,
-  PRIMARY KEY (`category_id`)
+  PRIMARY KEY (`category_id`),
+  KEY `site_id` (`site_id`),
+  KEY `name` (`name`),
+  KEY `identification` (`identification`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
@@ -28,7 +39,7 @@ CREATE TABLE `video_collect` (
   `detail_id` int(10) DEFAULT '0',
   `category_id` int(5) DEFAULT '0',
   `category_name` text,
-  `name` text,
+  `name` varchar(256) DEFAULT NULL,
   `year` int(4) DEFAULT '0',
   `language` text,
   `area` text,
@@ -46,7 +57,10 @@ CREATE TABLE `video_collect` (
   `updates` int(5) DEFAULT '0',
   `status` tinyint(1) DEFAULT '0',
   `stage` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`collect_id`)
+  PRIMARY KEY (`collect_id`),
+  KEY `site_id` (`site_id`),
+  KEY `detail_id` (`detail_id`),
+  KEY `name` (`name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
@@ -54,7 +68,7 @@ DROP TABLE IF EXISTS `video_entry`;
 CREATE TABLE `video_entry` (
   `entry_id` int(11) NOT NULL AUTO_INCREMENT,
   `category_id` int(3) DEFAULT '0',
-  `name` text,
+  `name` varchar(256) DEFAULT NULL,
   `year` int(4) DEFAULT '0',
   `language` text,
   `area` text,
@@ -68,16 +82,38 @@ CREATE TABLE `video_entry` (
   `updated` int(10) DEFAULT '0',
   `modifies` int(5) DEFAULT '0',
   `updates` int(5) DEFAULT '0',
-  PRIMARY KEY (`entry_id`)
+  PRIMARY KEY (`entry_id`),
+  KEY `category_id` (`category_id`),
+  KEY `name` (`name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
--- 2018-04-11 18:54:28
+DROP TABLE IF EXISTS `video_list`;
+CREATE TABLE `video_list` (
+  `list_id` int(11) NOT NULL AUTO_INCREMENT,
+  `entry_id` int(10) DEFAULT '0',
+  `url_id` int(10) DEFAULT '0',
+  `sequence` int(5) DEFAULT '0',
+  `status` tinyint(1) DEFAULT '0',
+  `created` int(10) DEFAULT '0',
+  `updated` int(10) DEFAULT '0',
+  PRIMARY KEY (`list_id`),
+  KEY `entry_id` (`entry_id`),
+  KEY `url_id` (`url_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
-CREATE VIEW view_video_collect AS 
-SELECT A.collect_id, A.entry_id, A.site_id, A.detail_id, A.name, A.year, A.language, A.area, A.actor, A.director, A.poster, A.url, A.description, A.note, A.detail_status, A.modified, B.bind_id AS class_id 
-FROM video_collect A 
-LEFT JOIN video_category B ON B.site_id = A.site_id AND B.identification = A.category_id 
-WHERE A.collect_id < 10 
-LIMIT 100
+DROP TABLE IF EXISTS `video_url`;
+CREATE TABLE `video_url` (
+  `url_id` int(11) NOT NULL AUTO_INCREMENT,
+  `url` varchar(256) DEFAULT NULL,
+  `name` text,
+  `type` text,
+  `status` tinyint(1) DEFAULT '0',
+  `created` int(10) DEFAULT '0',
+  PRIMARY KEY (`url_id`),
+  UNIQUE KEY `url` (`url`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+-- 2018-04-12 13:49:00

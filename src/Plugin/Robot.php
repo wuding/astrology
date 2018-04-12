@@ -121,6 +121,59 @@ class Robot
 		return $arr;
 	}
 	
+	public function optimizeList()
+	{
+		$db = new Database(['db_name' => 'xyz_yingmi', 'table_name' => 'video_collect']);
+		$url = new \DbTable\VideoUrl;
+		$list = new \DbTable\VideoList;
+		$offset = $this->attr['page'] * 10 - 10;
+		$all = $db->select(null, 'collect_id,url,entry_id', 'collect_id', "$offset,10");
+		$arr = [];
+		foreach ($all as $row) {
+			if ($row->entry_id) {
+				$str = $this->decodeUrl($row->url, $row->collect_id);
+				# print_r($str);
+				foreach ($str as $s) {
+					$url_id = $url->check($s);
+					$list_id = $list->check(['entry_id' => $row->entry_id, 'url_id' => $url_id]);
+					$arr[] = $list_id;
+				}
+			}
+		}
+		return $arr;
+	}
+	
+	public function decodeUrl($url, $entry_id)
+	{
+		
+		$url = trim($url);
+		$list = preg_split('/\r\n/', $url);
+		$arr = [];
+		foreach ($list as $row) {
+			$row = trim($row);
+			if ($row) {
+				$col = preg_split('/#/', $row);
+				foreach ($col as $r) {
+					$str = preg_split('/(\$|http:)/i', $r);
+					$name = $str[0];
+					$idx = 2;
+					$u = $str[1];
+					if (!$u) {
+						$u = $str[2];
+						$idx++;
+					}
+					$type = $str[$idx];
+					$arr[] = [
+						'name' => $name,
+						'url' => 'http:' . $u,
+						'type' => $type,
+					];
+				}
+			}
+		}
+		return $arr;
+	}
+	
 	public function xmlData($r)
 	{
 		$arr = $url = $tags = [];
