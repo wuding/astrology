@@ -143,6 +143,98 @@ class Robot
 		return $arr;
 	}
 	
+	public function parseEntry()
+	{
+		$offset = $this->attr['page'] * 10 - 10;
+		$entry = new \DbTable\VideoEntry;
+		$collect = new \DbTable\VideoCollect;
+		$ent = $entry->select(null, 'entry_id', 'entry_id', "$offset,10");
+		$result = [];
+		foreach ($ent as $en) {
+			$co = $collect->find(['entry_id' => $en->entry_id], 'year,language,area,poster,description', 'collect_id');
+			$result[] = $entry->update(
+				[
+					'year' => $co->year, 
+					'language' => $co->language,
+					'area' => $co->area,
+					'poster' => $co->poster,
+					'description' => $co->description,
+				], 
+				['entry_id' => $en->entry_id]
+			);
+		}
+		return ['result' => $result];
+	}
+	
+	public function parseCollect()
+	{
+		$offset = $this->attr['page'] * 10 - 10;
+		$entry = new \DbTable\VideoEntry;
+		$collect = new \DbTable\VideoCollect;
+		$ent = $entry->select(null, 'entry_id', 'entry_id', "$offset,10");
+		$result = [];
+		foreach ($ent as $en) {
+			$co = $collect->select(['entry_id' => $en->entry_id], 'collect_id', 'collect_id', 100);
+			$num = count($co);
+			$arr = [];
+			foreach ($co as $row) {
+				$arr[] = $row->collect_id;
+			}
+			$str = implode(',', $arr);
+			$result[] = $entry->update(['collect_num' => $num, 'collect_ids' => $str], ['entry_id' => $en->entry_id]);
+		}
+		return ['result' => $result];
+	}
+	
+	public function parseDirector()
+	{
+		$offset = $this->attr['page'] * 10 - 10;
+		$entry = new \DbTable\VideoEntry;
+		$collect = new \DbTable\VideoCollect;
+		$ent = $entry->select(null, 'entry_id', 'entry_id', "$offset,10");
+		
+		$result = [];
+		foreach ($ent as $en) {
+			# print_r([$ent, $en]);exit;
+			$co = $collect->select(['entry_id' => $en->entry_id], 'director', 'collect_id', 100);
+			
+			$arr = [];
+			foreach ($co as $row) {
+				$people = $this->decodePerson($row->director);
+				foreach ($people as $person) {
+					if (!in_array($person, $arr)) {
+						$arr[] = $person;
+					}
+				}
+			}
+			$str = implode(',', $arr);
+			$result[] = $entry->update(['director' => $str], ['entry_id' => $en->entry_id]);
+		}
+		return ['result' => $result];
+	}
+	
+	
+	
+	public function decodePerson($str)
+	{
+		$str = trim($str);
+		$arr = preg_split('/[\/]+/', $str);
+		$data = [];
+		foreach ($arr as $row) {
+			$row = trim($row);
+			if (!preg_match('/[a-z]+/i', $row)) {
+				$ar = preg_split('/[\s]+/i', $row);
+				foreach ($ar as $r) {
+					$r = trim($r);
+					$data[] = $r;
+				}
+			} else {
+				$data[] = $row;
+			}
+		}
+		return $data;
+	}
+	
 	public function decodeUrl($url, $entry_id)
 	{
 		

@@ -128,6 +128,18 @@ class Database
 		return self::$adapter->find($sql);
 	}
 	
+	public function count($where = null)
+	{
+		$db_table = $this->from();
+		$sql = "SELECT COUNT(1) AS num FROM $db_table";
+		$where = $this->sqlWhere($where);
+		if ($where) {
+			$sql .= " WHERE $where";
+		}
+		$row = self::$adapter->find($sql);
+		return $row->num;
+	}
+	
 	public function select($where = null, $column = '*', $order = null, $limit = 10)
 	{
 		$db_table = $this->from();
