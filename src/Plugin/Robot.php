@@ -336,28 +336,28 @@ class Robot
 	/**
 	 * 写入本地文件
 	 */
-	public function putFile($key = 0, $_1 = null)
+	public function putFile($key = 0, $_1 = null, $_2 = null)
 	{
-		$file = $this->getProp($key, 'paths', $_1);
-		$data = $this->getUrlContents($key, $_1);
+		$file = $this->getProp($key, 'paths', $_1, $_2);
+		$data = $this->getUrlContents($key, $_1, $_2);
 		return $size = Filesystem::putContents($file, $data);
 	}
 	
 	/**
 	 * 获取远程文件
 	 */
-	public function getUrlContents($key = 0, $_1 = null)
+	public function getUrlContents($key = 0, $_1 = null, $_2 = null)
 	{
-		$file = $this->getProp($key, 'urls', $_1);
+		$file = $this->getProp($key, 'urls', $_1, $_2);
 		return $str = Filesystem::getContents($file);
 	}
 	
 	/**
 	 * 获取本地文件
 	 */
-	public function getPathContents($key = 0, $_1 = null)
+	public function getPathContents($key = 0, $_1 = null, $_2 = null)
 	{
-		$file = $this->getProp($key, 'paths', $_1);
+		$file = $this->getProp($key, 'paths', $_1, $_2);
 		return $str = Filesystem::getContents($file);
 	}
 	
