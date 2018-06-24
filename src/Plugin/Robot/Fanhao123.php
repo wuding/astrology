@@ -84,10 +84,11 @@ class Fanhao123 extends \Plugin\Robot
 	 */
 	public function downloadDetail()
 	{
-		$offset = $this->attr['page'] * 10 - 10;
+		$pageSize = 10;
+		$offset = $this->attr['page'] * $pageSize - $pageSize;
 		$VideoCollect = new \DbTable\PornStar();
-		$ent = $VideoCollect->select(null, 'collect_id,detail_id,pinyin', 'collect_id', "$offset,10");
-		$pageCount = ceil($VideoCollect->count() / 10);
+		$ent = $VideoCollect->select(null, 'collect_id,detail_id,pinyin', 'collect_id', "$offset,$pageSize");
+		$pageCount = ceil($VideoCollect->count() / $pageSize);
 		$result = [];
 		$key = 1;
 		foreach ($ent as $en) {
@@ -101,11 +102,12 @@ class Fanhao123 extends \Plugin\Robot
 	 */
 	public function parseDetail()
 	{
-		$offset = $this->attr['page'] * 10 - 10;
+		$pageSize = 5;
+		$offset = $this->attr['page'] * $pageSize - $pageSize;
 		$VideoCollect = new \DbTable\PornStar();
 		$PornFilm = new \DbTable\PornFilm();
-		$ent = $VideoCollect->select(null, 'collect_id,detail_id,pinyin', 'collect_id', "$offset,10");
-		$pageCount = ceil($VideoCollect->count() / 10);
+		$ent = $VideoCollect->select(null, 'collect_id,detail_id,pinyin', 'collect_id', "$offset,$pageSize");
+		$pageCount = ceil($VideoCollect->count() / $pageSize);
 		$result = [];
 		$key = 1;
 		foreach ($ent as $en) {
@@ -115,9 +117,17 @@ class Fanhao123 extends \Plugin\Robot
 			$array = $this->tbody($str);
 			
 			$shift = array_shift($array);
-			$_0 = $shift['番号'];
+			
+			
+			$_0 = $_2 = 'null';
 			$_1 = $shift['作品名称'];
-			$_2 = 'null';
+			if (isset($shift['番号'])) {
+				$_0 = $shift['番号'];
+			} else {
+				print_r($shift);
+				print_r($array);
+				exit;
+			}
 			if (isset($shift['片长'])) {
 				$_2 = $shift['片长'];
 			}
@@ -172,7 +182,7 @@ class Fanhao123 extends \Plugin\Robot
 		$th = $thead[0]->getElementsByTagName('th');
 		$h = [];
 		for ($i = 0; $i < $th->length; $i ++) {
-			$h[$i] = $th[$i]->nodeValue;
+			$h[$i] = trim($th[$i]->nodeValue);
 		}
 		$col = [
 			'番号' => '',
