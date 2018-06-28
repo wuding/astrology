@@ -2,8 +2,12 @@
 
 return array(
 	'route' => array(
-		'^\/uri\-scheme\/([a-z0-9\-]+)' => '//_Controller/_Action',
+		//'^\/uri\-scheme\/([a-z0-9\-]+)' => '//_Controller/_Action',
 		//'^\/accounts\/([a-z0-9\-]+)' => '//_Controller/_Action',
+		'^\/\.+([a-z0-9]+)' => '/_Module/_Controller/promotion',
+		'^\/!+([a-z0-9]+)' => '/_Module/_Controller/shortening',
+		'^\/([0-9]+)' => '/_Module/_Controller/item',
+		'^\/+(\\$|¥|€)([a-zA-Z0-9]+)' => '/_Module/_Controller/command',
 	),
 	'database' => array(
 		'driver' => 'pdo_mysql',

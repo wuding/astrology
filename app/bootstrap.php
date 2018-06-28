@@ -1,4 +1,12 @@
 <?php
+/*
+if (!defined('APP_PATH')) {
+	define('APP_PATH', __DIR__);
+} else {
+	echo APP_PATH;
+	# exit;
+}
+*/
 define('APP_PATH', __DIR__);
 
 /**
@@ -14,6 +22,7 @@ define('APP_MODULES', true/*
 		'Robot' => ['_Controller'],
 	]*/
 );
+$APP_MODULES = APP_MODULES;
 
 /**
  * 定义类加载规则
@@ -23,13 +32,14 @@ define('APP_MODULES', true/*
  * .* 匹配所有其它，如果不设置这条将从 include_path 查找
  * 顺序很重要
  */
-define('ANFORA_AUTOLOAD', 
-	[
+$ANFORA_AUTOLOAD = [
 		'Astrology|DbTable|Plugin' =>  APP_PATH . '/../src',
 		'Controller|View|Model|Form' => APP_PATH . '/{$GLOBALS["MODULE_NAME"]}',
 		'/_/' => ['eval' => '$arr = explode("_", $name); $name = array_pop($arr); $path = "' . APP_PATH . '/../lib/" . implode("/", $arr);'],# 
 		# '.*' => APP_PATH . '/../lib',
-	]
+	];
+define('ANFORA_AUTOLOAD', 
+	true
 );
 
 

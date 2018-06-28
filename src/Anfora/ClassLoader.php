@@ -47,6 +47,7 @@ class ClassLoader
 	
 	public function findFile($name)
 	{
+		global $ANFORA_AUTOLOAD;
 		$file = $name;
 		// 兼容 PEAR 类命名和加载规则
 		if (preg_match('/[a-z0-9]_/i', $name)) {
@@ -59,8 +60,8 @@ class ClassLoader
 		$rule = [
 			'Anfora' => ANFORA_PATH . '/..',
 		];
-		if (defined('ANFORA_AUTOLOAD') && is_array(ANFORA_AUTOLOAD)) {
-			$rule = array_merge($rule, ANFORA_AUTOLOAD);
+		if (defined('ANFORA_AUTOLOAD') && is_array($ANFORA_AUTOLOAD)) {
+			$rule = array_merge($rule, $ANFORA_AUTOLOAD);
 		}
 		
 		/* 匹配规则 */

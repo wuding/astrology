@@ -11,9 +11,22 @@ class Route
 	public $params = [];
 	public $query = false;
 	public $extension = false;
+	public $path = false;
 	
 	public function __construct()
 	{
+		// 路由规则
+		$route = $GLOBALS['CONFIG']['route'];
+		$tmp = $this->getRequestPath(0);
+		foreach ($route as $key => $value) {
+			# print_r(array($key, $value, $tmp));
+			if (preg_match("/$key/i", $tmp, $matches)) {
+				$this->request_path = $value;
+				break;
+			}
+		}
+		
+		$this->path = $this->getRequestPath(2);
 	}
 	
 	public static function getInstance()
@@ -24,9 +37,9 @@ class Route
 		return self::$instance = new Route();
 	}
 	
-	public function getRequestPath()
+	public function getRequestPath($set = 1)
 	{
-		if (false !== $this->request_path) {
+		if (1 == $set && false !== $this->request_path) {
 			return $this->request_path;
 		}
 		$request_uri = preg_replace('/\/+/', '/', $_SERVER['REQUEST_URI']);
@@ -37,7 +50,13 @@ class Route
 			$path = $matches[1];
 			$this->extension = $matches[2];
 		}
-		return $this->request_path = $path;
+		if ($set) {			
+			if (2 == $set) {
+				return $path;
+			}
+			$this->request_path = $path;
+		}
+		return $path;
 	}
 	
 	public function getRequestQuery()
@@ -63,6 +82,7 @@ class Route
 	public function getPath($key = 0, $default = null)
 	{
 		$path = explode('/', $this->getRequestPath());
+		# print_r($path);
 		if (isset($path[$key]) && ($name = $path[$key])) {
 			return $name;
 		}
@@ -71,7 +91,10 @@ class Route
 	
 	public function getModuleName($default = null, $index = 1)
 	{
-		return $this->fixName($this->getPath($index, $default));
+		$path = $this->getPath($index, $default);
+		$fixname = $this->fixName($path);
+		# print_r([$this->getRequestPath(), $path, $fixname]);
+		return $fixname;
 	}
 	
 	public function getControllerName($default = null, $index = 2)
@@ -178,4 +201,32 @@ class Route
 		}
 		return $arr;
 	}
+	
+	/*
+	 * 数组
+	 */
+    public function array_merge_key($arr = array(), $arr2 = array())
+    {
+    	$a = count($arr);
+    	$b = count($arr2);
+
+    	$ar = array();
+    	$i = 0;
+    	foreach ($arr as $key => $value) {
+    		if (isset($arr2[$key]) && $arr2[$key]) {
+    			$value = $arr2[$key];
+    		}
+
+    		$ar[$key] = $value;
+    		$i++;
+    	}
+
+    	if ($b > $a) {
+    		for ($j = $i; $j < $b; $j++) {
+    			$ar[$j] = $value;
+    		}
+    	}
+
+    	return $ar;
+    }
 }

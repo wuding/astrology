@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title><?=$title?></title>
+<link rel="stylesheet" type="text/css" href="css/wx.css?v=9" />
+<script src="js/stat.js?v=1"></script>
+</head>
+
+<body>
+<header>
+	<h4 class="encoded">
+		本页可能已被重新排版，请点击上面的
+		<a href="<?=$source_url?>">原网页</a>，再点击
+		<a href="<?=$source_url?>">访问原网页</a>；
+		建议您复制下面的链接在浏览器中查看！
+	</h4>
+	<h4 class="encoded" style="display: none">
+		点击右上角... 选择在浏览器中打开，
+		您正在使用的<?=$device?>无法正常查看！
+		下面是本页链接地址。
+	</h4>
+	<h4 class="encoded" style="display: none">
+		coupon.ren 仅作为短链接购物分享，请放心使用！
+	</h4>
+	<div style="padding: 10px" contenteditable="true">
+		http://coupon.ren/<?=$code?>
+	</div>
+</header>
+
+<progress value="20" max="100"></progress>
+
+<main>
+	<div class="entry">
+		<div><img src="<?=$pic?>" /></div><!-- img/alipay_newuser.png-->
+		<h3>
+			<a href="<?=$url?>"><?=$name?></a>
+		</h3>
+	</div>
+</main>
+
+<article>
+	<fieldset id="share">
+		<legend>短链接</legend>
+		<div style="padding: 10px">
+			<a href="http://coupon.ren/<?=$code?>">http://coupon.ren/<?=$code?></a>
+		</div>
+	</fieldset>
+	<fieldset>
+		<legend>淘口令</legend>
+		<div style="padding: 10px">
+			<div id="zhanwei"></div>
+			<div id="taokouling_wenan" style="display: block; word-wrap: break-word;" contenteditable="true">
+				【<?=$name?>】，復·制这段描述 
+				<a href="http://coupon.ren/<?=$code?>">http://coupon.ren/<?=$code?></a> 
+				后咑閞👉手机淘宝👈或者用浏览器咑閞查看
+			</div>
+		</div>
+	</fieldset>
+	<fieldset>
+		<legend>二维码</legend>
+		<div style="text-align: center;"><img src="http://www.coupon.ren/img/click/QRQ1GPw.png" /></div><!-- img/alipay_newuser_qr.png-->
+		<p style="text-align: center">请保存上面的图片，然后用<a href="taobao://www.coupons.name/">手机淘宝</a> 扫码</p>
+	</fieldset>
+</article>
+
+<div class="bottom">
+	<a href="taobao://www.coupons.name/">打开手机淘宝</a> 
+	<a href="tbopen://www.coupons.name/">打开手机淘宝</a> 
+	<a href="alipays://platformapi/">打开支付宝</a>
+	<a href="safari://www.coupons.name/">打开浏览器</a>
+</div>
+
+<footer>	
+	<a href="#share">我要分享</a>
+	<a href="javascript:" class="open">立即打开</a>
+	<div><span class="close"></span><time>10</time><span>秒后跳转</span><var>......</var></div>
+</footer>
+
+<script>
+taokouling_wenan.style.display = 'none';
+taokouling_wenan.style.width = zhanwei.offsetWidth + 'px';
+taokouling_wenan.style.display = 'block';
+var footer = document.getElementsByTagName( 'footer' )[0];
+footer.style.display = 'block';// 
+var client = <?=$client?>;
+if (!client) { //正常
+	document.getElementsByTagName( 'header' )[0].style.display = 'none';
+	document.getElementsByTagName( 'progress' )[0].style.display = 'block';
+	document.getElementsByTagName( 'main' )[0].style.padding = '5px 0 0 0';
+	
+} else if ('MicroMessenger' == client) { //微信
+	var h4 = document.getElementsByTagName( 'h4' );
+	h4[0].style.display = 'none';
+	h4[1].style.display = 'block';
+} else if ('TB' == client) { //淘宝
+	var h4 = document.getElementsByTagName( 'h4' );
+	h4[0].style.display = 'none';
+	h4[client].style.display = 'block';
+}
+</script>
+</body>
+</html>
