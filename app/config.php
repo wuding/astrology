@@ -23,6 +23,7 @@ return array(
 		'cdn_prefix' => 'http://taurus/template/wxhb/',
 		# 'cdn_prefix' => 'http://wx.themeal.cn/wwwroot/urlnk/web/',
 		'document_root' => '/',
+		'url_shortening' => 'http://lan.coupon.ren/',
 	),
 	'view_session' => array(
 		'auth' => 1,

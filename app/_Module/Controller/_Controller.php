@@ -22,6 +22,8 @@ class _Controller extends \Astrology\Controller
 		}
 		$this->tongji = $stat;
 		$this->redirect = isset($_GET['redirect']);
+		$this->timeout = isset($_GET['timeout']) ? $_GET['timeout'] : null;
+		$this->url_shortening = $GLOBALS['CONFIG']['view']['url_shortening'];
 	}
 	
 	/*public function _Action()
@@ -50,17 +52,17 @@ class _Controller extends \Astrology\Controller
 			$where .= " AND `group` $group 0";
 			
 			$coupon = new \DbTable\AlimamaCoupon;
-			$row = $coupon->find($where, 'promotion,`group`,taobaoke,name,pic', 'id DESC');
+			$row = $coupon->find($where, 'promotion,`group`,taobaoke,name,pic,qr,timeout', 'id DESC');
 			if ($row) {
 				$url = $row->promotion;
 				if ($row->group) {
 					$url = $row->taobaoke;
 				}
-				$this->_output($url, $row->name, $row->pic, '.' . $code);
+				$this->_output($url, $row->name, $row->pic, '.' . $code, $row->qr, 'promotion', $row->timeout);
 			}
+		} else {
+			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 		}
-		
-		$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 	}
 	
 	/**
@@ -76,11 +78,11 @@ class _Controller extends \Astrology\Controller
 			$row = $coupon->find("id = $id");
 			if ($row) {
 				$url = $row->url;
-				$this->_output($url, $row->title, null, '!' . $code);
+				$this->_output($url, $row->title, null, '!' . $code, $row->qr, 'shortening', $row->timeout);
 			}
+		} else {
+			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 		}
-		
-		$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 	}
 	
 	/**
@@ -103,17 +105,17 @@ class _Controller extends \Astrology\Controller
 			$where .= " AND `group` $group 0";
 			
 			$coupon = new \DbTable\AlimamaCoupon;
-			$row = $coupon->find($where, 'url,`group`,taobaoke,name,pic', 'id DESC');
+			$row = $coupon->find($where, 'url,`group`,taobaoke,name,pic,qr,timeout', 'id DESC');
 			if ($row) {
 				$url = $row->taobaoke;
 				if ($row->group) {
 					$url = $row->url;
 				}
-				$this->_output($url, $row->name, $row->pic, $code);
+				$this->_output($url, $row->name, $row->pic, $code, $row->qr, 'item', $row->timeout);
 			}
+		} else {
+			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 		}
-		
-		$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 	}
 	
 	/**
@@ -133,35 +135,41 @@ class _Controller extends \Astrology\Controller
 			$row = $coupon->find($where, '*', 'id DESC');
 			if ($row) {
 				if ($row->url) {
-					$command_url = 'http://coupon.ren/\$' . $row->command . '\$';
+					$command_url = $this->url_shortening . '\$' . $row->command . '\$';
 					$command_url = "<a href=\"$command_url\">$command_url</a>";# 
 					if (!$row->description) {
-						$row->description = '【%title】，復·制这段描述 %command_url 后咑閞👉手机淘宝👈或者用浏览器咑閞查看';
+						# $row->description = '【%title】，復·制这段描述 %command_url 后咑閞👉手机淘宝👈或者用浏览器咑閞查看';
 					}
 					$row->description = preg_replace("/%title/", $row->title, $row->description);
-					$row->description = preg_replace("/%command_url/", $command_url, $row->description);
-					$this->_output($row->url, [$row->title, $row->description], $row->pic, '$' . $code . '$');
+					# $row->description = preg_replace("/%command_url/", $command_url, $row->description);
+					$this->_output($row->url, [$row->title, $row->description], $row->pic, '$' . $code . '$', $row->qr, 'command', $row->timeout);# 
 				}
 			} else {
 				$coupon->insert(['command' => $code, 'symbol' => $type, 'created' => time()]);
 			}
+		} else {
+			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 		}
 		# print_r([$GLOBALS['PATH'], $matches, $row]);exit;
-		$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 	}
 	
-	public function _output($url, $name = '', $pic = '', $code = '')
+	public function _output($url, $name = '', $pic = '', $code = '', $qr = null, $type = null, $timeout = 5)
 	{
+		$timeout = is_null($this->timeout) ? $timeout : $this->timeout;
+		if (0 > $timeout) {
+			header("Location: $url");
+			exit;
+		}
+		
 		$redirect = isset($_GET['debug']);
-		$html = '';
+		$html = $description = '';
 		$title = '凑婆娘优惠券_短网址服务 缩址工具 更方便!';
 		$request_uri = htmlspecialchars($_SERVER['REQUEST_URI']);
 		$source_url = 'http://' . $_SERVER['HTTP_HOST'] . $request_uri;
 		$device = '未知APP';
-		$client = 0;
+		$client = null;
 		if (preg_match("/AliApp\((TB|AP)\/([0-9\.]+)\)/i", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-			# print_r($matches);exit;
-			
+			# print_r($matches);exit;			
 			$client = $matches[1];
 			$version = $matches[2];
 			/*
@@ -170,41 +178,30 @@ class _Controller extends \Astrology\Controller
 		} elseif (preg_match("/(MicroMessenger|QQ)/i", $_SERVER['HTTP_USER_AGENT'], $matches)) {
 			$client = $matches[1];
 			$device = $matches[1];
-			
-			$html = <<<HEREDOC
-			<h4 style="background:#f00; color:#fff; padding: 10px; margin: 0; text-align: center">
-如被重新排版, 请点击上面的<a href="http://{$_SERVER['HTTP_HOST']}$request_uri">访问原网页</a>!!!
-</h4>
-			<div style="background:#000; color:#fff; padding: 10px">
-		点击右上角... 选择在 Safari 浏览器中打开, 您正在使用的 {$device} 无法正常查看!
-</div>
-HEREDOC;
-		} else {
-			$html .= "<h3 style=\"text-align: center; background:#000; color:#fff;  padding: 10px; margin: 0\">页面跳转中……<br/>请稍候</h3>";
-			if (!$redirect) {
-				$html .= "<script>window.scrollTo(0,0); setTimeout(\"location.href='$url'\", 1000);</script><iframe src=\"$url\" style=\"width: 1px; height: 1px; border: 0; margin: 0; padding: 0; float: left;\"></iframe>";# 
-			}
 		}
-		$html .= "<blockquote style=\"text-align: center\"><a href=\"$url\">按住这里复制链接地址</a></blockquote>";
 		
+		$command_url = $this->url_shortening . $code;
 		if ($name) {
-			if (is_array($name)) {
-				$title = htmlspecialchars($name[0]);
-				$name = $name[1] ? : $title;
-			} else {
-				$title = $name = htmlspecialchars($name);
+			if (is_array($name)) {				
+				$description = $name[1];
+				$name = htmlspecialchars($name[0]);
+				
+				$description = preg_replace("/%command_url/", $command_url, $description);
 			}
-			$title .= '_凑婆娘优惠券';
-			# $name = "<div style=\"text-align: center\">$name</div>";
-			
-		}
-		if ($pic) {
-			$pic = "<div><img src=\"$pic\" style=\"width: 100%\"></div>";
+			$title = $name;
+			$title .= '_凑婆娘优惠券';			
 		}
 		
 		$tongji = $this->tongji;
+		$second = $timeout;
+		$open_url = preg_replace("/^http(|s):\/+/i", '', $command_url);
+		$cmd_url = htmlspecialchars($command_url);
+		$urlencode = urlencode($code);
+		$url_encode = ($urlencode != $code) ? $this->url_shortening . $urlencode : '';
+		
+		# print_r(get_defined_vars()); exit;
 		include '../app/_Module/View/_Controller/output.html';
-		exit;
+		exit;# 
 	}
 	
 	/**
@@ -221,6 +218,6 @@ HEREDOC;
 		
 		$tongji = $this->tongji;
 		include '../app/_Module/View/_Controller/notfound.php';
-		exit;
+		# exit;
 	}
 }

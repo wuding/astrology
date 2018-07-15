@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title><?=$title?></title>
-<link rel="stylesheet" type="text/css" href="css/wx.css?v=9" />
-<script src="js/stat.js?v=1"></script>
+<link rel="stylesheet" type="text/css" href="/css/wx.css?v=24" />
+<?php if (!$tongji) { echo '<script src="/js/stat.js?v=1"></script>'; } ?>
 </head>
 
 <body>
+<div class="container">
 <header>
 	<h4 class="encoded">
 		本页可能已被重新排版，请点击上面的
@@ -18,86 +19,232 @@
 	</h4>
 	<h4 class="encoded" style="display: none">
 		点击右上角... 选择在浏览器中打开，
-		您正在使用的<?=$device?>无法正常查看！
+		您正在使用的<?=$device?>可能无法正常查看！
 		下面是本页链接地址。
 	</h4>
-	<h4 class="encoded" style="display: none">
+	<h4 class="encoded" style="display: none; " id="taobao_tip">
 		coupon.ren 仅作为短链接购物分享，请放心使用！
 	</h4>
 	<div style="padding: 10px" contenteditable="true">
-		http://coupon.ren/<?=$code?>
+		<?=$cmd_url?>
 	</div>
 </header>
 
-<progress value="20" max="100"></progress>
+<div id="progress_bar">
+	<progress value="20" max="100"></progress>
+</div>
 
 <main>
 	<div class="entry">
-		<div><img src="<?=$pic?>" /></div><!-- img/alipay_newuser.png-->
+		<div><?php if ($pic) { echo "<img src=\"$pic\" />"; } ?></div><!-- img/alipay_newuser.png-->
 		<h3>
-			<a href="<?=$url?>"><?=$name?></a>
+			<a href="<?=$url?>" id="target_url"><?=$name?></a>
 		</h3>
+		<div class="description">
+			<?=$description?>
+		</div>
 	</div>
 </main>
 
-<article>
-	<fieldset id="share">
-		<legend>短链接</legend>
-		<div style="padding: 10px">
-			<a href="http://coupon.ren/<?=$code?>">http://coupon.ren/<?=$code?></a>
-		</div>
+<article>	
+	<?php
+		if ($qr) {
+	?>
+	<fieldset>
+		<legend>扫码领券购买</legend>
+		<div style="text-align: center; padding: 10px"><img src="<?=$qr?>" /></div><!-- img/alipay_newuser_qr.png-->
+		<div style="text-align: center; padding: 0 0 10px 0; font-size: 14px">保存图片或截屏，再用<a href="taobao://">手机淘宝</a>扫一扫</div>
 	</fieldset>
+	<?php
+		}
+	
+		$slh = '';
+		if (in_array($type, ['shortening'])) {
+			// $second = 3;
+			$slh = 'hide';
+		}
+		
+		if (preg_match("/^(\\$|¥|€)/", $code)) {
+	?>
 	<fieldset>
 		<legend>淘口令</legend>
 		<div style="padding: 10px">
 			<div id="zhanwei"></div>
 			<div id="taokouling_wenan" style="display: block; word-wrap: break-word;" contenteditable="true">
 				【<?=$name?>】，復·制这段描述 
-				<a href="http://coupon.ren/<?=$code?>">http://coupon.ren/<?=$code?></a> 
+				<a href="<?=$cmd_url?>"><?=$cmd_url?></a> 
 				后咑閞👉手机淘宝👈或者用浏览器咑閞查看
 			</div>
 		</div>
 	</fieldset>
+	<?php
+		}
+		
+		if (!in_array($client, ['MicroMessenger', 'TB'])) {
+	?>
+	<fieldset id="share">
+		<legend>短链接</legend>
+		<div style="padding: 10px; text-align: center;">
+			<a href="<?=$cmd_url?>"><?=$cmd_url?></a>
+		</div>
+<?php
+		if ($url_encode) {
+			echo <<<HEREDOC
+		<div style="padding: 10px; text-align: center;">
+			<div style="font-size: 14px">QQ可以用编码过的URL</div>
+			<a href="$url_encode">$url_encode</a>
+		</div>
+HEREDOC;
+		}
+?>
+	</fieldset>
+	<?php
+		}
+	?>
 	<fieldset>
-		<legend>二维码</legend>
-		<div style="text-align: center;"><img src="http://www.coupon.ren/img/click/QRQ1GPw.png" /></div><!-- img/alipay_newuser_qr.png-->
-		<p style="text-align: center">请保存上面的图片，然后用<a href="taobao://www.coupons.name/">手机淘宝</a> 扫码</p>
+		<legend>打开方式</legend>
+		<div style="padding: 10px; text-align: center;">
+			<a href="tbopen://<?=$open_url?>" id="tbopen_url">手机淘宝</a>
+			<!--a href="taobao://<?=$open_url?>" id="taobao_url">手机淘宝</a--> | 
+			<a href="tmall://page.tm/webview?url=<?=urlencode($command_url)?>">天猫</a> | 
+			<a href="alipays://platformapi/startapp?appId=20000067&url=<?=urlencode($command_url)?>">支付宝</a> | 
+			<a href="weixin://">微信</a>
+		</div>
+	</fieldset>
+	<fieldset>
+		<legend>更多优惠券</legend>
+		<div style="padding: 10px; text-align: center;">
+			<a href="https://coupons.name/">www.coupons.name</a>
+		</div>
 	</fieldset>
 </article>
 
 <div class="bottom">
-	<a href="taobao://www.coupons.name/">打开手机淘宝</a> 
-	<a href="tbopen://www.coupons.name/">打开手机淘宝</a> 
-	<a href="alipays://platformapi/">打开支付宝</a>
-	<a href="safari://www.coupons.name/">打开浏览器</a>
 </div>
 
-<footer>	
-	<a href="#share">我要分享</a>
-	<a href="javascript:" class="open">立即打开</a>
-	<div><span class="close"></span><time>10</time><span>秒后跳转</span><var>......</var></div>
+<footer style="">	
+	<a href="javascript:share();" id="share_button">我要分享</a>
+	<a href="<?=$url?>" class="open" id="open_button">立即打开</a>
+	<div id="count_down"><time><?=$second?></time><span> 秒后跳转</span><var class="<?=$slh?>"></var></div>
 </footer>
+</div>
 
 <script>
-taokouling_wenan.style.display = 'none';
-taokouling_wenan.style.width = zhanwei.offsetWidth + 'px';
-taokouling_wenan.style.display = 'block';
+//保留两位小数 
+ //功能：将浮点数四舍五入，取小数点后2位 
+ function toDecimal(x, y) { 
+ y = y || 100;
+  var f = parseFloat(x); 
+  if (isNaN(f)) { 
+  return; 
+  } 
+  f = Math.round(x*y)/y; 
+  return f; 
+ } 
+ 
+var ms = 0,
+	s = Number( <?=$second?> ),
+	// shang = ( 10 < s ) ?   :s / 10,
+	shang = 10 / s,
+	jishu = toDecimal( shang );
+	// document.title = JSON.stringify([<?=$second?>, s, shang, jishu]);
+
+if ( 'undefined' != typeof taokouling_wenan ) {
+	taokouling_wenan.style.display = 'none';
+	taokouling_wenan.style.width = zhanwei.offsetWidth + 'px';
+	taokouling_wenan.style.display = 'block';
+}
+
+var main = document.getElementsByTagName( 'main' )[0];
 var footer = document.getElementsByTagName( 'footer' )[0];
-footer.style.display = 'block';// 
-var client = <?=$client?>;
+var progress = document.getElementsByTagName( 'progress' )[0];
+var time = document.getElementsByTagName( 'time' )[0];
+var var_tag = document.getElementsByTagName( 'var' )[0];
+var h4 = document.getElementsByTagName( 'h4' );
+var header = document.getElementsByTagName( 'header' )[0];
+
+var client = '<?=$client?>';
 if (!client) { //正常
-	document.getElementsByTagName( 'header' )[0].style.display = 'none';
-	document.getElementsByTagName( 'progress' )[0].style.display = 'block';
-	document.getElementsByTagName( 'main' )[0].style.padding = '5px 0 0 0';
+	header.style.display = 'none';
+	progress.style.display = 'block';
+	main.style.padding = '5px 0 0 0';
+	<?php
+	/*if (!$slh) {
+	?>
+		setTimeout("tbopen_url.click();", 1000);
+	<?php
+	}*/
+	?>
 	
-} else if ('MicroMessenger' == client) { //微信
-	var h4 = document.getElementsByTagName( 'h4' );
+} else if ('TB' == client) { //淘宝
+	h4[0].style.display = 'none';
+	h4[2].style.display = 'block';
+	setTimeout("taobao_tip.style.padding = '10px';", 2000);
+} else if ( ! client.match( /^(AP)$/i ) ) { //其他APP
+	setTimeout( "browser_tip();", 700 );
+}
+
+function browser_tip() {
 	h4[0].style.display = 'none';
 	h4[1].style.display = 'block';
-} else if ('TB' == client) { //淘宝
-	var h4 = document.getElementsByTagName( 'h4' );
-	h4[0].style.display = 'none';
-	h4[client].style.display = 'block';
+}
+	
+<?php
+// 微信
+if (!in_array($client, ['MicroMessenger'])) {
+?>
+footer.style.display = 'block';// 
+var progress_val = self.setInterval( "progress_value()", 100 );
+var time_val = self.setInterval( "time_value()", 1000 );
+<?php
+} 
+/*
+else {
+	echo <<<HEREDOC
+	zhanwei.innerHTML = target_url.href;
+HEREDOC;
+}
+*/
+?>
+
+
+function progress_value() {
+	ms = ms + jishu;
+	var dec = toDecimal( ms, 100 );
+	var rou = Math.round( dec );
+	// console.log(JSON.stringify( [ms, dec, rou, jishu] ));
+	var_tag.innerHTML = repeat( '.' , rou % 7 );
+	progress.setAttribute( 'value', rou );
+	if ( 100 <= rou ) {
+		progress_val = window.clearInterval( progress_val );
+		progress_bar.style.display = 'none';
+		main.style.padding = '0';
+	}
+	
+}
+
+function time_value() {
+	s--;
+	time.innerHTML = s;
+	// document.title = s;
+	if ( 0 == s ) {
+		document.getElementById( 'target_url' ).click();// 
+		time_val = window.clearInterval( time_val );
+	}
+}
+
+function share()
+{
+	time_val = window.clearInterval( time_val );
+	progress_val = window.clearInterval( progress_val );
+	progress_bar.style.display = share_button.style.display = count_down.style.display = open_button.style.float = 'none';
+	main.style.padding = '0';
+}
+
+function repeat(str , n){
+
+return new Array(n+1).join(str);
+
 }
 </script>
 </body>

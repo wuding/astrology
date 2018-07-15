@@ -1,5 +1,12 @@
 body {
 	margin: 0;
+	background: #eee;
+}
+
+.container {
+	max-width: 414px;
+	margin: 0 auto;
+	background: #fff;
 }
 
 header {
@@ -12,6 +19,7 @@ progress {
 	z-index: 1000;
 	top: 0;
 	width: 100%;
+	max-width: 414px;
 	height: 5px
 }
 
@@ -32,25 +40,50 @@ main {
 	color: #aaaaff;
 }
 
+#taobao_tip {
+	padding: 55px 10px 10px 10px;
+}
+
 .entry {
+}
+
+.entry a {
+	text-decoration: none;
 }
 
 .entry img {
 	width: 100%;
+	max-width: 100%;
 }
 
 .entry h3 {
-	padding: 10px;
-	margin: 0
+	padding: 5px;
+	margin: 0;
+	font-size: 18px;
+	line-height: 22px;
+	font-weight: normal;
+}
+
+.description,
+.entry blockquote {
+	margin: 10px 10px 20px 10px;
+	font-size: 14px;
+}
+
+
+article {
+	/*padding: 10px 0 0 0;*/
+	overflow: hidden;
 }
 
 fieldset {
-	margin: 10px 0 10px 0;
-	padding: 0;
+	margin: 10px 0 0 0;
+	padding: 0 0 10px 0;
 	border-width: 1px;
     border-right: none;
 	border-bottom: none;
 	border-left: none;
+	overflow: hidden;
 }
 
 legend {
@@ -66,10 +99,11 @@ footer {
 	position: fixed;
 	z-index: 999;
 	bottom: 0;
-	line-height: 32px;
+	line-height: 44px;
 	background: #fff;
 	border-top: 1px solid #BABABA;
 	width: 100%;
+	max-width: 414px;
 	text-align: center;
 }
 
@@ -109,4 +143,8 @@ span.close {
     background-size: cover;
 	
 	
+}
+
+.hide {
+	display: none;
 }
