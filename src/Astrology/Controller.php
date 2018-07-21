@@ -82,7 +82,7 @@ class Controller
 	public function __destruct()
 	{
 		$variables = $this->_run();
-		if (isset($_GET['debug'])) {
+		if (isset($_GET['debug']) && $variables) {
 			$variables = is_array($variables) ? print_r($variables, true) : $variables;
 			print_r([$variables, __FILE__, __LINE__]);
 			# exit;

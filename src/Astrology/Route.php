@@ -192,6 +192,17 @@ class Route
 		return scandir(APP_PATH);
 	}
 	
+	public function appModules($APP_MODULES = [])
+	{
+		$modules = $this->getModules();
+		foreach ($modules as $mod) {
+			if (!preg_match("/\./", $mod)) {
+				$APP_MODULES[$mod] = [];
+			}
+		}
+		return $APP_MODULES;
+	}
+	
 	public function getControllers()
 	{
 		$dir = scandir(APP_PATH . '/' . $GLOBALS['MODULE_NAME'] . '/Controller');
@@ -199,7 +210,24 @@ class Route
 		foreach ($dir as $file) {
 			$arr[] = str_replace('.php', '', $file);
 		}
+		# print_r([__LINE__, $dir, $arr]);exit;
 		return $arr;
+	}
+	
+	public function appControllers($APP_MODULES = [], $module = null)
+	{
+		$module = $module ? : $GLOBALS['MODULE_NAME'];
+		if (!isset($APP_MODULES[$module])) {
+			$APP_MODULES[$module] = [];
+		}
+		$controllers = $this->getControllers();
+		foreach ($controllers as $ctrl) {
+			if (!preg_match("/^\.+$/", $ctrl)) {
+				# $ctrl = preg_replace('/\.php$/', '', $ctrl);
+				$APP_MODULES[$module][] = $ctrl;
+			}
+		}
+		return $APP_MODULES[$module];
 	}
 	
 	/*

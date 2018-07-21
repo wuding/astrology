@@ -1,5 +1,12 @@
 <!doctype html>
 <html>
+<?php
+$img = '';
+if (is_array($pic)) {
+	$img = $pic[1];
+	$pic = $pic[0];
+}
+?>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
@@ -36,7 +43,8 @@
 
 <main>
 	<div class="entry">
-		<div><?php if ($pic) { echo "<img src=\"$pic\" />"; } ?></div><!-- img/alipay_newuser.png-->
+		<div id="item"><?php if ($pic) { echo "<img src=\"$pic\" />"; } ?></div><!-- img/alipay_newuser.png-->
+		<div id="token" data-img="<?=$img?>" style="display: none"><?php if ($img) { echo "<img src=\"$img\" />"; } ?></div>
 		<h3>
 			<a href="<?=$url?>" id="target_url"><?=$name?></a>
 		</h3>
@@ -239,6 +247,10 @@ function share()
 	progress_val = window.clearInterval( progress_val );
 	progress_bar.style.display = share_button.style.display = count_down.style.display = open_button.style.float = 'none';
 	main.style.padding = '0';
+	if (token.getAttribute('data-img')) {
+		item.style.display = 'none';
+		token.style.display = 'block';
+	}
 }
 
 function repeat(str , n){

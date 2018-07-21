@@ -1,4 +1,5 @@
 <?php
+define('APP_ID', 'coupon.ren');
 /*
 if (!defined('APP_PATH')) {
 	define('APP_PATH', __DIR__);
@@ -22,7 +23,7 @@ define('APP_MODULES', true/*
 		'Robot' => ['_Controller'],
 	]*/
 );
-$APP_MODULES = APP_MODULES;
+$APP_MODULES = [];
 
 /**
  * 定义类加载规则
@@ -39,7 +40,7 @@ $ANFORA_AUTOLOAD = [
 		# '.*' => APP_PATH . '/../lib',
 	];
 define('ANFORA_AUTOLOAD', 
-	true
+	false
 );
 
 

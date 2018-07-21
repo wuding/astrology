@@ -142,7 +142,7 @@ class _Controller extends \Astrology\Controller
 					}
 					$row->description = preg_replace("/%title/", $row->title, $row->description);
 					# $row->description = preg_replace("/%command_url/", $command_url, $row->description);
-					$this->_output($row->url, [$row->title, $row->description], $row->pic, '$' . $code . '$', $row->qr, 'command', $row->timeout);# 
+					$this->_output($row->url, [$row->title, $row->description], [$row->pic, $row->img], '$' . $code . '$', $row->qr, 'command', $row->timeout);# 
 				}
 			} else {
 				$coupon->insert(['command' => $code, 'symbol' => $type, 'created' => time()]);
@@ -201,7 +201,7 @@ class _Controller extends \Astrology\Controller
 		
 		# print_r(get_defined_vars()); exit;
 		include '../app/_Module/View/_Controller/output.html';
-		exit;# 
+		# exit;
 	}
 	
 	/**

@@ -1,0 +1,30 @@
+{
+    "name": "wuding/astrology",
+    "type": "library",
+    "version": "0.0.18",
+    "description": "A PHP Framework",
+    "keywords": ["framework","blog"],
+    "homepage": "https://github.com/wuding/astrology",
+    "license": "Apache-2.0",
+    "authors": [
+	    {
+	      "name": "Benny Wu",
+	      "email": "contact@wubenli.com",
+	      "homepage": "http://wubenli.com",
+	      "role": "Developer"
+	    }
+	  ],
+    "require": {
+    	"php": "^5.6|^7.0",
+        "catfan/Medoo": "^1.5",
+        "league/plates": "^3.3"
+    },
+    "autoload": {
+        "psr-4": {
+        	"Astrology\\": "src/Astrology/",
+			"Plugin\\": "src/Plugin/",
+			"DbTable\\": "src/DbTable/",
+			"Anfora\\": "src/Anfora/"
+    	}
+    }
+}
