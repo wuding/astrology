@@ -9,6 +9,8 @@ if (!defined('APP_PATH')) {
 }
 */
 define('APP_PATH', __DIR__);
+# define('CACHE_ROOT', __DIR__ . '/../storage/cache');
+define('CACHE_ROOT', 'K:\Astrology/storage/cache');
 
 /**
  * 定义模块和控制器名称

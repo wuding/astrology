@@ -6,10 +6,13 @@ use Astrology\Route;
 
 class _Controller extends \Astrology\Controller
 {
+	public $tongji = null;
+	
 	public function __construct()
 	{
 		# header("Access-Control-Allow-Origin: *");
 		$this->page = $this->_get('page', 1, FILTER_VALIDATE_INT);
+		$this->limit = $this->_get('limit', 1, FILTER_VALIDATE_INT);
 	}
 	/*
 	public function _NotFound()
@@ -30,6 +33,7 @@ class _Controller extends \Astrology\Controller
 		$class = '\Plugin\Robot\\' . $route->fixName($name);
 		$attr = [
 			'page' => $this->page,
+			'limit' => $this->limit,
 		];
 		
 		$robot = new $class($attr);

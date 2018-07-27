@@ -17,12 +17,15 @@ class Database
 	public $group_by = '';
 	public $having = '';
 	
+	public $return = null;
+	
 	public function __construct($arg = [])
 	{
 		if (!$arg) {
 			$arg = $GLOBALS['CONFIG']['database'];
 		}
 		$this->init($arg);
+		$this->_init();
 	}
 	
 	public function setVar($arg = [])
@@ -43,6 +46,11 @@ class Database
 			'password' => $this->password,
 		];
 		$this->getAdapter($this->driver, $arg);
+	}
+	
+	public function _init()
+	{
+		
 	}
 	
 	public function getAdapter($name, $arg)
@@ -72,8 +80,13 @@ class Database
 		
 		$arr = [];
 		foreach ($data as $key => $value) {
-			$value = addslashes($value);
-			$arr[] = "`$key` = '$value'";
+			if (null !== $value) {
+				$value = addslashes($value);
+				$arr []= "`$key` = '$value'";
+			} else {
+				$arr []= "`$key` = NULL";
+			}
+			
 		}
 		return $str = implode(", ", $arr);
 	}
@@ -113,6 +126,56 @@ class Database
 		return self::$adapter->insert($sql);
 	}
 	
+	/**
+	 * 批量插入
+	 *
+	 */
+	public function into($field = null, $value = null)
+	{
+		# print_r([$field, $value]);exit;
+		
+		$db_table = $this->from();
+		
+		if (is_string($field)) {
+			$field = explode(',', $field);
+		}
+		if (is_array($value) && $value) {
+			
+		} else {
+			$value = [[]];
+		}
+		
+		$count = count($field);
+		$field = implode('`, `', $field);
+		$field = '(`' . $field . '`)';
+		
+		$values = [];
+		foreach ($value as $row) {
+			$arr = [];
+			for ($i = 0; $i < $count; $i++) {
+				$val = isset($row[$i]) ? $row[$i] : null;
+				if (null != $val) {
+					$val = addslashes($val);
+					$val = "'$val'";
+				} else {
+					$val = 'NULL';
+				}
+				$arr []= $val;
+			}
+			$data = implode(', ', $arr);
+			$data = '(' . $data . ')';
+			$values []= $data;
+		}
+		$values = implode(', ', $values);
+		
+		$sql = "INSERT INTO $db_table $field VALUES ";
+		$sql .= $values;
+		if ('into.sql' == $this->return) {
+			return $sql;
+		}
+		return self::$adapter->insert($sql);
+	}
+	
 	public function find($where = null, $column = '*', $order = null, $limit = 1)
 	{
 		$db_table = $this->from();
@@ -124,8 +187,17 @@ class Database
 		if ($order) {
 			$sql .= " ORDER BY $order";
 		}
-		$sql .= " LIMIT $limit";
+		$sql .= " LIMIT $limit";#  echo $sql;exit;
+		if ('find.sql' == $this->return) {
+			return $sql;
+		}
 		return self::$adapter->find($sql);
+	}
+	
+	public function sel($where = null, $column = null, $order = null, $group = [], $join = null)
+	{
+		$column = $column ? : ($this->primary_key ? : '*');
+		return $this->find($where, $column, $order);
 	}
 	
 	public function count($where = null)
@@ -173,19 +245,57 @@ class Database
 		$sql = "UPDATE $db_table SET ";
 		$sql .= $this->sqlSet($set);
 		
-		$where = $this->sqlWhere($where);
-		if ($where) {
-			$sql .= " WHERE $where";
+		$dondition = '';
+		$whereSql = $this->sqlWhere($where);
+		if ($whereSql) {
+			$whereSql = is_numeric($whereSql) ? "`$this->primary_key` = $whereSql" : $whereSql;
+			$dondition .= " WHERE $whereSql";
 		}
 		
 		if ($order) {
-			$sql .= " ORDER BY $order";
+			$dondition .= " ORDER BY $order";
 		}
 		if (null !== $limit) {
-			$sql .= " LIMIT $limit";
+			$dondition .= " LIMIT $limit";
 		}
-		# echo $sql;exit;
-		return $this->exec($sql);
+		$sql .= $dondition;
+		if ('update.sql' == $this->return) {
+			return $sql;
+		}
+		$exec = $this->exec($sql);
+		/*
+		if ('update.status' == $this->return) {
+			if ($exec) {
+				return $row = $this->sel($where, '*', $order);
+			}
+		}
+		*/
+		return $exec;
+	}
+	
+	public function set()
+	{
+		/*
+		$arr = [];
+		$num = func_num_args();
+		for ($i = 0; $i < $num; $i++) {
+			$arg = func_get_arg($i);
+			$arr []= $arg;
+		}
+		*/
+		$arr = func_get_args();
+		# print_r([$arr, func_get_args()]);exit;
+		
+		$result = [];
+		foreach ($arr as $row) {
+			# $count = count($row);
+			$set = isset($row[0]) ? $row[0] : [$this->primary_key => null];
+			$where = isset($row[1]) ? $row[1] : null;
+			$order = isset($row[2]) ? $row[2] : null;
+			$limit = isset($row[3]) ? $row[3] : null;
+			$result []= $this->update($set, $where, $order, $limit);
+		}
+		return $result;
 	}
 	
 	public function __call($name, $arguments)

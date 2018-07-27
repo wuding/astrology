@@ -60,6 +60,7 @@ class PhpPdo
 	
 	public function __call($name, $arguments)
 	{
+		# print_r([$name, $arguments]);exit;
 		return self::$dbh->$name($arguments[0]);
 	}
 }

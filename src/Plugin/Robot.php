@@ -24,6 +24,7 @@ class Robot
 		if ($arg) {
 			$this->init($arg);
 		}
+		$this->_init();
 	}
 	
 	public function __call($name, $arguments)
@@ -39,6 +40,11 @@ class Robot
 	public function init($arg = [])
 	{
 		$this->attr = array_merge($this->attr, $arg);
+	}
+	
+	public function _init()
+	{
+		
 	}
 	
 	/**
