@@ -239,6 +239,30 @@ class Database
 		return self::$adapter->select($sql);
 	}
 	
+	public function _select($where = null, $column = null, $option = [], $group = [], $join = [])
+	{
+		$order = null;
+		$limit = null;
+		
+		/* 排序和条目 */
+		if (isset($option[0])) {
+			$order = $option[0];
+			if (isset($option[1])) {
+				$limit = $option[1];
+			}
+		}
+		
+		/* 分组 */
+		if (isset($group[0])) {
+			$this->group_by = $group[0];
+			if (isset($group[1])) {
+				$this->having = $group[1];
+			}
+		}
+		
+		return $this->select($where, $column, $order, $limit);
+	}
+	
 	public function update($set = [], $where = null, $order = null, $limit = null)
 	{
 		$db_table = $this->from();

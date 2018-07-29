@@ -59,6 +59,13 @@ class _Controller extends \Astrology\Controller
 		} else {
 			$code = 1;
 			$msg = 'final';
+			
+			if (isset($result['msg']) && $result['msg']) {
+				$msg = $result['msg'];
+			}
+			if (isset($result['code']) && is_numeric($result['code'])) {
+				$code = $result['code'];
+			}
 		}
 		
 		$value = [
@@ -66,6 +73,9 @@ class _Controller extends \Astrology\Controller
 			'msg' => $msg,
 			'data' => $result
 		];
-		return json_encode($value);
+		if (isset($_GET['type']) && 'json' == $_GET['type']) {
+			$value =json_encode($value);
+		}
+		return $value;
 	}
 }
