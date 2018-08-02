@@ -40,7 +40,7 @@ class Start
 		$this->route_key = 'route_' . APP_ID . '_' . $md5;
 		# $set = $this->cache->set($route_key, []);
 		$ROUTES = $this->cache->get($this->route_key);
-		# print_r([__line__, $ROUTES]);exit;
+		# print_r([__line__, $ROUTES]);exit; 
 		
 		
 		if (!$ROUTES) {
@@ -64,7 +64,7 @@ NOWDOC;
 				$APP_MODULES = $this->cache->check($module_key, $func);
 				# $this->cache->set($module_key, []);
 				# $APP_MODULES = $this->cache->get($module_key);
-				# print_r([__line__, $APP_MODULES]);exit;
+				# print_r([$module, __line__, $APP_MODULES]);exit; 
 				$GLOBALS['MODULES'] =  array_keys($APP_MODULES);
 				if (!in_array($module, $GLOBALS['MODULES'])) {
 					$module = '_Module';
@@ -94,7 +94,7 @@ NOWDOC;
 				}
 				$controller_key = 'controllers_' . APP_ID . '_' . $module;
 				$APP_MODULES[$module] = $this->cache->check($controller_key, $func);# 
-				# print_r([__line__, $APP_MODULES]);exit;
+				# print_r([$controller, __line__, $APP_MODULES]);exit; 
 				$GLOBALS['CONTROLLERS'] =  $APP_MODULES[$module];
 				# print_r([$controller, $APP_MODULES, $GLOBALS['CONTROLLERS']]);exit;
 				if (!in_array($controller, $GLOBALS['CONTROLLERS'])) {
@@ -110,7 +110,7 @@ NOWDOC;
 				'shift' => $shift,
 			];
 			$set = $this->cache->set($this->route_key, $ROUTES);
-			# print_r([__line__, $ROUTES]);exit;
+			# print_r([__line__, $ROUTES]);exit; 
 			
 		} else {
 			$controller = $ROUTES['controller'];
