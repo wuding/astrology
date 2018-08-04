@@ -148,12 +148,15 @@ class Alimama extends \Plugin\Robot
 					}
 					$arr['choice_id'] = $bill;
 					
+					$arr['cost'] = $arr['price'];
 					/* 匹配优惠券信息 */
 					if (isset($arr['denomination'])) {
 						if (preg_match("/满(\d+)元减(\d+)元/", $arr['denomination'], $matches)) {
 							$arr['full'] = $matches[1];
 							$arr['discount'] = $matches[2];
-							$arr['cost'] = $arr['price'] - $arr['discount'];
+							if ($arr['full'] <= $arr['price']) {
+								$arr['cost'] = $arr['price'] - $arr['discount'];
+							}
 							
 						} elseif (preg_match("/(\d+)元无条件券/", $arr['denomination'], $matches)) {
 							$arr['discount'] = $matches[1];
