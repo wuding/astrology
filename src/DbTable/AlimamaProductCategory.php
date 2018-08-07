@@ -23,10 +23,12 @@ class AlimamaProductCategory extends \Astrology\Database
 		$where = [
 			'title' => $arr['title'],
 		];
+		/*
 		if (isset($arr['class_id'])) {
 			$where['class_id'] = $arr['class_id'];
 		}
-		$row = $this->sel($where);
+		*/
+		$row = $this->sel($where, '*', 'category_id');
 		
 		/* 插入 */
 		if (!$row) {
@@ -46,13 +48,15 @@ class AlimamaProductCategory extends \Astrology\Database
 			return $last_id = $this->into($field, [$value]);
 		}
 		
-		/* 更新 
-		$set = $arr;
-		# $set['updated'] = $time;		
-		$result = $this->set([$set, $row->{$primary_key}]);
-		# print_r($result); exit;
-		$result = $result[0];
-		*/
+		/* 更新 */
+		if (isset($arr['class_id']) && $arr['class_id']) {
+			$set = $arr;
+			$set['updated'] = $time; # 
+			$result = $this->set([$set, $row->{$primary_key}]);
+			# print_r($result); exit; 
+			return $result = $result[0];
+		}
+		
 		return $row->{$this->primary_key};
 	}
 	
@@ -67,5 +71,18 @@ class AlimamaProductCategory extends \Astrology\Database
 		$option = ['category_id', 20];
 		$all = $this->_select($where, $column, $option);
 		return $all;
+	}
+	
+	/**
+	 * 获取主类条目数
+	 *
+	 */
+	public function rootNum()
+	{
+		$where = 'upper_id > -1';
+		$column = 'upper_id,SUM(total) num';
+		$option = ['upper_id', 100];
+		$group = ['upper_id'];
+		return $all = $this->_select($where, $column, $option, $group);
 	}
 }

@@ -4,7 +4,7 @@ namespace DbTable;
 
 class AlimamaChoiceExcel extends \Astrology\Database
 {
-	public $db_name = 'com_urlnk';
+	public $db_name = 'com_urlnk87';
 	public $table_name = 'alimama_choice_excel';
 	public $primary_key = 'excel_id';
 	

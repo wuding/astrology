@@ -74,6 +74,8 @@ class Database
 	
 	public function sqlSet($data)
 	{
+		# print_r($data);exit;
+		
 		if (!is_array($data)) {
 			return $data;
 		}
@@ -132,7 +134,7 @@ class Database
 	 */
 	public function into($field = null, $value = null)
 	{
-		# print_r([$field, $value]);exit;
+		# print_r([$field, $value]);exit; 
 		
 		$db_table = $this->from();
 		
@@ -203,7 +205,7 @@ class Database
 	public function count($where = null)
 	{
 		$db_table = $this->from();
-		$sql = "SELECT COUNT(1) AS num FROM $db_table";
+		$sql = "SELECT COUNT(0) AS num FROM $db_table";
 		$where = $this->sqlWhere($where);
 		if ($where) {
 			$sql .= " WHERE $where";
@@ -212,7 +214,7 @@ class Database
 		return $row->num;
 	}
 	
-	public function select($where = null, $column = '*', $order = null, $limit = 10)
+	public function select($where = null, $column = '*', $order = null, $limit = 10, $offset = null)
 	{
 		$db_table = $this->from();
 		$sql = "SELECT $column FROM $db_table";
@@ -235,14 +237,19 @@ class Database
 		if ($order) {
 			$sql .= " ORDER BY $order";
 		}
-		$sql .= " LIMIT $limit";
+		if ($limit) {
+			$sql .= " LIMIT $limit";
+		}
+		if (null !== $offset) {
+			$sql .= " OFFSET $offset";
+		}
 		return self::$adapter->select($sql);
 	}
 	
 	public function _select($where = null, $column = null, $option = [], $group = [], $join = [])
 	{
 		$order = null;
-		$limit = null;
+		$limit = 10;
 		
 		/* 排序和条目 */
 		if (isset($option[0])) {
@@ -260,6 +267,11 @@ class Database
 			}
 		}
 		
+		/* 连接 */
+		if ($join) {
+			$this->join = $join;
+		}
+		
 		return $this->select($where, $column, $order, $limit);
 	}
 	
@@ -269,20 +281,20 @@ class Database
 		$sql = "UPDATE $db_table SET ";
 		$sql .= $this->sqlSet($set);
 		
-		$dondition = '';
+		$condition = '';
 		$whereSql = $this->sqlWhere($where);
 		if ($whereSql) {
 			$whereSql = is_numeric($whereSql) ? "`$this->primary_key` = $whereSql" : $whereSql;
-			$dondition .= " WHERE $whereSql";
+			$condition .= " WHERE $whereSql";
 		}
 		
 		if ($order) {
-			$dondition .= " ORDER BY $order";
+			$condition .= " ORDER BY $order";
 		}
 		if (null !== $limit) {
-			$dondition .= " LIMIT $limit";
+			$condition .= " LIMIT $limit";
 		}
-		$sql .= $dondition;
+		$sql .= $condition;
 		if ('update.sql' == $this->return) {
 			return $sql;
 		}
@@ -308,7 +320,7 @@ class Database
 		}
 		*/
 		$arr = func_get_args();
-		# print_r([$arr, func_get_args()]);exit;
+		# print_r($arr);exit; 
 		
 		$result = [];
 		foreach ($arr as $row) {

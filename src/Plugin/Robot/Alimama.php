@@ -234,8 +234,7 @@ class Alimama extends \Plugin\Robot
 	{
 		$AlimamaChoiceExcel = new \DbTable\AlimamaChoiceExcel;
 		$AlimamaProductCategory = new \DbTable\AlimamaProductCategory;
-		$all = $AlimamaProductCategory->rootIds();
-		return $all;
+		# $all = $AlimamaProductCategory->rootIds(); return $all; 
 		
 		$classes = $AlimamaChoiceExcel->classIds();
 		$arr = [];
@@ -257,5 +256,140 @@ class Alimama extends \Plugin\Robot
 		}
 		return ['result' =>  $arr, 'pageCount' => 1];
 		print_r([$arr, $classes]);
+	}
+	
+	/**
+	 * 优化列表
+	 *
+	 */
+	public function optimizeList()
+	{
+		$page = $this->attr['page'];
+		$offset =  $page * 10 - 10;
+		
+		$Excel = new \DbTable\AlimamaChoiceExcel;
+		$Category = new \DbTable\AlimamaProductCategory;
+		$List = new \DbTable\AlimamaChoiceList;
+		
+		$where = [];
+		# $column = 'alimama_choice_excel.*, B.category_id';
+		$column = '*';
+		$option = ['excel_id', "$offset,10"];
+		# $join = 'LEFT JOIN com_urlnk.alimama_product_category B ON B.title = alimama_choice_excel.class';
+		$join = null;
+		# print_r([$where, $column, $option]);
+		$all = $Excel->_select($where, $column, $option, null, $join);
+		$count = $Excel->count($where);
+		$pageCount = ceil($count / 10);
+		
+		$categories = [];
+		$cat = [];
+		foreach ($all as $key => $row) {
+			if ($row->class) {
+				$cat[] = $row->class;
+			}
+		}
+		if ($cat) {
+			$cat = implode("', '", $cat);
+			$where = "title IN('$cat')";
+			$cats = $Category->_select($where, 'category_id,title');
+			foreach ($cats as $c) {
+				$categories[$c->title] = $c->category_id;
+			}
+		}
+		# print_r($categories);
+		
+		$result = [];
+		foreach ($all as $key => $row) {
+			$url = $row->taobaoke;
+			$link = $row->promotion;
+			$price = $row->cost;
+			$site = 1;
+			$category_id = isset($categories[$row->class]) ? $categories[$row->class] : 0;
+			if (0 < $row->group) {
+				$link = $row->url;
+				$site = 3;
+			} elseif ('天猫' == $row->platform) {
+				$site = 2;
+			}
+			
+			if (0 > $price) {
+				$price = $row->price;
+			}
+			$arr = [
+				'excel_id' => $row->excel_id,
+				'item_id' => $row->item,
+				'category_id' => $category_id,
+				'title' => $row->name,
+				'pic' => $row->pic,
+				'url' => $url,
+				'link' => $link,
+				'site' => $site,
+				'sold' => $row->sale,
+				'cost' => $row->price,
+				'price' => $price,
+				'save' => $row->discount,
+				'start' => $row->start,
+				'end' => $row->end,
+			];
+			$result[] = $List->exist($arr);
+		}
+		unset($all);
+		# print_r($all);
+		# print_r($result);
+		
+		/* 接力任务 */		
+		$msg = '';
+		$code = 0;
+		if ($page < $pageCount) {
+			$page++;
+			$msg = "http://lan.urlnk.com/robot/alimama/optimize/list?debug&type=json&page=$page";
+		} else {
+			$code = 1;
+		}
+		
+		/* 返回数据 */
+		$result = array(
+            'result' => $result,
+			'pageCount' => $pageCount,
+			'msg' => $msg,
+			'code' => $code,
+        );		
+		return $result;
+	}
+	
+	/**
+	 * 优化分类
+	 *
+	 */
+	public function optimizeCategory()
+	{
+		$List = new \DbTable\AlimamaChoiceList;
+		$Category = new \DbTable\AlimamaProductCategory;		
+		$update = $Category->update(['total' => 0]);
+		
+		/* 更新子类 */
+		$catNum = $List->categoryNum();
+		$result = [];
+		foreach ($catNum as $c) {
+			$result[$c->category_id] = $Category->update(['total' => $c->num], ['category_id' => $c->category_id]);
+		}
+		
+		
+		/* 更新主类 */
+		$cat = $Category->rootNum();
+		$res = [];
+		foreach ($cat as $r) {
+			$res[$r->upper_id] = $Category->update(['total' => $r->num], $r->upper_id);
+		}
+		
+		/* 返回数据 */
+		$result = array(
+            'result' => $result + $res,
+			'pageCount' => 1,
+			'msg' => '',
+			'code' => 0,
+        );		
+		return $result;
 	}
 }
