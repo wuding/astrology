@@ -10,9 +10,11 @@ class Fanhao123 extends \Plugin\Robot
 	# public $func_format = 'json';
 	public $site_id = 42;
 	
-	public function __construct($arg = null)
+	/**
+	 * 自定义初始化 
+	 */
+	public function _init()
 	{
-		parent::__construct($arg);
 		$this->cache_dir = $this->cache_root . '/www.fanhao123.org/';
 		
 		$this->urls = [
@@ -78,6 +80,12 @@ class Fanhao123 extends \Plugin\Robot
 		}
 		return ['result' => $arr];
 	}
+	
+	/*
+	-----------------------------------------------------
+	| 条目
+	-----------------------------------------------------
+	*/
 	
 	/**
 	 * 下载详情
@@ -168,6 +176,15 @@ class Fanhao123 extends \Plugin\Robot
 		return ['result' => $result, 'pageCount' => $pageCount];
 	}
 	
+	/*
+	-----------------------------------------------------
+	| HTML
+	-----------------------------------------------------
+	*/
+	
+	/**
+	 * 解析表格
+	 */
 	public function tbody($str)
 	{
 		$doc = new \DOMDocument('1.0', 'utf-8');

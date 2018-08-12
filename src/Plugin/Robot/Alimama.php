@@ -10,6 +10,9 @@ class Alimama extends \Plugin\Robot
 {
 	public $site_id = null;
 	
+	/**
+	 * 自定义初始化 
+	 */
 	public function _init()
 	{
 		$this->bill = isset($_GET['bill']) ? $_GET['bill'] : 1;
@@ -34,6 +37,15 @@ class Alimama extends \Plugin\Robot
         );
 	}
 	
+	/*
+	------------------------------------------------
+	| 列表
+	------------------------------------------------
+	*/
+	
+	/**
+	 * 解析表格.csv
+	 */
 	public function parseExcel()
 	{
 		$AlimamaChoiceExcel = new \DbTable\AlimamaChoiceExcel;
@@ -226,37 +238,7 @@ class Alimama extends \Plugin\Robot
 		return $result;
 	}
 	
-	/**
-	 * 解析分类
-	 *
-	 */
-	public function parseCategory()
-	{
-		$AlimamaChoiceExcel = new \DbTable\AlimamaChoiceExcel;
-		$AlimamaProductCategory = new \DbTable\AlimamaProductCategory;
-		# $all = $AlimamaProductCategory->rootIds(); return $all; 
-		
-		$classes = $AlimamaChoiceExcel->classIds();
-		$arr = [];
-		foreach ($classes as $class) {
-			$row = [
-				'title' => $class->class,
-				'class_id' => $class->coupon,
-			];
-			$arr []= $AlimamaProductCategory->exist($row);
-		}
-		
-		$classes = $AlimamaChoiceExcel->classIds('=');
-		# $arr = [];
-		foreach ($classes as $class) {
-			$row = [
-				'title' => $class->class,
-			];
-			$arr []= $AlimamaProductCategory->exist($row);
-		}
-		return ['result' =>  $arr, 'pageCount' => 1];
-		print_r([$arr, $classes]);
-	}
+	
 	
 	/**
 	 * 优化列表
@@ -356,6 +338,44 @@ class Alimama extends \Plugin\Robot
 			'code' => $code,
         );		
 		return $result;
+	}
+	
+	/*
+	------------------------------------------------
+	| 分类
+	------------------------------------------------
+	*/
+	
+	/**
+	 * 解析分类
+	 *
+	 */
+	public function parseCategory()
+	{
+		$AlimamaChoiceExcel = new \DbTable\AlimamaChoiceExcel;
+		$AlimamaProductCategory = new \DbTable\AlimamaProductCategory;
+		# $all = $AlimamaProductCategory->rootIds(); return $all; 
+		
+		$classes = $AlimamaChoiceExcel->classIds();
+		$arr = [];
+		foreach ($classes as $class) {
+			$row = [
+				'title' => $class->class,
+				'class_id' => $class->coupon,
+			];
+			$arr []= $AlimamaProductCategory->exist($row);
+		}
+		
+		$classes = $AlimamaChoiceExcel->classIds('=');
+		# $arr = [];
+		foreach ($classes as $class) {
+			$row = [
+				'title' => $class->class,
+			];
+			$arr []= $AlimamaProductCategory->exist($row);
+		}
+		return ['result' =>  $arr, 'pageCount' => 1];
+		print_r([$arr, $classes]);
 	}
 	
 	/**
