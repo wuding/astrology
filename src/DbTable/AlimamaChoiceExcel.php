@@ -4,7 +4,7 @@ namespace DbTable;
 
 class AlimamaChoiceExcel extends \Astrology\Database
 {
-	public $db_name = 'com_urlnk87';
+	public $db_name = 'shopping';
 	public $table_name = 'alimama_choice_excel';
 	public $primary_key = 'excel_id';
 	
@@ -42,7 +42,10 @@ class AlimamaChoiceExcel extends \Astrology\Database
 			
 			$field = array_keys($data);
 			$value = array_values($data);
-			return $last_id = $this->into($field, [$value]);
+			# $this->return = 'into.sql';
+			$last_id = $this->into($field, [$value]);
+			# print_r($last_id);exit;
+			return $last_id;
 		}
 		
 		/* 更新 */

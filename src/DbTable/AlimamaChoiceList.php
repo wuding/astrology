@@ -3,7 +3,7 @@ namespace DbTable;
 
 class AlimamaChoiceList extends \Astrology\Database
 {
-	public $db_name = 'com_urlnk87';
+	public $db_name = 'shopping';
 	public $table_name = 'alimama_choice_list';
 	public $primary_key = 'list_id';
 	
@@ -13,21 +13,40 @@ class AlimamaChoiceList extends \Astrology\Database
 	 */
 	public function exist($arr)
 	{
+		$primary_key = $this->primary_key;
 		$time = time();
 		$where = [
 			'excel_id' => $arr['excel_id'],
 		];
-		$row = $this->sel($where);
+		$row = $this->sel($where, 'list_id,excel_id,item_id,category_id,title,pic,url,link,site,sold,cost,price,save,start,end');
 		if (!$row) {
 			$data = [
 				'created' => $time,
+				'updated' => $time,
 			];
 			$data += $arr;
 			$field = array_keys($data);
 			$value = array_values($data);
 			return $last_id = $this->into($field, [$value]);
 		}
-		return $row->{$this->primary_key};
+		
+		/* 比较 */
+		$diff = $this->array_diff_kv((array) $row, $arr);
+		$data = [];
+		foreach ($diff as $key => $value) {
+			$data[$key] = $value[1];
+		}
+		# var_dump($diff); 
+		# print_r([$data, $row, $arr]); exit;
+		
+		/* 更新 */
+		if ($data) {
+			$data['updated'] = $time;
+			$result = $this->set([$data, $row->{$primary_key}]);
+			$result = $result[0];
+			return $result;
+		}
+		return $row->{$primary_key};
 	}
 	
 	/**

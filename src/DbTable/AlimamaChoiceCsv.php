@@ -29,7 +29,8 @@ class AlimamaChoiceCsv extends \Astrology\Database
 		$csv = $row['csv'];
 		$modified = $row['modified'];
 		$excel_id = $row['excel_id'];
-		unset($row['status'], $row['created'], $row['updated'], $row['modified'], $row['csv'], $row['excel_id']);#
+		unset($row['status'], $row['created'], $row['updated'], $row['modified'], $row['csv'], $row['excel_id']);
+		unset($arr['choice_id']);
 		
 		/* 比较 */
 		$diff = $this->array_diff_kv($row, $arr);
@@ -38,6 +39,9 @@ class AlimamaChoiceCsv extends \Astrology\Database
 		$difference = null;
 		if (!$keys) {
 			return false;
+		}
+		if (in_array('start', $keys)) {
+			$row['note'] = $arr['start'];
 		}
 		$difference = implode(',', $keys);
 		
@@ -54,21 +58,7 @@ class AlimamaChoiceCsv extends \Astrology\Database
 		exit;
 	}
 	
-	public function array_diff_kv($arr = [], $other = [], $full = null)
-	{
-		$diff = [];
-		foreach ($arr as $key => $value) {
-			if (isset($other[$key])) {
-				$val = $other[$key];
-				if ($value != $val) {
-					$diff[$key] = [$value, $val];
-				}
-			} else {
-				# $diff[$key] = [$value];
-			}
-		}
-		return $diff;
-	}
+	
 	
 	/**
 	 * 检查条目是否存在

@@ -211,7 +211,7 @@ class Database
 			$sql .= " WHERE $where";
 		}
 		$row = self::$adapter->find($sql);
-		return $row->num;
+		return $num = $row ? $row->num : 0;
 	}
 	
 	public function select($where = null, $column = '*', $order = null, $limit = 10, $offset = null)
@@ -332,6 +332,22 @@ class Database
 			$result []= $this->update($set, $where, $order, $limit);
 		}
 		return $result;
+	}
+	
+	public function array_diff_kv($arr = [], $other = [], $full = null)
+	{
+		$diff = [];
+		foreach ($arr as $key => $value) {
+			if (isset($other[$key])) {
+				$val = $other[$key];
+				if ($value != $val) {
+					$diff[$key] = [$value, $val];
+				}
+			} else {
+				# $diff[$key] = [$value];
+			}
+		}
+		return $diff;
 	}
 	
 	public function __call($name, $arguments)

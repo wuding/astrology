@@ -15,7 +15,7 @@ class Alimama extends \Plugin\Robot
 	 */
 	public function _init()
 	{
-		$this->bill = isset($_GET['bill']) ? $_GET['bill'] : 1;
+		$this->bill = isset($_GET['bill']) ? (int) $_GET['bill'] : 1;
 		
 		$this->cache_dir = CACHE_ROOT . '/http/www.alimama.com';
 		
@@ -58,7 +58,7 @@ class Alimama extends \Plugin\Robot
 		
 		$count = 500;
 		$max = $offset + $count;
-		$max_url = '';
+		$max_url = 'http://lan.urlnk.com/robot/alimama/optimize/list?debug&type=json';
 		
 		// 清单列名
 		$keys = [
@@ -194,6 +194,9 @@ class Alimama extends \Plugin\Robot
 					if ($arr['end'] && !preg_match("/:/", $arr['end'])) {
 						$arr['end'] .= ' 23:59:59';
 					}
+					if ($arr['start'] && !preg_match("/:/", $arr['start'])) {
+						$arr['start'] .= ' 00:00:00';
+					}
 						
 					$check = '';
 					# $AlimamaChoiceExcel->return = 'update.status';
@@ -238,7 +241,88 @@ class Alimama extends \Plugin\Robot
 		return $result;
 	}
 	
-	
+	/**
+	 * 逆向更新
+	 *
+	 */
+	public function updateList()
+	{
+		$page = $this->attr['page'];
+		$limit = 10;
+		$offset =  $page * $limit - $limit;
+		
+		$Excel = new \DbTable\AlimamaChoiceExcel;
+		$Category = new \DbTable\AlimamaProductCategory;
+		$List = new \DbTable\AlimamaChoiceList;
+		
+		$where = "`pic` = 'http://img.alicdn.com/bao/uploaded/i1/2863563282/TB2lNkaFAOWBuNjSsppXXXPgpXa_!!2863563282-0-item_pic.jpg'";
+		$where = [];
+		$column = '*';
+		$option = ['list_id', "$offset,$limit"];
+		$join = null;
+		$all = $List->_select($where, $column, $option, null, $join);
+		$count = $List->count($where);
+		$pageCount = ceil($count / $limit);
+		
+		$result = [];
+		$time = time();
+		foreach ($all as $key => $row) {
+			$arr = $Excel->sel("excel_id = $row->excel_id", '*');			
+			$url = $arr->taobaoke;
+			$link = $arr->promotion;
+			$price = $arr->cost;
+			if (0 < $arr->group) {
+				$link = $arr->url;
+			}			
+			if (0 > $price) {
+				$price = $arr->price;
+			}
+			$ar = [
+				'title' => $arr->name,
+				'pic' => $arr->pic,
+				'url' => $url,
+				'link' => $link,
+				'sold' => $arr->sale,
+				'cost' => $arr->price,
+				'price' => $price,
+				'save' => $arr->discount,
+				'start' => $arr->start,
+				'end' => $arr->end,
+			];
+			
+			/* 比较 */
+			$diff = $List->array_diff_kv($ar, (array) $row);			
+			$data = [];
+			foreach ($diff as $k => $value) {
+				$data[$k] = $value[0];
+			}
+			/* 更新 */
+			if ($data) {
+				$data['updated'] = $time;
+				$res = $List->set([$data, $row->list_id]);
+				$result[] = $res[0];
+			}
+		}
+		
+		/* 接力任务 */		
+		$msg = '';
+		$code = 0;
+		if ($page < $pageCount) {
+			$page++;
+			$msg = "http://lan.urlnk.com/robot/alimama/update/list?debug&type=json&page=$page";
+		} else {
+			$code = 1;
+		}
+		
+		/* 返回数据 */
+		$result = array(
+            'result' => $result,
+			'pageCount' => $pageCount,
+			'msg' => $msg,
+			'code' => $code,
+        );		
+		return $result;
+	}
 	
 	/**
 	 * 优化列表
@@ -253,7 +337,8 @@ class Alimama extends \Plugin\Robot
 		$Category = new \DbTable\AlimamaProductCategory;
 		$List = new \DbTable\AlimamaChoiceList;
 		
-		$where = [];
+		$where = 'modified > 1534074557';
+		$where = '';
 		# $column = 'alimama_choice_excel.*, B.category_id';
 		$column = '*';
 		$option = ['excel_id', "$offset,10"];
