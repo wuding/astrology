@@ -441,6 +441,7 @@ class Alimama extends \Plugin\Robot
 		$AlimamaProductCategory = new \DbTable\AlimamaProductCategory;
 		# $all = $AlimamaProductCategory->rootIds(); return $all; 
 		
+		// 聚划算分类
 		$classes = $AlimamaChoiceExcel->classIds();
 		$arr = [];
 		foreach ($classes as $class) {
@@ -451,6 +452,7 @@ class Alimama extends \Plugin\Robot
 			$arr []= $AlimamaProductCategory->exist($row);
 		}
 		
+		// 其他分类
 		$classes = $AlimamaChoiceExcel->classIds('=');
 		# $arr = [];
 		foreach ($classes as $class) {
@@ -470,14 +472,15 @@ class Alimama extends \Plugin\Robot
 	public function optimizeCategory()
 	{
 		$List = new \DbTable\AlimamaChoiceList;
-		$Category = new \DbTable\AlimamaProductCategory;		
-		$update = $Category->update(['total' => 0]);
+		$Category = new \DbTable\AlimamaProductCategory;
+		$time = time();
+		$update = $Category->update(['total' => 0, 'updated' => $time]);
 		
 		/* 更新子类 */
 		$catNum = $List->categoryNum();
 		$result = [];
 		foreach ($catNum as $c) {
-			$result[$c->category_id] = $Category->update(['total' => $c->num], ['category_id' => $c->category_id]);
+			$result[$c->category_id] = $Category->update(['total' => $c->num, 'updated' => $time], ['category_id' => $c->category_id]);
 		}
 		
 		
@@ -485,7 +488,7 @@ class Alimama extends \Plugin\Robot
 		$cat = $Category->rootNum();
 		$res = [];
 		foreach ($cat as $r) {
-			$res[$r->upper_id] = $Category->update(['total' => $r->num], $r->upper_id);
+			$res[$r->upper_id] = $Category->update(['total' => $r->num, 'updated' => $time], $r->upper_id);
 		}
 		
 		/* 返回数据 */

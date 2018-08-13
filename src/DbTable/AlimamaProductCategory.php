@@ -3,7 +3,7 @@ namespace DbTable;
 
 class AlimamaProductCategory extends \Astrology\Database
 {
-	public $db_name = 'com_urlnk';
+	public $db_name = 'shopping';
 	public $table_name = 'alimama_product_category';
 	public $primary_key = 'category_id';
 	

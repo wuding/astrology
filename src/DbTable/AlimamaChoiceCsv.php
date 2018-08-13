@@ -3,7 +3,7 @@ namespace DbTable;
 
 class AlimamaChoiceCsv extends \Astrology\Database
 {
-	public $db_name = 'com_urlnk';
+	public $db_name = 'shopping';
 	public $table_name = 'alimama_choice_csv';
 	public $primary_key = 'csv_id';
 	
