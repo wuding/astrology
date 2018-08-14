@@ -141,7 +141,7 @@ p i {
 <div class="container">
 	<form action="/play" method="get" onsubmit="return play();">
 		<div class="left">
-			<input id="url" name="q" value="<?=htmlspecialchars($url)?>" placeholder="请输入m3u8地址" onfocus="this.select()">
+			<input id="url" name="q" value="<?=htmlspecialchars($like ? : $url)?>" placeholder="请输入m3u8地址或搜索影片名称" onfocus="this.select()" data-url="<?=htmlspecialchars($url)?>">
 			<input type="hidden" name="debug" value="">
 		</div>	
 		<div class="right">
@@ -152,7 +152,7 @@ p i {
 	<ul>
 	<?php
 	foreach ($arr as $key => $value) {
-		echo "<li><a href='/play/$key'>$value[1]</a></li>";
+		echo "<li><a href='/play/$value->name'>$value->title</a></li>";
 	}
 	?>
 	</ul>
@@ -160,7 +160,7 @@ p i {
 		<legend>更多</legend>
 		<div>
 			<blockquote>
-				<a href="https://coupons.name/" target="_blank">www.cpn.red</a>
+				<a href="https://www.cpn.red/" target="_blank">www.cpn.red</a>
 			</blockquote>
 			<p>
 				<a href="/img/wx_hbfl.jpg" target="_qr">
@@ -182,17 +182,26 @@ var obj = {
 };
 var player;
 
-function play() {
-	video.style.display = 'block';
-	u = url.value;
-	obj.video[0] = [ u, '', '', 0 ];
-	console.log( JSON.stringify( obj ) );
-	player = new chplayer( obj ); // 
-	return false;
+function play(u, tt) {
+	video.style.display = 'block'
+	u = u ? u : url.value
+	if (u.match(/^http/i)) {
+		if (!tt) {
+			document.title = '在线M3U8播放器'
+		}
+		
+		obj.video[0] = [ u, '', '', 0 ]
+		console.log( JSON.stringify( obj ) )
+		player = new chplayer( obj )
+		return false
+	} else {
+		return true
+	}
 }
 
-if (document.getElementById( 'url' ).value) {
-	play();
+m3u8_url = url.getAttribute('data-url')
+if (m3u8_url) {
+	play(m3u8_url, '<?=htmlspecialchars($like)?>');
 } else {
 	url.focus();
 }

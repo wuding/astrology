@@ -17,12 +17,86 @@ class Index extends _Controller
 	
 	public function index()
 	{
-		$tongji = $this->tongji;
-		$arr = $this->playlist;
-		$title = '在线M3U8播放器';
-		$hide = 0;
 		$query = isset($_GET['q']) ? trim($_GET['q']) : '';
-		$url = $query;
+		$tongji = $this->tongji;
+		$m3u8 = new \DbTable\HlsM3u8;		
+		$title = '在线M3U8播放器';
+		$url = '';
+		$hide = 0;
+		$like = '';
+		
+		// 查询类型
+		if ($query) {
+			if (preg_match('/^http(|s):\/\//', $query)) {
+				$url = $query;
+
+			} else {
+				$like = $query;
+			}
+		}
+		
+		
+	
+				
+		
+		
+		// 查找数据
+		$where = null;
+		if ($like) {
+			$like = addslashes($like);
+			$where = "title LIKE '%$like%'";
+		}
+		$arr = $m3u8->fetchAll($where, 'm3u8_id,title,name,url');
+		
+
+		// 非URL
+		if (!$url) {
+			// 随机ID
+			$only = 0;
+			$id = 0;
+			$rows = null;
+			if ($arr) {
+				$max = $arr[0]->m3u8_id;
+				$only = count($arr);
+				
+				
+				// 从中取一个
+				if ($where) {
+					/*
+					$ids = [];
+					$data = [];
+					foreach ($arr as $key => $value) {
+						$ids[] = $value->m3u8_id;
+						$data[$value->m3u8_id] = $value;
+					}
+					$k = mt_rand(0, $only);
+					$id = $ids[$k];
+					$rows = $data[$id];
+					*/
+					$rows = $arr[0];
+				}
+				
+				
+			} else {
+				$max = $m3u8->count();
+			}
+
+			if (1 === $only) {
+				# $id = $max;
+				$rows = $arr[0];
+			} else {
+				$id = mt_rand(1, $max);
+			}
+			
+
+			// 单条
+			$row = $rows ? : $m3u8->sel(['m3u8_id' => $id], 'title,url');
+			if ($row) {
+				$url = $row->url;
+				$title = $row->title;
+				$like = $like ? : $title;
+			}
+		}
 		
 		include '../app/_Module/View/Index/play.php';
 		exit;
