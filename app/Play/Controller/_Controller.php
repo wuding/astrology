@@ -33,7 +33,7 @@ class _Controller extends \Astrology\Controller
 		$row = $m3u8->findByName($name);
 		if ($row) {
 			$url = $row->url;
-			$title = $row->title;
+			$like = $title = $row->title;
 			$hide = 1;
 			if ($row->playlist) {
 				$where = ['playlist' => $row->playlist];
