@@ -63,7 +63,7 @@ class Alimama extends \Plugin\Robot
 		
 		$count = 500;
 		$max = $offset + $count;
-		$max_url = $this->api_host . '/robot/alimama/optimize/list?debug&type=json';
+		$max_url = $this->api_host . '/robot/alimama/parse/category?debug&type=json';
 		$juhuasuan_url = $this->api_host . '/robot/alimama/parse/excel?debug&type=json&bill=3';
 		
 		// 清单列名
@@ -164,7 +164,7 @@ class Alimama extends \Plugin\Robot
 						$datum = mb_convert_encoding($datum, 'utf-8', 'gbk');# 
 						$arr[$keyname] = $datum;
 					}
-					$arr['cost'] = $arr['price'];
+					
 
 					/* 匹配优惠券信息 */
 					if (isset($arr['denomination'])) {
@@ -183,7 +183,9 @@ class Alimama extends \Plugin\Robot
 					
 					/* 后续修复处理 */
 					if (1 == $bill) {
-						
+						if (!isset($arr['cost'])) {
+							$arr['cost'] = $arr['price'];
+						}
 						
 					} elseif (2 == $bill) {
 						$arr['sale'] = $arr['total'] - $arr['remain'];
@@ -225,7 +227,7 @@ class Alimama extends \Plugin\Robot
 		$msg = '';		
 		switch ($bill) {
 			case 3:
-				$code = 1;
+				# $code = 1;
 				$msg = $max_url;
 				break;
 			default:
@@ -331,33 +333,38 @@ class Alimama extends \Plugin\Robot
 	/**
 	 * 优化列表
 	 *
+	 * 原始列表更新到精简列表
 	 */
 	public function optimizeList()
 	{
 		$page = $this->attr['page'];
-		$offset =  $page * 10 - 10;
+		$limit = 10;
+		$offset =  $page * $limit - $limit;
 		
 		$Excel = new AlimamaChoiceExcel;
 		$Category = new AlimamaProductCategory;
 		$List = new AlimamaChoiceList;
 		
-		$where = 'modified > 1535385600 OR created > 1535385600';
+		/* 取出列表 */
+		$time = 1535547149;
+		$where = "modified > $time OR created > $time";
 		# $where = '';
 		# $column = 'alimama_choice_excel.*, B.category_id';
 		$column = '*';
-		$option = ['excel_id DESC', "$offset,10"];
+		$option = ['excel_id DESC', "$offset,$limit"];
 		# $join = 'LEFT JOIN com_urlnk.alimama_product_category B ON B.title = alimama_choice_excel.class';
 		$join = null;
 		# print_r([$where, $column, $option]);
 		$all = $Excel->_select($where, $column, $option, null, $join);
-		# print_r($all);exit;
+		# print_r($all); exit;
 		$count = $Excel->count($where);
-		$pageCount = ceil($count / 10);
+		$pageCount = ceil($count / $limit);
 		
+		/* 分类 */
 		$categories = [];
 		$cat = [];
 		foreach ($all as $key => $row) {
-			if ($row->class) {
+			if ($row->class && !in_array($row->class, $cat)) {
 				$cat[] = $row->class;
 			}
 		}
@@ -371,11 +378,12 @@ class Alimama extends \Plugin\Robot
 		}
 		# print_r($categories);
 		
+		/* 检测列表 */
 		$result = [];
 		foreach ($all as $key => $row) {
 			$url = $row->taobaoke;
 			$link = $row->promotion;
-			$price = $row->cost;
+			$price = (0 >= $row->cost) ? $row->price : $row->cost;
 			$site = 1;
 			$category_id = isset($categories[$row->class]) ? $categories[$row->class] : 0;
 			if (0 < $row->group) {
@@ -385,17 +393,14 @@ class Alimama extends \Plugin\Robot
 				$site = 2;
 			}
 			
-			if (0 > $price) {
-				$price = $row->price;
-			}
 			$arr = [
 				'excel_id' => $row->excel_id,
 				'item_id' => $row->item,
 				'category_id' => $category_id,
 				'title' => $row->name,
 				'pic' => $row->pic,
-				'url' => $url,
-				'link' => $link,
+				# 'url' => $url,
+				# 'link' => $link,
 				'site' => $site,
 				'sold' => $row->sale,
 				'cost' => $row->price,
@@ -410,24 +415,24 @@ class Alimama extends \Plugin\Robot
 		# print_r($all);
 		# print_r($result);
 		
-		/* 接力任务 */		
-		$msg = '';
+		/* 接力任务 */
 		$code = 0;
+		$msg = '';
 		if ($page < $pageCount) {
 			$page++;
-			$msg = "http://lan.urlnk.com/robot/alimama/optimize/list?debug&type=json&page=$page";
+			$msg = "$this->api_host/robot/alimama/optimize/list?debug&type=json&page=$page";
 		} else {
-			$code = 1;
+			# $code = 1;
+			$msg = "$this->api_host/robot/alimama/optimize/category?debug&type=json";
 		}
 		
 		/* 返回数据 */
-		$result = array(
-            'result' => $result,
-			'pageCount' => $pageCount,
-			'msg' => $msg,
+		return [
 			'code' => $code,
-        );		
-		return $result;
+			'msg' => $msg,
+            'result' => $result,
+			'pageCount' => $pageCount,			
+		];
 	}
 	
 	/*
@@ -439,40 +444,50 @@ class Alimama extends \Plugin\Robot
 	/**
 	 * 解析分类
 	 *
+	 * 列表分类是否都存在分类表中
 	 */
 	public function parseCategory()
 	{
 		$Excel = new AlimamaChoiceExcel;
 		$Category = new AlimamaProductCategory;
-		# $all = $Category->rootIds(); return $all; 
-		
-		// 聚划算分类
-		$classes = $Excel->classIds();
 		$arr = [];
+
+		// 聚划算分类
+		$classes = $Excel->classIds();		
 		foreach ($classes as $class) {
 			$row = [
 				'title' => $class->class,
 				'class_id' => $class->coupon,
 			];
-			$arr[]= $Category->exist($row);
+			$arr[] = $Category->exist($row);
 		}
 		
 		// 其他分类
 		$classes = $Excel->classIds('=');
-		# $arr = [];
 		foreach ($classes as $class) {
 			$row = [
 				'title' => $class->class,
 			];
-			$arr[]= $Category->exist($row);
+			$arr[] = $Category->exist($row);
 		}
-		return ['result' =>  $arr, 'pageCount' => 1];
-		print_r([$arr, $classes]);
+
+		/* 接力任务 */
+		$code = 0;
+		$msg = "$this->api_host/robot/alimama/optimize/list?debug&type=json";
+		
+		/* 返回数据 */
+		return [
+			'code' => $code,
+			'msg' => $msg,
+            'result' => $arr,
+			'pageCount' => 1,			
+		];
 	}
 	
 	/**
 	 * 优化分类
 	 *
+	 * 更新商品分类数目
 	 */
 	public function optimizeCategory()
 	{
@@ -480,29 +495,26 @@ class Alimama extends \Plugin\Robot
 		$Category = new AlimamaProductCategory;
 		$time = time();
 		$update = $Category->update(['total' => 0, 'updated' => $time]);
-		
-		/* 更新子类 */
-		$catNum = $List->categoryNum();
 		$result = [];
+		
+		// 更新子类
+		$catNum = $List->categoryNum();
 		foreach ($catNum as $c) {
 			$result[$c->category_id] = $Category->update(['total' => $c->num, 'updated' => $time], ['category_id' => $c->category_id]);
 		}
 		
-		
-		/* 更新主类 */
+		// 更新主类
 		$cat = $Category->rootNum();
-		$res = [];
 		foreach ($cat as $r) {
-			$res[$r->upper_id] = $Category->update(['total' => $r->num, 'updated' => $time], $r->upper_id);
+			$result[$r->upper_id] = $Category->update(['total' => $r->num, 'updated' => $time], $r->upper_id);
 		}
 		
 		/* 返回数据 */
-		$result = array(
-            'result' => $result + $res,
-			'pageCount' => 1,
-			'msg' => '',
+		return [
 			'code' => 0,
-        );		
-		return $result;
+			'msg' => '',
+            'result' => $result,
+			'pageCount' => 1,
+        ];
 	}
 }

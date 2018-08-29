@@ -18,8 +18,9 @@ class AlimamaChoiceList extends \Astrology\Database
 		$where = [
 			'excel_id' => $arr['excel_id'],
 		];
-		$row = $this->sel($where, 'list_id,excel_id,item_id,category_id,title,pic,url,link,site,sold,cost,price,save,start,end');
-		if (!$row) {
+		$row = $this->sel($where, 'list_id,excel_id,item_id,category_id,title,pic,site,sold,cost,price,save,start,end');
+		# print_r([$row, $where]);exit;
+		if (!$row || !isset($row->list_id)) {
 			$data = [
 				'created' => $time,
 				'updated' => $time,
