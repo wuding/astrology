@@ -25,8 +25,10 @@ class AlimamaChoiceList extends \Astrology\Database
 				'updated' => $time,
 			];
 			$data += $arr;
+			unset($data['url'], $data['link']);
 			$field = array_keys($data);
 			$value = array_values($data);
+			# $this->return = 'into.sql';
 			return $last_id = $this->into($field, [$value]);
 		}
 		
