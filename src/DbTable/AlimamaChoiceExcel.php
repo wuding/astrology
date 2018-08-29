@@ -49,6 +49,12 @@ class AlimamaChoiceExcel extends \Astrology\Database
 		}
 		
 		/* 更新 */
+		if (isset($arr['cost'])) {
+			$arr['cost'] = (string) $arr['cost'];
+		}
+		if (isset($arr['discount'])) {
+			$arr['discount'] = (string) $arr['discount'];
+		}
 		$set = $arr;
 		# $set['updated'] = $time;		
 		$result = $this->set([$set, $row->{$primary_key}]);

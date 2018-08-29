@@ -34,7 +34,10 @@ class AlimamaChoiceCsv extends \Astrology\Database
 		
 		/* 比较 */
 		$diff = $this->array_diff_kv($row, $arr);
-		# var_dump($diff);
+		if ($diff) {
+			# var_dump($diff);exit; 
+		}
+		
 		$keys = array_keys($diff);
 		$difference = null;
 		if (!$keys) {

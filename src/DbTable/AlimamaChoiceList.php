@@ -39,11 +39,12 @@ class AlimamaChoiceList extends \Astrology\Database
 		foreach ($diff as $key => $value) {
 			$data[$key] = $value[1];
 		}
-		# var_dump($diff); 
-		# print_r([$data, $row, $arr]); exit;
+		
+		# print_r([$data, $row, $arr]); 
 		
 		/* 更新 */
 		if ($data) {
+			var_dump($diff);exit; # 
 			$data['updated'] = $time;
 			$result = $this->set([$data, $row->{$primary_key}]);
 			$result = $result[0];

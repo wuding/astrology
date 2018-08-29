@@ -63,8 +63,9 @@ class Alimama extends \Plugin\Robot
 		
 		$count = 500;
 		$max = $offset + $count;
-		$max_url = $this->api_host . '/robot/alimama/parse/category?debug&type=json';
+		$max_url = '';
 		$juhuasuan_url = $this->api_host . '/robot/alimama/parse/excel?debug&type=json&bill=3';
+		$category_url = $this->api_host . '/robot/alimama/parse/category?debug&type=json';
 		
 		// 清单列名
 		$keys = [
@@ -177,7 +178,8 @@ class Alimama extends \Plugin\Robot
 							
 						} elseif (preg_match("/(\d+)元无条件券/", $arr['denomination'], $matches)) {
 							$arr['discount'] = $matches[1];
-							$arr['cost'] = $arr['price'] - $arr['discount'];
+							# $arr['cost'] = round($arr['price'] - $arr['discount'], 2);
+							$arr['cost'] = (double) $arr['price'] - (double) $arr['discount'];
 						}
 					}
 					
@@ -228,7 +230,7 @@ class Alimama extends \Plugin\Robot
 		switch ($bill) {
 			case 3:
 				# $code = 1;
-				$msg = $max_url;
+				$msg = $max_url ? : $category_url;
 				break;
 			default:
 				if (count($result)) {
@@ -347,10 +349,11 @@ class Alimama extends \Plugin\Robot
 		
 		/* 取出列表 */
 		$time = 1535547149;
-		$where = "modified > $time OR created > $time";
-		# $where = '';
+		# $where = "modified > $time OR created > $time";
+		$where = '';
 		# $column = 'alimama_choice_excel.*, B.category_id';
 		$column = '*';
+		$column = 'class,taobaoke,promotion,cost,price,`group`,url,platform,excel_id,item,name,pic,sale,discount,start,end';
 		$option = ['excel_id DESC', "$offset,$limit"];
 		# $join = 'LEFT JOIN com_urlnk.alimama_product_category B ON B.title = alimama_choice_excel.class';
 		$join = null;
