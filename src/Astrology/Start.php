@@ -6,8 +6,9 @@ use Astrology\Extension\PhpMemcache;
 
 class Start
 {
-	public $_disable_cache = 0;
+	public $_disable_cache = 1;
 	public $cache = null;
+	public $cache_connect = null;
 	
 	public function __construct()
 	{
@@ -17,7 +18,7 @@ class Start
 		
 		if (!$this->_disable_cache && extension_loaded('memcache')) {# 
 			$this->cache = new PhpMemcache;
-			$this->cache->connect();
+			$this->cache_connect = $this->cache->connect();
 		}# 
 		
 		$this->initRoute();
@@ -33,13 +34,18 @@ class Start
 		global $APP_MODULES;
 		$route = Route::getInstance();
 		$shift = 2;
+		$ROUTES = [];
 		
 		/* 获取缓存 */
 		$md5 = md5($route->path);
 		$this->controller_key = 'controller_' . APP_ID . '_' . $md5;
 		$this->route_key = 'route_' . APP_ID . '_' . $md5;
-		# $set = $this->cache->set($route_key, []);
-		$ROUTES = $this->cache->get($this->route_key);
+		
+		if ($this->cache_connect) {
+			# var_dump($this->cache_connect);exit;
+			# $set = $this->cache->set($route_key, []);
+			$ROUTES = $this->cache->get($this->route_key);
+		}
 		# print_r([__line__, $ROUTES]);exit; 
 		
 		
@@ -57,13 +63,15 @@ NOWDOC;
 				if (is_array($APP_MODULES) && $APP_MODULES) {
 					$func = $APP_MODULES;
 				}
-				# $APP_MODULES = $route->appModules($APP_MODULES);
-				
-				
 				$module_key = 'modules_' . APP_ID;
-				$APP_MODULES = $this->cache->check($module_key, $func);
-				# $this->cache->set($module_key, []);
-				# $APP_MODULES = $this->cache->get($module_key);
+				
+				if ($this->cache_connect) {
+					$APP_MODULES = $this->cache->check($module_key, $func);
+					# $this->cache->set($module_key, []);
+					# $APP_MODULES = $this->cache->get($module_key);
+				} else {
+					$APP_MODULES = $route->appModules($APP_MODULES); # 
+				}
 				# print_r([$module, __line__, $APP_MODULES]);exit; 
 				$GLOBALS['MODULES'] =  array_keys($APP_MODULES);
 				if (!in_array($module, $GLOBALS['MODULES'])) {
@@ -91,12 +99,18 @@ NOWDOC;
 			
 				if (is_array($APP_MODULES) && isset($APP_MODULES[$module]) && $APP_MODULES[$module]) {
 					$func = $APP_MODULES[$module];
+				} else {
+					$APP_MODULES[$module] = [];
 				}
 				$controller_key = 'controllers_' . APP_ID . '_' . $module;
-				$APP_MODULES[$module] = $this->cache->check($controller_key, $func);# 
+				if ($this->cache_connect) {
+					$APP_MODULES[$module] = $this->cache->check($controller_key, $func);# 
+				} else {
+					$APP_MODULES[$module] = $route->appControllers($APP_MODULES, $module);
+				}
 				# print_r([$controller, __line__, $APP_MODULES]);exit; 
 				$GLOBALS['CONTROLLERS'] =  $APP_MODULES[$module];
-				# print_r([$controller, $APP_MODULES, $GLOBALS['CONTROLLERS']]);exit;
+				# print_r([$controller, $APP_MODULES, $GLOBALS['CONTROLLERS']]);exit; 
 				if (!in_array($controller, $GLOBALS['CONTROLLERS'])) {
 					$controller = '_Controller';
 					$shift--;
@@ -109,7 +123,11 @@ NOWDOC;
 				'controller' => $controller,
 				'shift' => $shift,
 			];
-			$set = $this->cache->set($this->route_key, $ROUTES);
+			if ($this->cache_connect) {
+				$set = $this->cache->set($this->route_key, $ROUTES);
+			} //else {
+				$GLOBALS['_ROUTE'] = $ROUTES;
+			//}
 			# print_r([__line__, $ROUTES]);exit; 
 			
 		} else {
@@ -126,18 +144,27 @@ NOWDOC;
 	 */
 	public function loadController()
 	{
+		# global $APP_MODULES;
 		$route = Route::getInstance();
+		# $module = $GLOBALS['MODULE_NAME'];
+		$class_name = null;
+		$ROUTES = [];
 	
 		/* 获取缓存 */
-		$ROUTES = $this->cache->get($this->controller_key);
-		# print_r([__line__, $ROUTES]);exit;
+		if ($this->cache_connect) {
+			$ROUTES = $this->cache->get($this->controller_key);
+		} else {
+			$ROUTES = $GLOBALS['_ROUTE'];
+		}
+		# print_r($GLOBALS);
+		# print_r([$APP_MODULES, __line__, $ROUTES]);exit; 
 		if ($ROUTES) {
 			$GLOBALS["MODULE_NAME"] = $ROUTES['module'];
 			$GLOBALS['CONTROLLER_NAME'] = $ROUTES['controller'];
 			$GLOBALS['SHIFT'] = $ROUTES['shift'];
-			$GLOBALS['ACTION_NAME'] = $GLOBALS['METHOD_NAME'] = $ROUTES['action'];
-			$GLOBALS['PARAMS'] = $ROUTES['params'];
-			$class_name = $ROUTES['class'];
+			$GLOBALS['ACTION_NAME'] = $GLOBALS['METHOD_NAME'] = isset($ROUTES['action']) ? $ROUTES['action'] : null;
+			$GLOBALS['PARAMS'] = isset($ROUTES['params']) ? $ROUTES['params'] : null;
+			$class_name = isset($ROUTES['class']) ? $ROUTES['class'] : $class_name;
 		}
 		
 		if (!ANFORA_AUTOLOAD) {
@@ -147,9 +174,9 @@ NOWDOC;
 		
 		
 		# print_r([__line__, $ROUTES]);exit;
-		if (!$ROUTES) {
-			
+		if (!$ROUTES || !$class_name) {
 			$class_name = 'Controller\\' . $GLOBALS['CONTROLLER_NAME'];	
+			
 			
 			/* 仅在目录文件存在而未定义类的情况下才需要下面两个缺省 */
 			// 缺省控制器
@@ -184,7 +211,9 @@ NOWDOC;
 				'params' => $GLOBALS['PARAMS'],
 				'class' => $class_name,
 			];
-			$set = $this->cache->set($this->controller_key, $ROUTES);
+			if ($this->cache_connect) {
+				$set = $this->cache->set($this->controller_key, $ROUTES);
+			}
 			# print_r([__line__, $ROUTES]);exit;
 		}
 		$GLOBALS['PATH'] = $route->path;
