@@ -7,3 +7,4 @@ themes/classic/views/
 web/img/
 vendor/
 composer.lock
+logs/
