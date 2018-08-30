@@ -44,27 +44,31 @@ class _Controller extends \Astrology\Controller
 		
 		$result = $robot->$method();
 		if (!isset($result['pageCount'])) {
-			$result['pageCount'] = 26;# 542 1084
+			$result['pageCount'] = 1; # 542 1084
 		}
 		
 		$code = 0;
 		$msg = '';
-		$url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-		parse_str($_SERVER['QUERY_STRING'], $query_data);		
+		// 自动下一页
 		if ($this->page < $result['pageCount']) {
+			parse_str($_SERVER['QUERY_STRING'], $query_data);
 			$query_data['page'] = $this->page + 1;
-			$encoded_string = http_build_query($query_data);			
+			$encoded_string = http_build_query($query_data);
+			$url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);			
 			$msg = $robot->api_host . $url_path .'?'. $encoded_string;
 
 		} else {
 			$code = 1;
 			$msg = 'final';
 			
+			// 继承
 			if (isset($result['msg']) && $result['msg']) {
 				$msg = $result['msg'];
+				unset($result['msg']);
 			}
 			if (isset($result['code']) && is_numeric($result['code'])) {
 				$code = $result['code'];
+				unset($result['code']);
 			}
 		}
 		
