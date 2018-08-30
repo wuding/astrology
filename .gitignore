@@ -8,3 +8,4 @@ web/img/
 vendor/
 composer.lock
 logs/
+app/config.php

@@ -54,7 +54,7 @@ class _Controller extends \Astrology\Controller
 		if ($this->page < $result['pageCount']) {
 			$query_data['page'] = $this->page + 1;
 			$encoded_string = http_build_query($query_data);			
-			$msg = 'http://lan.urlnk.com' . $url_path .'?'. $encoded_string;
+			$msg = $robot->api_host . $url_path .'?'. $encoded_string;
 
 		} else {
 			$code = 1;
