@@ -9,4 +9,5 @@ vendor/
 composer.lock
 logs/
 app/config.php
+app/bootstrap.php
 web/csv.php

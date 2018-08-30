@@ -57,7 +57,7 @@ class AlimamaChoiceList extends \Astrology\Database
 		
 		/* 更新 */
 		if ($data) {
-			var_dump($diff);exit; # 
+			# var_dump($diff);exit; 
 			$data['updated'] = $time;
 			$result = $this->set([$data, $row->{$primary_key}]);
 			$result = $result[0];
