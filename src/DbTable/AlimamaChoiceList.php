@@ -8,6 +8,19 @@ class AlimamaChoiceList extends \Astrology\Database
 	public $primary_key = 'list_id';
 	
 	/**
+	 * 获取最后更新时间
+	 */
+	public function getLastUpdated()
+	{
+		$where = 'updated > 0';
+		$row = $this->sel($where, 'updated', 'updated DESC');
+		if ($row) {
+			return $row->updated;
+		}
+		return false;
+	}
+	
+	/**
 	 * 检测条目是否存在
 	 *
 	 */

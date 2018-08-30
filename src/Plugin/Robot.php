@@ -6,8 +6,9 @@ namespace Plugin;
 
 use Astrology\Extension\Filesystem;
 use Astrology\Extension\SimpleXML;
-use DbTable\VideoCollect;
+use Astrology\Extension\PhpCurl;
 use Astrology\Database;
+use DbTable\VideoCollect;
 
 class Robot
 {
@@ -432,12 +433,34 @@ class Robot
 	}
 	
 	/**
+	 * 写入本地文件 - CURL
+	 */
+	public function putFileCurl($http_header = null, $key = 0, $_1 = null, $_2 = null)
+	{
+		$file = $this->getProp($key, 'paths', $_1, $_2);
+		$data = $this->getUrlContentsCurl($http_header, $key, $_1, $_2);
+		return $size = Filesystem::putContents($file, $data);
+	}
+	
+	/**
 	 * 获取远程文件
 	 */
 	public function getUrlContents($key = 0, $_1 = null, $_2 = null)
 	{
 		$file = $this->getProp($key, 'urls', $_1, $_2);
 		return $str = Filesystem::getContents($file);
+	}
+	
+	/**
+	 * 获取远程文件 - CURL
+	 */
+	public function getUrlContentsCurl($http_header = null, $key = 0, $_1 = null, $_2 = null)
+	{
+		$file = $this->getProp($key, 'urls', $_1, $_2);
+		$curl = new PhpCurl($file);
+		return $data = $curl->download($http_header);
+		# var_dump($curl->info['redirect_url']);
+		# var_dump($data);exit;
 	}
 	
 	/**

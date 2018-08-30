@@ -54,3 +54,4 @@ if (ANFORA_AUTOLOAD) {
 }
 
 # include_once 'function.php';
+# setlocale(LC_ALL, 'Chinese_China.936');

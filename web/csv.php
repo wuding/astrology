@@ -1,0 +1,257 @@
+<?php
+/* 调试 */
+if (isset($_GET['debug'])) {
+    ini_set('display_errors', 1);
+	ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+}
+
+/* 配置 */
+header("Content-type: text/html; charset=utf-8");
+$api_host = 'http://' . $_SERVER['HTTP_HOST'];
+$path = dirname(__FILE__) . '/';
+$path = 'K:\Astrology\storage\cache\http\www.alimama.com/';
+include_once 'K:\Legend\PHPExcel-1.8.1/Classes/PHPExcel.php';
+
+/**
+ *
+ * @author Sam@ozchamp.net
+ *
+ */
+class Excel
+{
+	public $currentSheet;
+
+	public $filePath;
+
+	public $fileType;
+
+	public $sheetIndex=0;
+
+	public $allColumn;
+
+	public $allRow;
+
+	public function initialized($filePath) {
+		if (file_exists($filePath)) {
+			$this->filePath=$filePath;
+		}else{
+			return array();
+		}
+		//以硬盤方式緩存
+		$cacheMethod = PHPExcel_CachedObjectStorageFactory:: cache_to_discISAM;
+
+		$cacheSettings = array();
+
+		PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+
+		$file_ext=strtolower(pathinfo($this->filePath, PATHINFO_EXTENSION));
+
+		switch ($file_ext) {
+			case 'csv':
+				$this->fileType='csv';
+				break;
+
+			case 'xlsx':
+				$this->fileType='excel';
+				break;
+
+			case 'xls':
+				$this->fileType='excel';
+				break;
+
+			default:
+				;
+				break;
+		}
+
+		if ($this->fileType=='csv') {
+			$PHPReader = new PHPExcel_Reader_CSV();
+
+			//默认的输入字符集
+			$PHPReader->setInputEncoding('GBK');
+
+			//默认的分隔符
+			$PHPReader->setDelimiter(',');
+
+			if(!$PHPReader->canRead($this->filePath)){
+				return array();
+			}
+		}elseif ($this->fileType=='excel'){
+			$PHPReader = new PHPExcel_Reader_Excel2007();
+
+			if(!$PHPReader->canRead($this->filePath)){
+				$PHPReader = new PHPExcel_Reader_Excel5();
+
+				if(!$PHPReader->canRead($this->filePath)){
+					return array();
+				}
+			}
+		}else{
+			return array();
+		}
+
+		$PHPReader->setReadDataOnly(true);
+
+		$PHPExcel = $PHPReader->load($this->filePath);
+
+		$this->currentSheet = $PHPExcel->getSheet((int)$this->sheetIndex);
+
+		//$this->currentSheet = $PHPExcel->getActiveSheet();
+
+		$this->allColumn=$this->currentSheet->getHighestColumn();
+
+		$this->allRow=$this->currentSheet->getHighestRow();
+	}
+
+	public function fetch($beginRow=NULL, $endRow=NULL){
+		$currentSheet=$this->currentSheet;
+
+		$allColumn=$this->allColumn;// V
+		$allRow=$this->allRow;// 10001
+		# print_r([$allColumn, $allRow]);exit;
+
+		$dataSrc=$data=array();
+
+		//取列标题
+
+		for($currentColumn= 'A';$currentColumn<= $allColumn; $currentColumn++){
+			$val = $currentSheet->getCellByColumnAndRow(ord($currentColumn) - 65, 1)->getValue();//ord()将字符转为十进制
+
+			$dataSrc[ord($currentColumn) - 65]=strtolower(trim($val));}
+
+			//echo implode("\t", $dataSrc);
+
+			$beginRow=$beginRow ? $beginRow : 2;
+
+			$endRow=$endRow ? $endRow : $allRow;
+
+			for($currentRow = $beginRow ;$currentRow <= $endRow ;$currentRow++){
+
+				//从第A列输出$dataRow=array();
+				for($currentColumn= 'A';$currentColumn<= $allColumn; $currentColumn++){
+
+					$val = $currentSheet->getCellByColumnAndRow(ord($currentColumn) - 65,$currentRow)->getValue();//ord()将字符转为十进制
+
+					$dataRow[$dataSrc[ord($currentColumn) - 65]]=$val;
+
+					
+				}
+
+				//行集数据处理..
+
+				if($dataRow){
+					$data[]=$dataRow;}
+			}
+
+			//echo '<pre>', print_r($data), '</pre>';
+
+			//echo "\n";
+		return $data;
+	}
+}
+
+//测试
+$filename = isset($_GET['bill']) ? (int) $_GET['bill'] : 3;
+$import=new Excel();
+$import->initialized("$path$filename.xls");
+$arr = $import->fetch();
+
+/*echo '<pre>', print_r($arr), '</pre>';exit;
+
+$arr = [
+	[
+		'商品一级类目' => '茶',
+		'店铺名称' => '徽六官方旗舰店',
+		'平台类型' => '天猫',
+		'name' => '徽六绿茶2017新茶六安瓜片一级春茶散装茶叶',
+	],
+	[
+		'商品一级类目' => '茶',
+		'店铺名称' => '徽六官方旗舰店',
+		'平台类型' => '天猫',
+		'name' => '徽六茶叶绿茶2017新茶六安瓜片手工春茶高山绿茶安徽茶叶散装250g',
+	],
+	[
+		'商品一级类目' => '茶',
+		'店铺名称' => '徽六官方旗舰店',
+		'平台类型' => '天猫',
+		'name' => '250',
+	],
+];
+*/
+
+# $fp = fopen("$path$filename.csv", 'w');
+$str = '';
+
+/**
+ * 列名
+ */
+$top = $arr[0];
+$top = array_keys($top);
+foreach ($top as $val) {
+	if (preg_match("/,/", $val)) {
+		print_r([-1, $top]);exit;
+	}
+}
+$col = implode(',', $top);
+/*
+$col = mb_convert_encoding($col, 'gbk', 'utf-8');
+fwrite($fp, $col . '
+');
+*/
+$str .= $col . PHP_EOL;
+
+/**
+ * 行
+ */
+$max = count($arr) + 0;
+for ($i = 0; $i < $max; $i++) {
+	$row = $arr[$i];
+	$ro = [];
+	foreach ($row as $val) {
+		$val = trim($val);
+		if (preg_match("/,/", $val)) {
+			$val = preg_replace("/,/", '&#44;', $val);
+			# print_r([$i, $val, $row]);exit;
+		} elseif (preg_match("/\"/", $val)) {
+			$val = preg_replace("/\"/", '&#34;', $val);
+			# print_r([$i, $val, $row]);exit;
+		}
+		$ro []= $val;
+	}
+	$col = implode(',', $ro);
+	/*
+	$col = mb_convert_encoding($col, 'gbk', 'utf-8');
+	fwrite($fp, $col . '
+');*/
+	$str .= $col . PHP_EOL;
+}
+
+#fclose($fp);
+$size = file_put_contents("$path$filename.csv", $str);
+
+/**
+ * 任务计划
+ */
+$msg = '';
+switch ($filename) {
+	case 1:
+		$msg = '/robot/alimama/parse/coupon?debug&type=json&bill=1';
+		$msg = $api_host . '/robot/alimama/parse/excel?debug&type=json&bill=1';
+		break;
+	default:
+		$msg = $api_host . '/csv.php?debug&bill=1';
+}
+
+$arr = [
+	'code' => 0,
+	'msg' => $msg,
+	'data' => array(
+		'max' => $max,
+		'size' => $size,
+	),
+];
+
+$json = json_encode($arr);
+exit($json);

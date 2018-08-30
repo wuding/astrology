@@ -1,8 +1,8 @@
 <?php
 /**
- * 阿里妈妈
+ * 淘宝联盟 - 阿里妈妈
  *
- *
+ * https://pub.alimama.com/
  */
 namespace Plugin\Robot;
 
@@ -14,6 +14,7 @@ class Alimama extends \Plugin\Robot
 {
 	#! public $site_id = null;
 	public $api_host = 'http://lan.urlnk.com';
+	public $csv_encoding = 'utf-8';
 	
 	/**
 	 * 自定义初始化 
@@ -42,11 +43,52 @@ class Alimama extends \Plugin\Robot
         ];
 	}
 	
+	public function utf8_fopen_read($fileName)
+	{ 
+		$fc = file_get_contents($fileName);
+		$handle = fopen("php://memory", "rw"); 
+		fwrite($handle, $fc); 
+		fseek($handle, 0); 
+		return $handle; 
+	} 
+	
 	/*
 	------------------------------------------------
 	| 列表
 	------------------------------------------------
 	*/
+	
+	/**
+	 * 下载表格.xls
+	 */
+	public function downloadExcel()
+	{
+		$cookie = isset($_SESSION['cookie']) ? trim($_SESSION['cookie']) : '';
+		$http_header = ['X-HTTP-Method-Override: GET'];
+		$http_header[] = 'Cookie: ' . $cookie;
+		$size = $this->putFileCurl($http_header, $this->bill, $this->attr['page']);
+		if (!$size) {
+			return ['code' => 1, 'msg' => 'login'];
+			print_r([__FILE__, __LINE__]);exit;
+		}
+		
+		$code = 0;
+		$msg = '';		
+		switch ($this->bill) {
+			case 3:
+				$msg = $this->api_host . '/robot/alimama/download/excel?debug&type=json&bill=1';
+				break;
+			default:
+				$msg = $this->api_host . '/csv.php?debug&bill=3';
+		}
+		
+		return array(
+			'code' => $code,
+			'msg' => $msg,
+            'result' => $size,
+            'pageCount' => 1,
+        );
+	}
 	
 	/**
 	 * 解析表格.csv
@@ -142,10 +184,13 @@ class Alimama extends \Plugin\Robot
 		/* 解析 CSV 文件 */
 		$row = 0;
 		$result = [];
-		if (($handle = fopen($path, "r")) !== false) {
-			while (($data = fgetcsv($handle, 0, ",")) !== false) {
+		# fopen($path, "r,ccs=utf-8")
+		if (($handle = $this->utf8_fopen_read($path)) !== false) {
+			# while (($data = fgetcsv($handle, 0, ",")) !== false) {
+			while (($buffer = fgets($handle, 4096)) !== false) {
 				
 				if ($offset < $row && $row < $max) {
+					$data = explode(',', trim($buffer));
 					/* 列数检测 */
 					$num_data = count($data);
 					if ($num_data != $num) {
@@ -161,8 +206,12 @@ class Alimama extends \Plugin\Robot
 							$datum =$data[$c];
 						} else {
 							print_r($data);exit; #
-						}						
-						$datum = mb_convert_encoding($datum, 'utf-8', 'gbk');# 
+						}
+						
+						// 编码
+						if ($this->csv_encoding && 'utf-8' != $this->csv_encoding) {
+							$datum = mb_convert_encoding($datum, 'utf-8', $this->csv_encoding);# 
+						}
 						$arr[$keyname] = $datum;
 					}
 					
@@ -207,7 +256,7 @@ class Alimama extends \Plugin\Robot
 					if ($arr['end'] && !preg_match("/:/", $arr['end'])) {
 						$arr['end'] .= ' 23:59:59';
 					}
-					# print_r($arr);exit;
+					# print_r($arr);exit; 
 
 					/* 检查条目 */
 					# $Excel->return = 'update.status';
@@ -333,6 +382,23 @@ class Alimama extends \Plugin\Robot
 	}
 	
 	/**
+	 * 最后创建和编辑的时间
+	 */
+	public function where_optimizeTime()
+	{
+		$List = new AlimamaChoiceList;
+		$time = isset($_SESSION['optimize_time']) ? $_SESSION['optimize_time'] : null;
+		if (null === $time) {
+			$_SESSION['optimize_time'] = $time = $List->getLastUpdated();
+		}
+		
+		if (!$time) {
+			return '';
+		}
+		return $where = "modified > $time OR created > $time";
+	}
+	
+	/**
 	 * 优化列表
 	 *
 	 * 原始列表更新到精简列表
@@ -348,9 +414,7 @@ class Alimama extends \Plugin\Robot
 		$List = new AlimamaChoiceList;
 		
 		/* 取出列表 */
-		$time = 1535547149;
-		# $where = "modified > $time OR created > $time";
-		$where = '';
+		$where = $this->where_optimizeTime();
 		# $column = 'alimama_choice_excel.*, B.category_id';
 		$column = '*';
 		$column = 'class,taobaoke,promotion,cost,price,`group`,url,platform,excel_id,item,name,pic,sale,discount,start,end';
@@ -427,6 +491,8 @@ class Alimama extends \Plugin\Robot
 		} else {
 			# $code = 1;
 			$msg = "$this->api_host/robot/alimama/optimize/category?debug&type=json";
+			unset($_SESSION['optimize_time']);
+			
 		}
 		
 		/* 返回数据 */

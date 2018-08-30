@@ -10,9 +10,13 @@ class _Controller extends \Astrology\Controller
 	
 	public function __construct()
 	{
+		parent::__construct();
+		
 		# header("Access-Control-Allow-Origin: *");
 		$this->page = $this->_get('page', 1, FILTER_VALIDATE_INT);
 		$this->limit = $this->_get('limit', 1, FILTER_VALIDATE_INT);
+		
+		
 	}
 	/*
 	public function _NotFound()
@@ -25,8 +29,40 @@ class _Controller extends \Astrology\Controller
 		print_r([__METHOD__, __FILE__, __LINE__]);
 	}
 	*/
+	public function _alimama($do)
+	{
+		# print_r($GLOBALS);exit;
+		if ('cookie' == $do) {
+			$cookie = isset($_SESSION['cookie']) ? $_SESSION['cookie'] : '';
+			if ($_POST) {
+				$cookie = trim($_POST['cookie']);
+				if ($cookie) {
+					$_SESSION['cookie'] = $cookie;
+				} else {
+					unset($_SESSION['cookie']);
+				}
+				
+			}
+			# $this->_disable_layout = 0;
+			$this->_view_script = "Index/cookie";
+			return ['cookie' => $cookie];
+		}
+		
+		$this->_view_script = "Index/alimama";
+		$cookie = isset($_SESSION['cookie']) ? $_SESSION['cookie'] : '';
+		$arr = array('task', 'millisec');
+		return $result = $this->array_variable($arr) + ['cookie' => $cookie];
+	}
+	
 	public function __call($name, $arguments)
 	{
+		if ('alimama' == $name) {
+			$do = isset($GLOBALS['PARAMS'][0]) ? $GLOBALS['PARAMS'][0] : '';
+			if (in_array($do, ['', 'cookie'])) {
+				return $this->_alimama($do);
+			}
+		}
+		$this->_enable_view = 0;
 		$route = Route::getInstance();
 		$action = $route->getParam(0);
 		$type = $route->getParam(1);		
