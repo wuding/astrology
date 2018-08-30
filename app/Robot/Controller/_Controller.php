@@ -49,6 +49,20 @@ class _Controller extends \Astrology\Controller
 		
 		$code = 0;
 		$msg = '';
+		$extend = 0;
+		
+		// 继承
+		if (isset($result['msg']) && $result['msg']) {
+			$msg = $result['msg'];
+			unset($result['msg']);
+			$extend++;
+		}
+		if (isset($result['code']) && is_numeric($result['code'])) {
+			$code = $result['code'];
+			unset($result['code']);
+			$extend++;
+		}
+			
 		// 自动下一页
 		if ($this->page < $result['pageCount']) {
 			parse_str($_SERVER['QUERY_STRING'], $query_data);
@@ -57,20 +71,11 @@ class _Controller extends \Astrology\Controller
 			$url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);			
 			$msg = $robot->api_host . $url_path .'?'. $encoded_string;
 
-		} else {
+		} elseif (!$extend) {
 			$code = 1;
 			$msg = 'final';
-			
-			// 继承
-			if (isset($result['msg']) && $result['msg']) {
-				$msg = $result['msg'];
-				unset($result['msg']);
-			}
-			if (isset($result['code']) && is_numeric($result['code'])) {
-				$code = $result['code'];
-				unset($result['code']);
-			}
 		}
+		# print_r($result);exit;
 		
 		$value = [
 			'code' => $code,
