@@ -203,7 +203,7 @@ class Alimama extends \Plugin\Robot
 						$keyname = isset($key[$c]) ? $key[$c] : $c;
 						$datum = null;
 						if (isset($data[$c])) {
-							$datum =$data[$c];
+							$datum = trim($data[$c]);
 						} else {
 							print_r($data);exit; #
 						}
