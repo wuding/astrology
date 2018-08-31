@@ -580,8 +580,8 @@ class Alimama extends \Plugin\Robot
 		
 		/* 返回数据 */
 		return [
-			'code' => 0,
-			'msg' => '',
+			'code' => 1,
+			'msg' => 'final',
             'result' => $result,
 			'pageCount' => 1,
         ];
