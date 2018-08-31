@@ -17,7 +17,7 @@
 	<button type="button" onclick="removeItem();">清除</button>
 	
 	<p>
-	请求记录 <select id="div" onchange="select_change(this)">
+	请求记录 <select id="request_log" onchange="select_change(this)">
 		<option></option>
 	</select>
 	<p>
@@ -61,20 +61,24 @@ var interval = null;
 var exec_task = 0;
 
 //Local Storage 列表生成
-var select = document.getElementById('div');
+var ele_request_log = document.getElementById('request_log');
 for(var i=0; i<localStorage.length; i++){
-    var key = localStorage .key(i);
+    var key = localStorage.key(i);
     var val = localStorage.getItem(key);
     var option = document.createElement("option");
     option.setAttribute('value', val);
     option.innerHTML = key;
-    select.append(option);
+	try {
+		ele_request_log.append(option);
+	} catch (err) {
+		alert(err)
+	}
 }
 
 //Local Storage 列表操作
 function select_change(obj) {
     start(1);   
-    document.getElementById('item').value = select.options[select.selectedIndex].text;
+    document.getElementById('item').value = ele_request_log.options[ele_request_log.selectedIndex].text;
     document.getElementById('url').value = obj.value;
 }
 
