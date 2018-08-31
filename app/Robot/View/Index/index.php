@@ -71,7 +71,7 @@ for(var i=0; i<localStorage.length; i++){
 	try {
 		ele_request_log.append(option);
 	} catch (err) {
-		alert(err)
+		console.log(err)
 	}
 }
 
