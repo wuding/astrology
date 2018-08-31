@@ -1,3 +1,10 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+</head>
+
+<body>
 <main class="main-page">
 <fieldset>
 	<legend>请求</legend>
@@ -353,3 +360,5 @@ if ($task) {
 ?>
 </script>
 </main>
+</body>
+</html>
