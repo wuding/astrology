@@ -22,6 +22,8 @@ class Robot
 		'page' => 1,
 	];
 	
+	public $enable_relay = true;
+	
 	/**
 	 * 构造函数
 	 *
