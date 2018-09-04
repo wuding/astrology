@@ -6,7 +6,11 @@
  */
 namespace Plugin\Robot;
 
+use Astrology\Extension\Mbstring;
+use Astrology\Extension\DOM;
+use DbTable\RentingSiteArea;
 use DbTable\RentingSiteDetail;
+
 
 class Fang extends \Plugin\Robot
 {
@@ -155,7 +159,7 @@ class Fang extends \Plugin\Robot
 	public function parse_list($str = null, $charset = null, $id = null, $from_encoding = null, $replace = [])
 	{
 		if ($from_encoding) {
-			$mb = new \Astrology\Extension\Mbstring($str, $from_encoding);
+			$mb = new Mbstring($str, $from_encoding);
 			if ($replace) {
 				$str = $mb->preg_replace($replace[0], $replace[1]);
 			} else {
@@ -163,7 +167,7 @@ class Fang extends \Plugin\Robot
 			}
 		}
 
-		$dom = new \Astrology\Extension\DOM($str, $charset);
+		$dom = new DOM($str, $charset);
 		$doc = $dom->doc;
 		if ($id) {
 			$doc = $doc->getElementById($id);
@@ -178,8 +182,8 @@ class Fang extends \Plugin\Robot
 	 */
 	public function check_list($doc)
 	{
-		$detail = new \DbTable\RentingSiteDetail;
-		$dom = new \Astrology\Extension\DOM();
+		$detail = new RentingSiteDetail;
+		$dom = new DOM();
 		$li = $doc->getElementsByTagName('li');
 		$len = $li->length;
 		$list = [];
@@ -272,7 +276,7 @@ class Fang extends \Plugin\Robot
 		$data = $this->getPathContents(1, 'mas', $this->attr['page']);
 		$str = gzdecode($data);
 		# header('Content-Type: text/html; charset=utf-8');
-		$mb = new \Astrology\Extension\Mbstring($str, 'gbk');		
+		$mb = new Mbstring($str, 'gbk');		
 		echo $str = $mb->preg_replace('/charset=gb2312/', 'charset=utf-8');exit;
 
 		$msg = '';
@@ -361,7 +365,7 @@ class Fang extends \Plugin\Robot
 	 */
 	public function parseCity()
 	{
-		$area = new \DbTable\RentingSiteArea;
+		$area = new RentingSiteArea;
 		$data = $this->getPathContents();
 		
 		/*
@@ -371,7 +375,7 @@ class Fang extends \Plugin\Robot
 		
 		$str = gzdecode($data);
 		# header('Content-Type: text/html; charset=utf-8');
-		$mb = new \Astrology\Extension\Mbstring($str, 'gbk');		
+		$mb = new Mbstring($str, 'gbk');		
 		$str = $mb->preg_replace('/charset=gb2312/', 'charset=utf-8');
 		$doc = new \DOMDocument('1.0', 'utf-8');
         @$doc->loadHTML($str);		

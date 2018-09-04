@@ -43,6 +43,11 @@ class Alimama extends \Plugin\Robot
         ];
 	}
 	
+	/**
+	 * 本地文件使用内存打开句柄
+	 * @param  string $fileName 文件路径
+	 * @return resource         句柄
+	 */
 	public function utf8_fopen_read($fileName)
 	{ 
 		$fc = file_get_contents($fileName);
