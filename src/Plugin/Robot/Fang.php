@@ -9,8 +9,10 @@ namespace Plugin\Robot;
 class Fang extends \Plugin\Robot
 {
 	public $enable_relay = true;
+	public $overwrite = true;
 	public $api_host = 'http://lan.urlnk.com';
 	public $site_id = 1;
+
 
 	/**
 	 * 自定义初始化
@@ -67,10 +69,11 @@ class Fang extends \Plugin\Robot
 				'info' => [__FILE__, __LINE__],
 			];
 		}
+		# print_r($size);exit;
 		
 		/* 解析 */
 		$data = $this->getPathContents(2, 'mas');
-		$doc = $this->parse_list($data, null, null, 'gbk', ['/charset=gbk/', 'charset=utf-8']);
+		$doc = $this->parse_list($data, null, null, 'gbk', ['/charset=gbk/', 'charset=utf-8'])[0]; # echo exit;
 		
 		// 页数
 		$input = $doc->getElementsByTagName('input');
@@ -86,7 +89,7 @@ class Fang extends \Plugin\Robot
 				}
 			}
 		}
-		# print_r($arr);exit;
+		# print_r($arr);exit; 
 		$obj = (object) $arr;
 		$limit = 16;
 		$_SESSION['next_page'] = $next_page = $obj->pagesize / $limit + 1;
@@ -95,7 +98,7 @@ class Fang extends \Plugin\Robot
 		/* 列表 */
 		$doc = $doc->getElementById('content');		
 		$list = $this->check_list($doc);
-		# print_r($list);exit;
+		# print_r($list);exit; 
 		
 		$msg = $this->enable_relay ? $this->relay_urls['download/list'] . "&page=$next_page" : '';
 		return [
@@ -125,7 +128,7 @@ class Fang extends \Plugin\Robot
 
 		/* 检测 */
 		$data = $this->getPathContents(4, 'mas', $this->attr['page']);
-		$doc = $this->parse_list($data, 'utf-8');
+		$doc = $this->parse_list($data, 'utf-8')[0]; # echo exit;
 		$list = $this->check_list($doc);
 		#print_r($list);exit;
 		#
@@ -163,7 +166,7 @@ class Fang extends \Plugin\Robot
 		if ($id) {
 			$doc = $doc->getElementById($id);
 		}
-		return $doc;
+		return [$doc, $str];
 	}
 
 	/**
@@ -174,15 +177,19 @@ class Fang extends \Plugin\Robot
 	public function check_list($doc)
 	{
 		$detail = new \DbTable\RentingSiteDetail;
+		$dom = new \Astrology\Extension\DOM();
 		$li = $doc->getElementsByTagName('li');
 		$len = $li->length;
 		$list = [];
 		for ($j = 0; $j < $len; $j++) {
-			$nd = $li->item($j);
-			$h3 = $nd->getElementsByTagName('h3');
+			$nd = $li->item($j);			
 			$data_bg = $nd->getAttribute('data-bg');
 			if ($data_bg) {
+				$h3 = $nd->getElementsByTagName('h3');				
 				$bg = json_decode($data_bg);
+				$img = $nd->getElementsByTagName('img')->item(0)->getAttribute('data-original');
+				$span = $nd->getElementsByTagName('span');
+				$p = $nd->getElementsByTagName('p');
 				$arr = [
 					'site_id' => $this->site_id,
 					'title' => $h3->item(0)->nodeValue,
@@ -190,7 +197,52 @@ class Fang extends \Plugin\Robot
 					'agent_id' => $bg->agentid,
 					'type' => $bg->housetype,
 					'data' => $bg->listingtype,
+					'pic' => $img,
 				];
+				$tags = [];
+				for ($s = 0; $s < $span->length; $s++) {
+					$node = $span->item($s);
+					$class = $node->getAttribute('class');
+					$value = $node->nodeValue;
+					switch ($class) {
+						case 'new':
+							$arr['rental_price'] = $value;
+							break;
+						case 'flor':
+							$arr['refresh_time'] = $value;
+							break;
+						case 'red-z':
+							$tags[] = $value;
+							break;
+						default:
+							break;
+					}
+				}
+				if ($tags) {
+					$arr['tags'] = implode(',', $tags);
+				}
+
+				for ($i = 0; $i < $p->length; $i++) {
+					if (1 < $i) {
+						break;
+					}
+
+					$nod = $p->item($i);
+					$html = $dom->innerHTML($nod);
+					$text = $dom->stripTagsContent($html);
+					$split = preg_split('/(\s+\-\s+|\s+)/', $text, 2);
+					# print_r([$text, $split]);
+					switch ($i) {
+						case 0:
+							$arr['house_type'] = $split[0];
+							$arr['rental_method'] = isset($split[1]) ? $split[1] : '';
+							break;
+						case 1:
+							list($arr['district_name'], $arr['complex_name']) = $split;
+							break;							
+					}
+				}
+				# print_r($arr);exit;
 				$list[] = $detail->exist($arr);
 			}
 		}

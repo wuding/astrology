@@ -13,6 +13,9 @@ class RentingSiteDetail extends \Astrology\Database
 	 */
 	public function exist($arr)
 	{
+		$primary_key = $this->primary_key;
+		$time = time();
+		
 		$where = [
 			'site_id' => $arr['site_id'],
 			'item_id' => $arr['item_id'],
@@ -21,7 +24,7 @@ class RentingSiteDetail extends \Astrology\Database
 		$row = $this->sel($where, '*');
 		
 		if (!$row) {
-			$time = time();
+			
 			$data = [
 				'status' => -1,
 				'created' => $time,
@@ -32,15 +35,22 @@ class RentingSiteDetail extends \Astrology\Database
 		}
 
 		/* 比较 */
-		$diff = $this->array_diff_kv($arr, (array) $row);
+		$diff = $this->array_diff_kv($arr, (array) $row, ['refresh_time']);
 		if ($diff) {
 			$data = [];
 			foreach ($diff as $key => $value) {
-				$data[$key] = $value[1];
-			}			
-			print_r([$diff, $data]);exit;
+				$data[$key] = $value[0];
+			}
+			$keys = array_keys($diff);
+			# print_r([$diff, $data, $keys]);exit; 
+			$data['updated'] = $time;
+			$data['status'] = -2;
+			$data['note'] = implode(',', $keys);
+			$result = $this->update($data, $row->{$primary_key});
+			$result = $result[0];
+			return $result;
 		}
 		
-		return $row->detail_id;
+		return $row->{$primary_key};
 	}
 }

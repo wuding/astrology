@@ -12,12 +12,19 @@ use DbTable\VideoCollect;
 
 class Robot
 {
+	// ?
 	public $func_format = '';
-	public $page_reverse = false;
+	public $page_reverse = false; //页码时间逆向排序
+	
+	// 设置
 	public $cache_root = 'D:\aries\cache\http';
 	public $urls = [];
 	public $paths = [];
 	public $_url_list_key = 0;
+	public $overwrite = null; //覆盖已存在的下载文件
+	public $ignore = ['last_time' => 0]; //覆盖,忽略条目最后编辑时间
+	
+	// 动态变量
 	public $attr = [
 		'page' => 1,
 	];
@@ -440,6 +447,9 @@ class Robot
 	public function putFileCurl($http_header = null, $key = 0, $_1 = null, $_2 = null)
 	{
 		$file = $this->getProp($key, 'paths', $_1, $_2);
+		if ($filesize = $this->downloadSize($file)) {
+            return [$filesize];
+        }
 		$data = $this->getUrlContentsCurl($http_header, $key, $_1, $_2);
 		return $size = Filesystem::putContents($file, $data);
 	}
@@ -474,5 +484,17 @@ class Robot
 		return $str = Filesystem::getContents($file);
 	}
 	
-	
+	/**
+	 * 是否需要下载
+	 * @param  sring $file     文件地址
+	 * @param  int   $min_size 不重新下载所需的最小文件大小
+	 * @return bool|int        返回文件大小或false
+	 */
+	public function downloadSize($file, $min_size = 1)
+    {
+        if (!$this->overwrite && file_exists($file) && $min_size < ($filesize = filesize($file))) {
+            return $filesize;
+        }
+        return false;
+    }
 }
