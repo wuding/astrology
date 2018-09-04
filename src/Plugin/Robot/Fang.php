@@ -6,10 +6,12 @@
  */
 namespace Plugin\Robot;
 
+use DbTable\RentingSiteDetail;
+
 class Fang extends \Plugin\Robot
 {
 	public $enable_relay = true;
-	public $overwrite = true;
+	public $overwrite = false;
 	public $api_host = 'http://lan.urlnk.com';
 	public $site_id = 1;
 
@@ -282,6 +284,47 @@ class Fang extends \Plugin\Robot
 		];
 	}
 
+	/*
+	 +------------------------------
+	 | 出租详情
+	 +------------------------------
+	 */
+
+	/**
+	 * 下载出租详情
+	 * @return array api数据
+	 */
+	public function downloadDetail()
+	{
+		$this->min_size = 200;
+		$page = $this->attr['page'];
+		$limit = 10;
+		$Detail = new RentingSiteDetail;
+		$where = "status IN (-1,-2)";		
+		$all = $Detail->fetchAll($where, 'city_name,item_id,type', 'detail_id', $page, $limit);
+		$pageCount = $Detail->pageCount($where, $limit);
+		
+		$result = [];
+		foreach ($all as $row) {
+			$size = $this->putFileCurl([], 3, $row->city_name, $row->item_id, $row->type);
+			if (!$size) {
+				return [
+					'code' => 1, 
+					'msg' => 'download error', 
+					'info' => [__FILE__, __LINE__],
+					'row' => $row,
+				];
+			}
+			$result[] = $size;
+		}
+
+		$msg = '';
+		return [
+			'msg' => $msg,
+			'result' => $result,
+			'pageCount' => $pageCount,
+		];
+	}
 
 	/*
 	 +------------------------------

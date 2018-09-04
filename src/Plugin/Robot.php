@@ -23,6 +23,7 @@ class Robot
 	public $_url_list_key = 0;
 	public $overwrite = null; //覆盖已存在的下载文件
 	public $ignore = ['last_time' => 0]; //覆盖,忽略条目最后编辑时间
+	public $min_size = 1; //不重新下载所需的最小文件大小
 	
 	// 动态变量
 	public $attr = [
@@ -437,6 +438,9 @@ class Robot
 	public function putFile($key = 0, $_1 = null, $_2 = null)
 	{
 		$file = $this->getProp($key, 'paths', $_1, $_2);
+		if ($filesize = $this->downloadSize($file)) {
+            return [$filesize];
+        }
 		$data = $this->getUrlContents($key, $_1, $_2);
 		return $size = Filesystem::putContents($file, $data);
 	}
@@ -444,13 +448,13 @@ class Robot
 	/**
 	 * 写入本地文件 - CURL
 	 */
-	public function putFileCurl($http_header = null, $key = 0, $_1 = null, $_2 = null)
+	public function putFileCurl($http_header = null, $key = 0, $_1 = null, $_2 = null, $_3 = null)
 	{
-		$file = $this->getProp($key, 'paths', $_1, $_2);
+		$file = $this->getProp($key, 'paths', $_1, $_2, $_3);
 		if ($filesize = $this->downloadSize($file)) {
             return [$filesize];
         }
-		$data = $this->getUrlContentsCurl($http_header, $key, $_1, $_2);
+		$data = $this->getUrlContentsCurl($http_header, $key, $_1, $_2, $_3);
 		return $size = Filesystem::putContents($file, $data);
 	}
 	
@@ -466,9 +470,9 @@ class Robot
 	/**
 	 * 获取远程文件 - CURL
 	 */
-	public function getUrlContentsCurl($http_header = null, $key = 0, $_1 = null, $_2 = null)
+	public function getUrlContentsCurl($http_header = null, $key = 0, $_1 = null, $_2 = null, $_3 = null)
 	{
-		$file = $this->getProp($key, 'urls', $_1, $_2);
+		$file = $this->getProp($key, 'urls', $_1, $_2, $_3);
 		$curl = new PhpCurl($file);
 		return $data = $curl->download($http_header);
 		# var_dump($curl->info['redirect_url']);
@@ -490,8 +494,9 @@ class Robot
 	 * @param  int   $min_size 不重新下载所需的最小文件大小
 	 * @return bool|int        返回文件大小或false
 	 */
-	public function downloadSize($file, $min_size = 1)
+	public function downloadSize($file, $min_size = null)
     {
+		$min_size = $min_size ? : $this->min_size;
         if (!$this->overwrite && file_exists($file) && $min_size < ($filesize = filesize($file))) {
             return $filesize;
         }

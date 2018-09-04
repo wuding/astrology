@@ -213,6 +213,23 @@ class Database
 		$row = self::$adapter->find($sql);
 		return $num = $row ? $row->num : 0;
 	}
+
+	/**
+	 * 计算页码总数
+	 * @param  array   $where 查询
+	 * @param  integer $limit 每页条数
+	 * @param  boolean $total 是否返回总条数
+	 * @return integer|array  返回页码总数
+	 */
+	public function pageCount($where = null, $limit = 10, $total = false)
+	{
+		$count = $this->count($where);
+		$pageCount = ceil($count / $limit);
+		if ($total) {
+			return [$count, $pageCount];
+		}
+		return $pageCount;
+	}
 	
 	public function select($where = null, $column = '*', $order = null, $limit = 10, $offset = null)
 	{

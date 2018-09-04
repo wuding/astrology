@@ -46,11 +46,16 @@ class RentingSiteDetail extends \Astrology\Database
 			$data['updated'] = $time;
 			$data['status'] = -2;
 			$data['note'] = implode(',', $keys);
-			$result = $this->update($data, $row->{$primary_key});
-			$result = $result[0];
-			return $result;
+			return $result = $this->update($data, $row->{$primary_key});
 		}
 		
 		return $row->{$primary_key};
+	}
+
+	public function fetchAll($where = [], $column = '*', $order = 'detail_id ASC', $page = 1, $limit = 10)
+	{
+		$offset = $page * $limit - $limit;
+		$option = [$order, "$offset,$limit"];
+		return $all = $this->_select($where, $column, $option);
 	}
 }
