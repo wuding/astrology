@@ -1,4 +1,7 @@
 <?php
+/**
+ * 站点租房详情
+ */
 namespace DbTable;
 
 class RentingSiteDetail extends \Astrology\Database
@@ -9,7 +12,8 @@ class RentingSiteDetail extends \Astrology\Database
 	
 	/**
 	 * 检测
-	 *
+	 * @param  array  $arr 查询及设置数据
+	 * @return integer     条目ID或更新状态
 	 */
 	public function exist($arr)
 	{
@@ -52,6 +56,15 @@ class RentingSiteDetail extends \Astrology\Database
 		return $row->{$primary_key};
 	}
 
+	/**
+	 * 获取多个条目
+	 * @param  array   $where  查询
+	 * @param  string  $column 列
+	 * @param  string  $order  排序
+	 * @param  integer $page   页码
+	 * @param  integer $limit  条数
+	 * @return array           结果条目
+	 */
 	public function fetchAll($where = [], $column = '*', $order = 'detail_id ASC', $page = 1, $limit = 10)
 	{
 		$offset = $page * $limit - $limit;
