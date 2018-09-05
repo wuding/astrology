@@ -24,6 +24,7 @@ class Robot
 	public $overwrite = null; //覆盖已存在的下载文件
 	public $ignore = ['last_time' => 0]; //覆盖,忽略条目最后编辑时间
 	public $min_size = 1; //不重新下载所需的最小文件大小
+	public $returnVars = null;
 	
 	// 动态变量
 	public $attr = [
@@ -451,11 +452,32 @@ class Robot
 	public function putFileCurl($http_header = null, $key = 0, $_1 = null, $_2 = null, $_3 = null)
 	{
 		$file = $this->getProp($key, 'paths', $_1, $_2, $_3);
-		if ($filesize = $this->downloadSize($file)) {
-            return [$filesize];
+		if ($download = $this->downloadSize($file, null, $this->returnVars)) {
+			return $download;			
         }
+		
 		$data = $this->getUrlContentsCurl($http_header, $key, $_1, $_2, $_3);
-		return $size = Filesystem::putContents($file, $data);
+		$filesize = Filesystem::putContents($file, $data);
+		return $this->returnVars(get_defined_vars(), $filesize);
+	}
+	
+	public function returnVars($vars, $default = null, $keys = null)
+	{
+		$keys = (null === $keys) ? $this->returnVars : $keys;
+		if ($keys) {
+			$arr = [];
+			foreach ($keys as $row) {
+				if (isset($vars[$row])) {
+					$arr[$row] = $vars[$row];
+				} else {
+					$arr[$row] = null;
+				}
+			}			
+			return $arr;
+		}
+		
+		$vars = (null === $default) ? $vars : $default;
+		return $vars;
 	}
 	
 	/**
@@ -494,10 +516,14 @@ class Robot
 	 * @param  int   $min_size 不重新下载所需的最小文件大小
 	 * @return bool|int        返回文件大小或false
 	 */
-	public function downloadSize($file, $min_size = null)
+	public function downloadSize($file, $min_size = null, $keys = null)
     {
 		$min_size = $min_size ? : $this->min_size;
         if (!$this->overwrite && file_exists($file) && $min_size < ($filesize = filesize($file))) {
+			if ($keys) {
+				$data = Filesystem::getContents($file);
+				return $this->returnVars(get_defined_vars(), $filesize, $keys);
+			}
             return $filesize;
         }
         return false;

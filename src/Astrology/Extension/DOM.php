@@ -39,9 +39,11 @@ class DOM
 	public function innerHTML($node)
 	{ 
 		$html = ''; 
-		$children = $node->childNodes; 
-		foreach ($children as $child) { 
-			$html .= $child->ownerDocument->saveXML($child); 
+		if (!empty($node->childNodes)) {
+			$children = $node->childNodes;
+			foreach ($children as $child) { 
+				$html .= $child->ownerDocument->saveXML($child); 
+			}
 		}
 		return $html; 
 	}

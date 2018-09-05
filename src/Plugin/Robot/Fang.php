@@ -79,7 +79,7 @@ class Fang extends \Plugin\Robot
         
         /* 解析 */
         $data = $this->getPathContents(2, 'mas');
-        $doc = $this->parse_list($data, null, null, 'gbk', ['/charset=gbk/', 'charset=utf-8'])[0]; # echo exit;
+        $doc = $this->parse_dom($data, null, null, 'gbk', ['/charset=gbk/', 'charset=utf-8'])[0]; # echo exit;
         
         // 页数
         $input = $doc->getElementsByTagName('input');
@@ -134,7 +134,7 @@ class Fang extends \Plugin\Robot
 
         /* 检测 */
         $data = $this->getPathContents(4, 'mas', $this->attr['page']);
-        $doc = $this->parse_list($data, 'utf-8')[0]; # echo exit;
+        $doc = $this->parse_dom($data, 'utf-8')[0]; # echo exit;
         $list = $this->check_list($doc);
         #print_r($list);exit;
         #
@@ -148,7 +148,7 @@ class Fang extends \Plugin\Robot
     }
 
     /**
-     * 解析列表DOM
+     * 解析 DOM
      * @param  string $str           html
      * @param  string $charset       html字符集
      * @param  string $id            元素id
@@ -156,7 +156,7 @@ class Fang extends \Plugin\Robot
      * @param  array  $replace       html替换
      * @return object                dom元素
      */
-    public function parse_list($str = null, $charset = null, $id = null, $from_encoding = null, $replace = [])
+    public function parse_dom($str = null, $charset = null, $id = null, $from_encoding = null, $replace = [])
     {
         if ($from_encoding) {
             $mb = new Mbstring($str, $from_encoding);
@@ -173,6 +173,203 @@ class Fang extends \Plugin\Robot
             $doc = $doc->getElementById($id);
         }
         return [$doc, $str];
+    }
+
+    /**
+     * 检测出租详情数据
+     * @param  object $doc dom对象
+     * @param  object $row 数据条目对象
+     * @return array       检测结果
+     */
+    public function check_detail($doc, $row = null)
+    {
+        $Detail = new RentingSiteDetail;
+        $html = $doc[1];
+        $doc = $doc[0];
+        $dom = new DOM();
+        $slider = $doc->getElementById('slider');
+        $section = $doc->getElementsByTagName('section');
+        $body = $doc->getElementsByTagName('body');
+        
+       if ($body->length) {
+            $class = $body[0]->getAttribute('class');
+            if ('box404' == $class) {
+                $update = $Detail->update(['cache_set' => 'status=404'], $row->detail_id);
+                return [404, $update];
+            }
+        } else {
+            echo $html;
+            print_r($doc);
+        }
+       
+        $pic = [];
+        if ($slider) {
+            $slides = [];
+            $img = $slider->getElementsByTagName('img');
+            $len = $img->length;
+            for ($i = 0; $i < $len; $i++) {
+                $node = $img->item($i);
+                $src = $node->getAttribute('src');
+                $slides[] = $src;
+            }
+            $pic['slides'] = implode(',', $slides);
+        }
+
+        for ($i = 0; $i < $section->length; $i++) {
+            $node = $section->item($i);
+            $class = $node->getAttribute('class');
+            switch ($class) {
+                case 'xqCaption mb8':
+                    $pic = $this->xqCaption($node, $pic);
+                    break;
+                case 'xqBox mb8':
+                    $pic = $this->xqBox($node, $pic);
+                    break;
+                case 'mBox':
+                    $pic = $this->xqDescription($node, $pic);
+                    break;
+            }
+            $pic[] = $class;
+            if ('mBox' == $class) {
+                break;
+            }
+        }
+        
+        return $arr = [
+            'slides' => $pic,
+            'row' => $row,
+        ];
+    }
+
+    public function xqDescription($node, $data = [])
+    {
+        $div = $node->getElementsByTagName('div');
+        $arr = [];
+        for ($i = 0; $i < $div->length; $i++) {
+            $nd = $div->item($i);
+            $class = $nd->getAttribute('class');
+            switch ($class) {
+                case 'fymsList pdX20':
+                    $data['fyms'] = $this->xqFymsList($nd);
+                    break;
+            }
+            $arr[] = $class;
+            if ('fymsList pdX20' == $class) {
+                break;
+            }
+        }
+
+        $data[] = $arr;
+        return $data;
+    }
+
+    public function xqFymsList($node)
+    {
+        $span = $node->getElementsByTagName('li');
+        $arr = [];
+        for ($i = 0; $i < $span->length; $i++) {
+            $nd = $span->item($i);
+            $h3 = $nd->getElementsByTagName('h3')[0];
+            $p = $nd->getElementsByTagName('p')[0];
+            $arr[trim($h3->nodeValue)] = trim($p->nodeValue);
+        }
+        return $arr;
+    }
+
+    public function xqBox($node, $data = [])
+    {
+        $div = $node->getElementsByTagName('div');
+        $arr = [];
+        for ($i = 0; $i < $div->length; $i++) {
+            $node = $div->item($i);
+            $class = $node->getAttribute('class');
+            switch ($class) {
+                case 'price-box mt20':
+                    $data['price'] = $this->xqPrice($node);
+                    break;
+                case 'bb pdY10':
+                    $data['table'] = $this->xqTable($node);
+                    break;
+                case 'ptss-zf pdY14':
+                    $data['facility'] = $this->xqFacility($node);
+                    goto a;
+                    break;
+            }
+            $arr[] = $class;
+        }
+        a:
+        $data[] = $arr;
+        return $data;
+    }
+
+    public function xqCaption($node, $data = [])
+    {
+        $p = $node->getElementsByTagName('p');
+        $arr = [];
+        for ($i = 0; $i < $p->length; $i++) {
+            if (1 < $i) {
+                break;
+            }
+
+            $nd = $p->item($i);
+            switch ($i) {
+                case 0:
+                    $a = $nd->getElementsByTagName('a');
+                    $data['crumbs'] = $this->xqCrumbs($a);
+                    break;
+                case 1:
+                    $data['refresh_time'] = preg_replace('/刷新时间：\s+/', '', trim($nd->nodeValue));
+                    break;
+            }
+        }
+        return $data;
+    }
+
+    public function xqCrumbs($a)
+    {
+        $arr = [];
+        for ($i = 0; $i < $a->length; $i++) {
+            $node = $a->item($i);
+            $href = $node->getAttribute('href');
+            if (preg_match('/\/\/m\.fang\.com\/zf\/([a-z]+)_([a-z0-9_]+)\//', $href, $matches)) {
+                $arr[$matches[2]] = $node->nodeValue;
+            }
+        }
+        return $arr;
+    }
+
+    public function xqPrice($node)
+    {
+        $span = $node->getElementsByTagName('span');
+        $arr = [];
+        for ($i = 0; $i < $span->length; $i++) {
+            $nd = $span->item($i);
+            $arr[] = $nd->nodeValue;
+        }
+        return $arr;
+    }
+
+    public function xqTable($node)
+    {
+        $span = $node->getElementsByTagName('li');
+        $arr = [];
+        for ($i = 0; $i < $span->length; $i++) {
+            $nd = $span->item($i);
+            $arr[] = explode('：', trim($nd->nodeValue));
+        }
+        return $arr;
+    }
+
+    public function xqFacility($node)
+    {
+        $span = $node->getElementsByTagName('span');
+        $arr = [];
+        for ($i = 0; $i < $span->length; $i++) {
+            $nd = $span->item($i);
+            $class = $nd->getAttribute('class');
+            $arr[$nd->nodeValue] = $class;
+        }
+        return $arr;
     }
 
     /**
@@ -198,7 +395,7 @@ class Fang extends \Plugin\Robot
                 $p = $nd->getElementsByTagName('p');
                 $arr = [
                     'site_id' => $this->site_id,
-                    'title' => $h3->item(0)->nodeValue,
+                    'title' => trim($h3->item(0)->nodeValue),
                     'item_id' => $bg->houseid,
                     'agent_id' => $bg->agentid,
                     'type' => $bg->housetype,
@@ -300,18 +497,21 @@ class Fang extends \Plugin\Robot
      */
     public function downloadDetail()
     {
+        # header('Content-Type: text/html; charset=utf-8');
         $this->min_size = 200;
+        $this->returnVars = ['data', 'filesize']; # 
         $page = $this->attr['page'];
         $limit = 10;
         $Detail = new RentingSiteDetail;
         $where = "status IN (-1,-2)";       
-        $all = $Detail->fetchAll($where, 'city_name,item_id,type', 'detail_id', $page, $limit);
+        $all = $Detail->fetchAll($where, 'detail_id,city_name,item_id,type', 'detail_id', $page, $limit);
         $pageCount = $Detail->pageCount($where, $limit);
         
         $result = [];
         foreach ($all as $row) {
-            $size = $this->putFileCurl([], 3, $row->city_name, $row->item_id, $row->type);
-            if (!$size) {
+            $put = $this->putFileCurl([], 3, $row->city_name, $row->item_id, $row->type);
+            # $put = 0; 
+            if (!$put) {
                 return [
                     'code' => 1, 
                     'msg' => 'download error', 
@@ -319,7 +519,15 @@ class Fang extends \Plugin\Robot
                     'row' => $row,
                 ];
             }
-            $result[] = $size;
+            /*
+            print_r($put);exit;
+            
+            echo $put['data'];exit;
+             */
+            $doc = $this->parse_dom($put['data'], null, null, 'gbk', [['/charset=\"gbk\"/', '/charset=gbk/'], ['charset="utf-8"', 'charset=utf-8']]); # echo $doc[1];exit;
+            
+            $put = $this->check_detail($doc, $row);
+            $result[] = $put;
         }
 
         $msg = '';
