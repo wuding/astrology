@@ -71,6 +71,14 @@ class Database
 	{
 		return $name = $name ? : $this->db_name . '.' . $this->table_name;
 	}
+
+	public function sqlColumns($column = '*')
+	{
+		if (is_array($column)) {
+			return implode(',', $column);
+		}
+		return $column;
+	}
 	
 	public function sqlSet($data)
 	{
@@ -96,6 +104,7 @@ class Database
 	public function sqlWhere($where, $type = 'AND')
 	{
 		if (!is_array($where)) {
+			$where = is_numeric($where) ? "`$this->primary_key` = $where" : $where;
 			return $where;
 		}
 		
@@ -109,6 +118,10 @@ class Database
 			} elseif (preg_match('/^(ADN|OR)$/', $key, $matches)) {
 				print_r([$matches, __FILE__, __LINE__]);
 				exit;
+			} elseif (preg_match('/^(NOT|LIKE)\s+/i', $value, $matches)) {
+				$arr[] = "`$key` $value";
+				# print_r([$arr, __FILE__, __LINE__]);
+				# exit;
 			} elseif (is_array($value)) {
 				print_r([$value, __FILE__, __LINE__]);
 				exit;
@@ -181,6 +194,7 @@ class Database
 	public function find($where = null, $column = '*', $order = null, $limit = 1)
 	{
 		$db_table = $this->from();
+		$column = $this->sqlColumns($column);
 		$sql = "SELECT $column FROM $db_table";
 		$where = $this->sqlWhere($where);
 		if ($where) {
@@ -301,7 +315,7 @@ class Database
 		$condition = '';
 		$whereSql = $this->sqlWhere($where);
 		if ($whereSql) {
-			$whereSql = is_numeric($whereSql) ? "`$this->primary_key` = $whereSql" : $whereSql;
+			# $whereSql = is_numeric($whereSql) ? "`$this->primary_key` = $whereSql" : $whereSql;
 			$condition .= " WHERE $whereSql";
 		}
 		
@@ -377,6 +391,31 @@ class Database
 			}
 		}
 		return $diff;
+	}
+
+	/**
+	 * 消息队列 - 放在字段里之后处理
+	 * @param  mixed  $where      查询数据
+	 * @param  array  $set        缓存数据
+	 * @param  string $column     缓存字段列名
+	 * @return boolean|integer    处理结果
+	 */
+	public function fieldMessageQueue($where, $set = [], $column = 'cache_set')
+	{
+		# $column[] = $this->primary_key;
+		$row = $this->find($where, $column);
+		if ($row) {
+			$json = $row->$column;
+			# $json = '';
+			if ($json) {
+				$obj = (array) json_decode($json);
+				$set += $obj;
+				# print_r([$set, $obj]);exit;
+			}
+			$json = json_encode($set);
+			return $this->update([$column => $json], $where);
+		}
+		return false;
 	}
 	
 	public function __call($name, $arguments)

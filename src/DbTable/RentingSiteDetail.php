@@ -15,8 +15,9 @@ class RentingSiteDetail extends \Astrology\Database
 	 * @param  array  $arr 查询及设置数据
 	 * @return integer     条目ID或更新状态
 	 */
-	public function exist($arr)
+	public function exist($arr, $ignore = null)
 	{
+		$ignore = $ignore ? ['refresh_time'] : [];
 		$primary_key = $this->primary_key;
 		$time = time();
 		
@@ -39,7 +40,7 @@ class RentingSiteDetail extends \Astrology\Database
 		}
 
 		/* 比较 */
-		$diff = $this->array_diff_kv($arr, (array) $row, ['refresh_time']);
+		$diff = $this->array_diff_kv($arr, (array) $row, $ignore);
 		if ($diff) {
 			$data = [];
 			foreach ($diff as $key => $value) {

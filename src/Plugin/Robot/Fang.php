@@ -125,7 +125,84 @@ class Fang extends \Plugin\Robot
         ];
     }
 
-    
+    /**
+     * 更新不需要改状态的
+     * @return array api数据
+     */
+    public function updateStatus()
+    {
+        $Detail = new RentingSiteDetail;
+        # $Detail ->return = 'update.sql';
+        $update = $Detail->update(['status' => 1], ['cache_set' => "NOT LIKE '%\"status\":%'"]);
+        $msg = '';
+        return [
+            'msg' => $msg,
+            'result' => $update,
+            'pageCount' => 1,
+        ];
+    }
+
+    /**
+     * 更新状态
+     * @return array api数据
+     */
+    public function optimizeStatus(){
+        $page = $this->attr['page'];
+        $limit = 10;
+        $Detail = new RentingSiteDetail;
+        $where = "cache_set LIKE '%\"status\":%'";       
+        $all = $Detail->fetchAll($where, 'detail_id,cache_set', 'detail_id', $page, $limit);
+        $pageCount = $Detail->pageCount($where, $limit);
+
+        $result = [];
+        foreach ($all as $row) {
+            $obj = json_decode($row->cache_set);
+            $result[] = $Detail->update($obj->status, $row->detail_id);
+        }
+
+        $msg = '';
+        return [
+            'msg' => $msg,
+            'result' => $result,
+            'pageCount' => $pageCount,
+        ];
+    }
+
+    /**
+     * 清除非正常状态的缓存队列
+     * @return array api数据
+     */
+    public function updateCache(){
+        $page = $this->attr['page'];
+        $limit = 10;
+        $Detail = new RentingSiteDetail;
+        $where = "status != 1";       
+        $all = $Detail->fetchAll($where, 'detail_id,cache_set', 'detail_id', $page, $limit);
+        $pageCount = $Detail->pageCount($where, $limit);
+
+        $result = [];
+        foreach ($all as $row) {
+            $obj = json_decode($row->cache_set);
+            unset($obj->status);
+            # $arr = (array) $obj;
+            $json = json_encode($obj);
+            if ($json) {
+                $json = '{}' == $json ? '' : $json;
+                $result[] = $Detail->update(['cache_set' => $json], $row->detail_id);
+            } else {
+                $result[] = $json;
+            }
+            # print_r([$arr, $json, $result]);exit;
+            
+        }
+
+        $msg = '';
+        return [
+            'msg' => $msg,
+            'result' => $result,
+            'pageCount' => $pageCount,
+        ];
+    }
 
     /**
      * 下载出租列表
@@ -206,7 +283,11 @@ class Fang extends \Plugin\Robot
         if ($body->length) {
             $class = $body[0]->getAttribute('class');
             if ('box404' == $class) {
-                $update = $Detail->update(['cache_set' => 'status=404'], $row->detail_id);
+                # $update = $Detail->update(['cache_set' => 'status=404'], $row->detail_id);
+                $set = [
+                    'status' => 'status=404',
+                ];
+                $update = $Detail->fieldMessageQueue($row->detail_id, $set, 'cache_set');
                 return [404, $update];
             }
         } else {
@@ -214,7 +295,11 @@ class Fang extends \Plugin\Robot
             print_r($doc);
         }
        
-        $pic = [];
+        $data = [
+            'site_id' => $this->site_id,
+            'item_id' => $row->item_id,
+            'type' => $row->type,
+        ];
         // 幻灯片
         if ($slider) {
             $slides = [];
@@ -225,7 +310,7 @@ class Fang extends \Plugin\Robot
                 $src = $node->getAttribute('src');
                 $slides[] = $src;
             }
-            $pic['slides'] = implode(',', $slides);
+            $data['slides'] = implode(',', $slides);
         }
 
         for ($i = 0; $i < $section->length; $i++) {
@@ -233,25 +318,25 @@ class Fang extends \Plugin\Robot
             $class = $node->getAttribute('class');
             switch ($class) {
                 case 'xqCaption mb8':
-                    $pic = $this->xqCaption($node, $pic);
+                    $data = $this->xqCaption($node, $data);
                     break;
                 case 'xqBox mb8':
-                    $pic = $this->xqBox($node, $pic);
+                    $data = $this->xqBox($node, $data);
                     break;
                 case 'mBox':
-                    $pic = $this->xqDescription($node, $pic);
+                    $data = $this->xqDescription($node, $data);
                     break;
             }
-            # $pic[] = $class;
+            # $data[] = $class;
             if ('mBox' == $class) {
                 break;
             }
         }
-        
-        return $arr = [
-            'slides' => $pic,
-            'row' => $row,
-        ];
+
+        if (array_key_exists(0, $data)) {
+            return $data;
+        }
+        return $Detail->exist($data);
     }
 
     /**
@@ -276,7 +361,9 @@ class Fang extends \Plugin\Robot
                     $data = $this->xqCrumbs($a, $data);
                     break;
                 case 1:
-                    $data['refresh_time'] = preg_replace('/刷新时间：\s+/', '', trim($nd->nodeValue));
+                    $str = preg_replace('/刷新时间：\s+/', '', trim($nd->nodeValue));
+                    $time = strtotime($str);
+                    $data['refresh_time'] = date('Y-m-d H:i:s', $time);
                     break;
             }
         }
@@ -292,59 +379,95 @@ class Fang extends \Plugin\Robot
     public function xqCrumbs($node_list, $data = [])
     {
         $Area = new RentingSiteArea;
-        $arr = [];
+        $arr = [
+            'district' => '',
+            'town' => '',
+            'complex' => '',
+        ];
+        $links = [];
         for ($i = 0; $i < $node_list->length; $i++) {
             $node = $node_list->item($i);
             $href = $node->getAttribute('href');
+            $links[] = [$node->nodeValue, $href];
             if (preg_match('/\/\/m\.fang\.com\/zf\/([a-z]+)_([a-z0-9_]+)\//', $href, $matches)) {
-                $id = $matches[2];
+                $id = trim($matches[2]);
                 $key = 'district';
-                if (preg_match('/^[a-z]+(\d+)/', $id, $match)) {
+                if (preg_match('/^[a-z]+(\d+)$/', $id, $match)) {
                     $key = 'complex';
                     $id = $match[1];
-                } elseif (preg_match('/_(\d+)/', $id, $match)) {
+                } elseif (preg_match('/_(\d+)$/', $id, $match)) {
                     $key = 'town';
                     $id = $match[1];
+                } elseif (!preg_match('/^(\d+)$/', $id, $match)) {
+                    $key = $i;
                 }
-                $arr[$key] = [$node->nodeValue, $id];
+
+                if (!is_numeric($key)) {
+                    $arr[$key] = [$node->nodeValue, $id];
+                }
+                # print_r([$links, $arr]);exit; 
+            } elseif (preg_match('/^javascript/', $href, $match)) {
+                $key = 'complex';
+                $arr[$key] = [$node->nodeValue, -1];
+                # print_r([$links, $arr]);exit; 
             }
+            
         }
+
+        
 
         $district = $arr['district'];
         $town = $arr['town'];
         $complex = $arr['complex'];
 
         // 区县
-        $where = [
-            'upper_id' => $this->city_id,
-            'site_id' => $this->site_id,
-            'note' => $this->city_abbr,
-            'title' => $district[0],
-            'origin_id' => $district[1],
-        ];
-        $arr['district']['id'] = $Area->districtExists($where);
-        $data['district_name'] = $district[0];
+        $district_id = $district_origin = -1;
+        if ($district) {
+            $district_origin = $district[1];
+            $where = [
+                'upper_id' => $this->city_id,
+                'site_id' => $this->site_id,
+                'note' => $this->city_abbr,
+                'title' => $district[0],
+                'origin_id' => $district_origin,
+            ];
+            $arr['district']['id'] = $district_id = $Area->districtExists($where);
+            $data['district_name'] = $district[0];
+        }
+        
 
         // 乡镇
-        $where = [
-            'upper_id' => $arr['district']['id'],
-            'site_id' => $this->site_id,
-            'note' => $district[1],
-            'title' => $town[0],
-            'origin_id' => $town[1],
-        ];
-        $data['area_id'] = $Area->townExists($where);
+        $town_id = $town_origin = -1;
+        if ($town) {
+            $town_origin = $town[1];
+            $where = [
+                'upper_id' => $district_id,
+                'site_id' => $this->site_id,
+                'note' => $district_origin,
+                'title' => $town[0],
+                'origin_id' => $town_origin,
+            ];
+            $data['area_id'] = $town_id = $Area->townExists($where);
+        }
 
         // 小区
-        $where = [
-            'upper_id' => $data['area_id'],
-            'site_id' => $this->site_id,
-            'note' => $town[1],
-            'title' => $complex[0],
-            'origin_id' => $complex[1],
-        ];
-        $data['complex_id'] = $Area->complexExists($where);
-        $data['complex_name'] = $complex[0];
+        if ($complex) {
+            $where = [
+                'upper_id' => $town_id,
+                'site_id' => $this->site_id,
+                'note' => $town_origin,
+                'title' => $complex[0],
+                'origin_id' => $complex[1],
+            ];
+            $data['complex_id'] = $Area->complexExists($where);
+            $data['complex_name'] = $complex[0];
+        }
+
+        if (!$complex || !$town || !$district) {
+            # print_r([$links, $arr]);print_r($data);exit;
+            
+            
+        }
         return $data;
     }
 
@@ -363,13 +486,13 @@ class Fang extends \Plugin\Robot
             $class = $node->getAttribute('class');
             switch ($class) {
                 case 'price-box mt20':
-                    $data['price'] = $this->xqPrice($node);
+                    $data = $this->xqPrice($node, $data);
                     break;
                 case 'bb pdY10':
-                    $data['table'] = $this->xqTable($node);
+                    $data = $this->xqTable($node, $data);
                     break;
                 case 'ptss-zf pdY14':
-                    $data['facility'] = $this->xqFacility($node);
+                    $data['facilities'] = $this->xqFacility($node);
                     goto a;
                     break;
             }
@@ -380,28 +503,80 @@ class Fang extends \Plugin\Robot
         return $data;
     }
 
-    public function xqPrice($node)
+    /**
+     * 获取租金价格和支付方式 
+     * @param  object $node    div节点
+     * @param  array  $data    原数据
+     * @return array           返回数据
+     */
+    public function xqPrice($node, $data = [])
     {
         $span = $node->getElementsByTagName('span');
         $arr = [];
         for ($i = 0; $i < $span->length; $i++) {
             $nd = $span->item($i);
-            $arr[] = $nd->nodeValue;
+            $key = 'rental_price';
+            $value = $nd->nodeValue;
+            if (1 == $i) {
+                $key = 'pay';
+                $value = preg_replace('/（|）/', '', $value);
+            } elseif (1 < $i) {
+                break;
+            }
+            $data[$key] = $value;
         }
-        return $arr;
+        return $data;
     }
 
-    public function xqTable($node)
+    /**
+     * 获取详情
+     * @param  object $node    div节点
+     * @param  array  $data    原数据
+     * @return array           返回数据
+     */
+    public function xqTable($node, $data = [])
     {
         $span = $node->getElementsByTagName('li');
-        $arr = [];
+        $arr = [
+            '租赁方式' => 'rental_method',
+            '户型' => 'house_type',
+            '建筑面积' => 'building_area',
+            '楼层' => 'floor',
+            '朝向' => 'orientation',
+            '装修' => 'decoration',
+            '入住时间' => 'check_in_time',
+        ];
         for ($i = 0; $i < $span->length; $i++) {
             $nd = $span->item($i);
-            $arr[] = explode('：', trim($nd->nodeValue));
+            $explode = explode('：', trim($nd->nodeValue));
+            $item = $explode[0];
+            $value = $explode[1];
+            if (array_key_exists($item, $arr)) {
+                $key = $arr[$item];
+                if ('floor' == $key) {
+                    $exp = explode('/', $value);
+                    $count = count($exp);
+                    if (1 < $count) {
+                        $data['total_floor'] = $exp[1];
+                        $value = $exp[0];
+                    } elseif (2 < $count) {
+                        $data[] = $explode;
+                    }
+                }
+                $data[$key] = $value;
+            } else {
+                $data[] = $explode;
+            }
+            
         }
-        return $arr;
+        return $data;
     }
 
+    /**
+     * 获取配套设施
+     * @param  object $node    div节点
+     * @return string          返回数据
+     */
     public function xqFacility($node)
     {
         $span = $node->getElementsByTagName('span');
@@ -409,11 +584,20 @@ class Fang extends \Plugin\Robot
         for ($i = 0; $i < $span->length; $i++) {
             $nd = $span->item($i);
             $class = $nd->getAttribute('class');
-            $arr[$nd->nodeValue] = $class;
+            if ('on' == $class) {
+                $arr[] = $nd->nodeValue;
+            }            
         }
-        return $arr;
+        $str = implode(',', $arr);
+        return $str;
     }
 
+    /**
+     * 获取房源描述
+     * @param  object $node dom节点
+     * @param  array  $data 原数据
+     * @return array        返回数据
+     */
     public function xqDescription($node, $data = [])
     {
         $div = $node->getElementsByTagName('div');
@@ -423,7 +607,7 @@ class Fang extends \Plugin\Robot
             $class = $nd->getAttribute('class');
             switch ($class) {
                 case 'fymsList pdX20':
-                    $data['fyms'] = $this->xqFymsList($nd);
+                    $data = $this->xqFymsList($nd, $data);
                     break;
             }
             # $arr[] = $class;
@@ -436,17 +620,32 @@ class Fang extends \Plugin\Robot
         return $data;
     }
 
-    public function xqFymsList($node)
+    /**
+     * 获取房源描述列表
+     * @param  object $node dom节点
+     * @param  array  $data 原数据
+     * @return array        返回数据
+     */
+    public function xqFymsList($node, $data = [])
     {
         $span = $node->getElementsByTagName('li');
         $arr = [];
+        $keys = [
+            '房源亮点' => 'description',
+        ];
         for ($i = 0; $i < $span->length; $i++) {
             $nd = $span->item($i);
             $h3 = $nd->getElementsByTagName('h3')[0];
             $p = $nd->getElementsByTagName('p')[0];
-            $arr[trim($h3->nodeValue)] = trim($p->nodeValue);
+            $key = trim($h3->nodeValue);
+            if (array_key_exists($key, $keys)) {
+                $column = $keys[$key];
+                $data[$column] = trim($p->nodeValue);
+            } else {
+                $data[] = $key;
+            }
         }
-        return $arr;
+        return $data;
     }
 
     
@@ -525,7 +724,7 @@ class Fang extends \Plugin\Robot
                     }
                 }
                 # print_r($arr);exit;
-                $list[] = $detail->exist($arr);
+                $list[] = $detail->exist($arr, 1);
             }
         }
         return $list;

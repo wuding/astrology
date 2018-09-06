@@ -109,7 +109,7 @@ function api(url)
                     api();
                 }
 
-            } else if (0 == XHR[xhr].status || 504 == XHR[xhr].status) {
+            } else if (0 == XHR[xhr].status || 504 == XHR[xhr].status || 502 == XHR[xhr].status) {
                 api();
             } else {
                 message('Problem retrieving data(' + XHR[xhr].status + '):' + XHR[xhr].statusText);
