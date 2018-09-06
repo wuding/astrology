@@ -42,9 +42,9 @@ class AlimamaChoiceExcel extends \Astrology\Database
 			
 			$field = array_keys($data);
 			$value = array_values($data);
-			# $this->return = 'into.sql';
+			# $this->return = 'into.sql'; 
 			$last_id = $this->into($field, [$value]);
-			# print_r($last_id);exit;
+			# print_r($last_id);exit; 
 			return $last_id;
 		}
 		

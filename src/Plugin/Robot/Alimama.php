@@ -27,20 +27,19 @@ class Alimama extends \Plugin\Robot
 		
 		$this->paths = [
 			$cache_dir . "/$bill.csv",
-            $cache_dir . "/$bill.xls",
-			"",
-			$cache_dir . "/$bill.xls",
-			$cache_dir . "/4/%1.json",
+            $cache_dir . "/$bill.xls", //精选优质商品清单（内含优惠券）
+			$cache_dir . "/$bill.xls", //春节活动, 9.9大促预售爆款
+			$cache_dir . "/$bill.xls", //聚划算拼团单品（建议转换淘口令传播）
+			$cache_dir . "/4/%1.json", //超级搜索 - 高佣活动
         ];
 		
 		$this->urls = [
 			"",
 			"https://pub.alimama.com/coupon/qq/export.json?adzoneId=126228652&siteId=35532130",
-			"",
+			'https://pub.alimama.com/operator/tollbox/excelDownload.json?excelId=MKT_HOT_EXCEL_LIST&adzoneId=126228652&siteId=35532130',
 			"https://pub.alimama.com/operator/tollbox/excelDownload.json?excelId=JUPINTUAN_LIST&adzoneId=126228652&siteId=35532130",
 			"https://pub.alimama.com/items/channel/qqhd.json?channel=qqhd&toPage=%1&sortType=13&dpyhq=1&perPageSize=50&shopTag=dpyhq&t=1531379311587&_tb_token_=&pvid=",
-			'reurl' => 'http://www.jijizy.com/vod/?%1.html',			
-        ];
+		];
 	}
 	
 	/**
@@ -65,6 +64,8 @@ class Alimama extends \Plugin\Robot
 	
 	/**
 	 * 下载表格.xls
+	 *
+	 * 2,3,1
 	 */
 	public function downloadExcel()
 	{
@@ -77,11 +78,19 @@ class Alimama extends \Plugin\Robot
 			print_r([__FILE__, __LINE__]);exit;
 		}
 		
+		$common_url = $this->api_host . '/robot/alimama/download/excel?debug&type=json&bill=1';
+		if (2 == $this->bill) {
+			$common_url = $this->api_host . '/robot/alimama/download/excel?debug&type=json&bill=3';
+		}
+		
 		$code = 0;
 		$msg = '';		
 		switch ($this->bill) {
 			case 3:
-				$msg = $this->api_host . '/robot/alimama/download/excel?debug&type=json&bill=1';
+				$msg = $common_url;
+				break;
+			case 2:
+				$msg = $common_url;
 				break;
 			default:
 				$msg = $this->api_host . '/csv.php?debug&bill=3';
@@ -97,6 +106,8 @@ class Alimama extends \Plugin\Robot
 	
 	/**
 	 * 解析表格.csv
+	 *
+	 * 2,1,3
 	 */
 	public function parseExcel()
 	{
@@ -113,6 +124,9 @@ class Alimama extends \Plugin\Robot
 		$max_url = '';
 		$juhuasuan_url = $this->api_host . '/robot/alimama/parse/excel?debug&type=json&bill=3';
 		$category_url = $this->api_host . '/robot/alimama/parse/category?debug&type=json';
+		if (2 == $bill) {
+			$category_url = $this->api_host . '/robot/alimama/parse/excel?debug&type=json&bill=1'; # 
+		}
 		
 		// 清单列名
 		$keys = [
@@ -180,7 +194,6 @@ class Alimama extends \Plugin\Robot
 				'coupon', 
 				'class'
 			],
-			
 		];		
 		$key = isset($keys[$bill]) ? $keys[$bill] : [];
 		$num = count($key);
@@ -199,6 +212,7 @@ class Alimama extends \Plugin\Robot
 					/* 列数检测 */
 					$num_data = count($data);
 					if ($num_data != $num) {
+						continue;
 						print_r([__METHOD__, __LINE__, __FILE__, $key, $data]);exit; #
 					}
 				
@@ -265,6 +279,7 @@ class Alimama extends \Plugin\Robot
 
 					/* 检查条目 */
 					# $Excel->return = 'update.status';
+					# print_r($arr);exit;
 					$check = $Excel->exist($arr); #, 'data'
 					# print_r($check);exit;
 					$check = is_numeric($check) ? $check : $check; #'update'
@@ -284,6 +299,9 @@ class Alimama extends \Plugin\Robot
 		switch ($bill) {
 			case 3:
 				# $code = 1;
+				$msg = $max_url ? : $category_url;
+				break;
+			case 2:
 				$msg = $max_url ? : $category_url;
 				break;
 			default:
