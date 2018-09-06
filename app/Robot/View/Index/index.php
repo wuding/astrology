@@ -59,6 +59,7 @@ var start_time = d.getHours() +':'+ d.getMinutes() +':'+ d.getSeconds() +'.'+ d.
 var offsettime = 0;
 var interval = null;
 var exec_task = 0;
+REQ = []
 
 //Local Storage 列表生成
 var ele_request_log = document.getElementById('request_log');
@@ -80,6 +81,20 @@ function select_change(obj) {
     start(1);   
     document.getElementById('item').value = ele_request_log.options[ele_request_log.selectedIndex].text;
     document.getElementById('url').value = obj.value;
+}
+
+function api_reset(url, xhr) {
+	if (!REQ[url]) {
+		REQ[url] = 1
+	} else {		
+		REQ[url]++
+	}
+	
+	if (5 > REQ[url]) {
+		api()
+	} else {
+		message('Problem retrieving(' + XHR[xhr].status + '):' + XHR[xhr].statusText)
+	}
 }
 
 //XHR 执行
@@ -106,11 +121,11 @@ function api(url)
                     eval("var json = " + text + "; api_change(json, '" + xhr + "');");
                 } else {
                     //message(24);
-                    api();
+					api_reset(url, xhr)
                 }
 
             } else if (0 == XHR[xhr].status || 504 == XHR[xhr].status || 502 == XHR[xhr].status) {
-                api();
+                api_reset(url, xhr)
             } else {
                 message('Problem retrieving data(' + XHR[xhr].status + '):' + XHR[xhr].statusText);
             }
