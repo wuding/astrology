@@ -24,12 +24,13 @@ class Alimama extends \Plugin\Robot
 		$this->bill = $bill = isset($_GET['bill']) ? (int) $_GET['bill'] : 1;		
 		$this->cache_dir = $cache_dir = CACHE_ROOT . '/http/www.alimama.com';
 		$this->api_host = 'http://' . $_SERVER['HTTP_HOST'];
+		$date = date('m-d');
 		
 		$this->paths = [
 			$cache_dir . "/$bill.csv",
-            $cache_dir . "/$bill.xls", //精选优质商品清单（内含优惠券）
-			$cache_dir . "/$bill.xls", //春节活动, 9.9大促预售爆款
-			$cache_dir . "/$bill.xls", //聚划算拼团单品（建议转换淘口令传播）
+            $cache_dir . "/$bill/$date.xls", //精选优质商品清单（内含优惠券）
+			$cache_dir . "/$bill/$date.xls", //春节活动, 9.9大促预售爆款
+			$cache_dir . "/$bill/$date.xls", //聚划算拼团单品（建议转换淘口令传播）
 			$cache_dir . "/4/%1.json", //超级搜索 - 高佣活动
         ];
 		
@@ -441,7 +442,7 @@ class Alimama extends \Plugin\Robot
 		# $column = 'alimama_choice_excel.*, B.category_id';
 		$column = '*';
 		$column = 'class,taobaoke,promotion,cost,price,`group`,url,platform,excel_id,item,name,pic,sale,discount,start,end';
-		$option = ['excel_id DESC', "$offset,$limit"];
+		$option = ['excel_id ASC', "$offset,$limit"];
 		# $join = 'LEFT JOIN com_urlnk.alimama_product_category B ON B.title = alimama_choice_excel.class';
 		$join = null;
 		# print_r([$where, $column, $option]);
