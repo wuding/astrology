@@ -12,6 +12,8 @@ use DbTable\AlimamaProductCategory;
 
 class Alimama extends \Plugin\Robot
 {
+	public $overwrite = true;
+	
 	#! public $site_id = null;
 	public $api_host = 'http://lan.urlnk.com';
 	public $csv_encoding = 'utf-8';
