@@ -152,9 +152,10 @@ class Excel
 }
 
 //测试
-$filename = isset($_GET['bill']) ? (int) $_GET['bill'] : 3;
+$date = date('m-d');
+$bill = isset($_GET['bill']) ? (int) $_GET['bill'] : 3;
 $import=new Excel();
-$import->initialized("$path$filename.xls");
+$import->initialized("$path$bill/$date.xls");
 $arr = $import->fetch();
 
 /*echo '<pre>', print_r($arr), '</pre>';exit;
@@ -181,7 +182,7 @@ $arr = [
 ];
 */
 
-# $fp = fopen("$path$filename.csv", 'w');
+# $fp = fopen("$path$bill/$date.csv", 'w');
 $str = '';
 
 /**
@@ -229,13 +230,13 @@ for ($i = 0; $i < $max; $i++) {
 }
 
 #fclose($fp);
-$size = file_put_contents("$path$filename.csv", $str);
+$size = file_put_contents("$path$bill/$date.csv", $str);
 
 /**
  * 任务计划
  */
 $msg = '';
-switch ($filename) {
+switch ($bill) {
 	case 1:
 		$msg = '/robot/alimama/parse/coupon?debug&type=json&bill=1';
 		$msg = $api_host . '/robot/alimama/parse/excel?debug&type=json&bill=1';

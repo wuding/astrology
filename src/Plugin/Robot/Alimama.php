@@ -29,7 +29,7 @@ class Alimama extends \Plugin\Robot
 		$date = date('m-d');
 		
 		$this->paths = [
-			$cache_dir . "/$bill.csv",
+			$cache_dir . "/$bill/$date.csv",
             $cache_dir . "/$bill/$date.xls", //精选优质商品清单（内含优惠券）
 			$cache_dir . "/$bill/$date.xls", //春节活动, 9.9大促预售爆款
 			$cache_dir . "/$bill/$date.xls", //聚划算拼团单品（建议转换淘口令传播）
