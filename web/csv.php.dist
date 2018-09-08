@@ -10,8 +10,8 @@ if (isset($_GET['debug'])) {
 header("Content-type: text/html; charset=utf-8");
 $api_host = 'http://' . $_SERVER['HTTP_HOST'];
 $path = dirname(__FILE__) . '/';
-$path = 'K:\Astrology\storage\cache\http\www.alimama.com/';
-include_once 'K:\Legend\PHPExcel-1.8.1/Classes/PHPExcel.php';
+$path = 'D:\Astrology\storage\cache\http\www.alimama.com/';
+include_once 'D:\PHPExcel-1.8.1/Classes/PHPExcel.php';
 
 /**
  *
@@ -239,10 +239,13 @@ $msg = '';
 switch ($bill) {
 	case 1:
 		$msg = '/robot/alimama/parse/coupon?debug&type=json&bill=1';
-		$msg = $api_host . '/robot/alimama/parse/excel?debug&type=json&bill=1';
+		$msg = $api_host . '/robot/alimama/parse/excel?debug&type=json&bill=2';
+		break;
+	case 2:
+		$msg = $api_host . '/csv.php?debug&bill=1';
 		break;
 	default:
-		$msg = $api_host . '/csv.php?debug&bill=1';
+		$msg = $api_host . '/csv.php?debug&bill=2';
 }
 
 $arr = [
