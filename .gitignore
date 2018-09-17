@@ -11,3 +11,5 @@ logs/
 app/config.php
 app/bootstrap.php
 web/csv.php
+/web/tmp/
+/web/curl/
