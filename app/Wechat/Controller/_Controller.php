@@ -129,7 +129,7 @@ class _Controller extends \Astrology\Controller
 		
 		$arr = [
 			'BaseRequest' => [
-				'Uin' => (int) $xml->wxuin,
+				'Uin' => "$xml->wxuin",
 				'Sid' => "$xml->wxsid",
 				'Skey' => "$xml->skey", # 
 				'DeviceID' => 'e' . $rand,
@@ -313,7 +313,7 @@ class _Controller extends \Astrology\Controller
 		$json = json_encode($obj);
 
 		/**/
-		$url = "https://$this->host/cgi-bin/mmwebwx-bin/webwxsync?sid=$xml->wxsid&skey=$xml->skey&pass_ticket=$xml->pass_ticket";
+		$url = "https://$this->host/cgi-bin/mmwebwx-bin/webwxsync?sid=$xml->wxsid&skey=$xml->skey&pass_ticket=" . urlencode($xml->pass_ticket);
 		$curl = new PhpCurl($url);
 		$data = $curl->simulate($json, $this->header, 1);
 		# print_r($data);exit;
