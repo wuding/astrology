@@ -118,12 +118,12 @@ function task() {
 	}
 	
 	btn_cookie.click()
-	btn_cookie_mm.click()
+	setTimeout("btn_cookie_mm.click()", 1000)
 	
 	
-	setTimeout("win = window.open('about:blank', 'taobao_login_mm')", 1000)
-	setTimeout("btn_login_mm.click()", 3000)
-	setTimeout("win.close()", 19000)
+	setTimeout("win = window.open('about:blank', 'taobao_login_mm')", 2000)
+	setTimeout("btn_login_mm.click()", 4000)
+	setTimeout("win.close()", 20000)
 	
 	
 	/*setTimeout("btn_task.click()", 20000)*/
