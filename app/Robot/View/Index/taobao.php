@@ -12,7 +12,7 @@ textarea {
 <body>
 <fieldset>
 	<legend>Cookie</legend>
-	<form method="post" action="/robot/taobao/cookie" target="_cookie">
+	<form method="post" action="/robot/taobao/cookie" target="_cookie_tb">
 		<textarea name="cookie" rows="5"><?=htmlspecialchars($cookie)?></textarea>
 		<button type="submit" id="btn_cookie">Set</button>
 	</form>
@@ -29,6 +29,29 @@ textarea {
 		<p>
 			<input name="TPL_redirect_url" value="https://h5.m.taobao.com" placeholder="TPL_redirect_url" title="">
 			<input name="ttid" value="h5@iframe" placeholder="ttid">
+		</p>
+	</form>
+</fieldset>
+
+<fieldset>
+	<legend>Cookie</legend>
+	<form method="post" action="/robot/alimama/cookie" target="_cookie_mm">
+		<textarea name="cookie" rows="5"><?=htmlspecialchars($cookie_mm)?></textarea>
+		<button type="submit" id="btn_cookie_mm">Set</button>
+	</form>
+</fieldset>
+
+<fieldset>
+	<legend>登录</legend>
+	<form method="post" action="https://login.taobao.com/member/login.jhtml?style=mini&newMini2=true" target="taobao_login_mm">
+		<p>
+			<input name="TPL_username" value="" placeholder="TPL_username">
+			<input name="TPL_password" value="" type="password" placeholder="TPL_password">
+			<button type="submit" id="btn_login_mm">Login</button>
+		</p>
+		<p>
+			<input name="TPL_redirect_url" value="http://login.taobao.com/member/taobaoke/login.htm?is_login=1" placeholder="TPL_redirect_url" title="http://www.alimama.com">
+			<input name="from" value="alimama" placeholder="from">
 		</p>
 	</form>
 </fieldset>
@@ -95,14 +118,15 @@ function task() {
 	}
 	
 	btn_cookie.click()
+	btn_cookie_mm.click()
 	
-	/*
-	setTimeout("win = window.open('about:blank', 'm_taobao_login')", 1000)
-	setTimeout("btn_login.click()", 3000)
+	
+	setTimeout("win = window.open('about:blank', 'taobao_login_mm')", 1000)
+	setTimeout("btn_login_mm.click()", 3000)
 	setTimeout("win.close()", 19000)
-	*/
 	
-	setTimeout("btn_task.click()", 20000)
+	
+	/*setTimeout("btn_task.click()", 20000)*/
 }
 
 

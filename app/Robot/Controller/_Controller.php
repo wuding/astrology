@@ -57,6 +57,7 @@ class _Controller extends \Astrology\Controller
 	public function _taobao($do)
 	{
 		$cookie = isset($_SESSION['taobao_cookie']) ? $_SESSION['taobao_cookie'] : '';
+		$cookie_mm = isset($_SESSION['cookie']) ? $_SESSION['cookie'] : '';
 		if ('cookie' == $do) {
 			
 			if ($_POST) {
@@ -74,7 +75,7 @@ class _Controller extends \Astrology\Controller
 		
 		$this->_view_script = "Index/taobao";
 		$arr = array('task', 'millisec');
-		return $result = $this->array_variable($arr) + ['cookie' => $cookie];
+		return $result = $this->array_variable($arr) + ['cookie' => $cookie, 'cookie_mm' => $cookie_mm];
 	}
 	
 	public function __call($name, $arguments)
