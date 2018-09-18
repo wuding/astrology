@@ -54,12 +54,36 @@ class _Controller extends \Astrology\Controller
 		return $result = $this->array_variable($arr) + ['cookie' => $cookie];
 	}
 	
+	public function _taobao($do)
+	{
+		$cookie = isset($_SESSION['taobao_cookie']) ? $_SESSION['taobao_cookie'] : '';
+		if ('cookie' == $do) {
+			
+			if ($_POST) {
+				$cookie = trim($_POST['cookie']);
+				if ($cookie) {
+					$_SESSION['taobao_cookie'] = $cookie;
+				} else {
+					unset($_SESSION['taobao_cookie']);
+				}
+				
+			}
+			$this->_view_script = "Index/cookie";
+			return ['cookie' => $cookie];
+		}
+		
+		$this->_view_script = "Index/taobao";
+		$arr = array('task', 'millisec');
+		return $result = $this->array_variable($arr) + ['cookie' => $cookie];
+	}
+	
 	public function __call($name, $arguments)
 	{
-		if ('alimama' == $name) {
+		if (in_array($name, ['alimama', 'taobao'])) {
 			$do = isset($GLOBALS['PARAMS'][0]) ? $GLOBALS['PARAMS'][0] : '';
 			if (in_array($do, ['', 'cookie'])) {
-				return $this->_alimama($do);
+				$func = "_$name";
+				return $this->$func($do);
 			}
 		}
 		$this->_enable_view = 0;
@@ -119,7 +143,7 @@ class _Controller extends \Astrology\Controller
 			'data' => $result
 		];
 		if (isset($_GET['type']) && 'json' == $_GET['type']) {
-			$value =json_encode($value);
+			$value = json_encode($value);
 		}
 		return $value;
 	}

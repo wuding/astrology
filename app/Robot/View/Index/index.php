@@ -272,6 +272,11 @@ function api_change(json, func)
 
 //开始
 function start(s) {
+	// 保持进行中
+	if (0 === s) {
+		step = 0;
+	}
+	//console.log(JSON.stringify([s, step]));
 	
     btn = document.getElementById('btn-request');
     if (s || 1 == step) {
@@ -287,6 +292,7 @@ function start(s) {
 		document.getElementById('start_time').value = start_time;
 		//offsettime = 0;
     } else {
+		
     }
     document.title = offsettime;
 }

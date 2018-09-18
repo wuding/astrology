@@ -3,6 +3,7 @@ namespace Controller;
 
 use Astrology\Route;
 use Astrology\Extension\PhpCurl;
+use Plugin\Robot\Alimama;
 
 class _Controller extends \Astrology\Controller
 {
@@ -14,13 +15,14 @@ class _Controller extends \Astrology\Controller
 		parent::__construct();
 		$this->uuid = $this->_sess('uuid', '');
 		$this->status = $this->_sess('redirect_uri', 0);
-		$this->cookie = $this->_sess('cookie', '');
+		$this->cookie = $this->_sess('weixin_cookie', '');
 		$this->host = $this->_sess('host', '');
 		$this->synckey = $this->_sess('synckey', '');
 		$this->time = time();
 		$this->rand = mt_rand(100000000, 999999999);
 		$this->header = ['Content-Type: application/json; charset=UTF-8', "Referer: https://$this->host/", "Cookie: $this->cookie"];
 		$this->header_get = ["Referer: https://$this->host/", "Cookie: $this->cookie"];
+		$this->username = [];
 	}
 	
 	public function __call($name, $arguments)
@@ -33,6 +35,21 @@ class _Controller extends \Astrology\Controller
 		return $val = (isset($_SESSION[$key]) && $_SESSION[$key]) ? $_SESSION[$key] : $default;
 	}
 	
+	public function _json_output($data = [], $msg = '', $code = 0)
+	{
+		$value = [
+			'code' => $code,
+			'msg' => $msg,
+			'data' => $data,
+		];
+		
+		if (isset($_GET['type']) && 'json' == $_GET['type']) {
+			echo $value = json_encode($value);exit;
+		} else {
+			print_r($value);
+		}
+	}
+	
 	public function test()
 	{
 		print_r($_SESSION);
@@ -40,8 +57,8 @@ class _Controller extends \Astrology\Controller
 	
 	public function restart()
 	{
-		$_SESSION = [];
-		# unset($_SESSION['uuid'], $_SESSION['redirect_uri'], $_SESSION['cookie'], $_SESSION['host']);
+		# $_SESSION = [];
+		unset($_SESSION['uuid'], $_SESSION['redirect_uri'], $_SESSION['weixin_cookie'], $_SESSION['host'], $_SESSION['synckey']);
 		echo '<a href="/wechat">uuid</a>';
 		
 	}
@@ -65,6 +82,7 @@ class _Controller extends \Astrology\Controller
 		
 		// 设置
 		$_SESSION['redirect_uri'] = $item['redirect_uri'];
+		header('Location: /wechat/cookie');
 		echo '<a href="/wechat/cookie">cookie</a>';
 		# print_r(get_defined_vars());
 	}
@@ -86,13 +104,14 @@ class _Controller extends \Astrology\Controller
 		//检测
 		$item['cookie'] = $this->parse_cookie($item['set_cookie']);
 		if ('/' == $item['location'] && $item['cookie']) {
-			$_SESSION['cookie'] = $item['cookie'];
+			$_SESSION['weixin_cookie'] = $item['cookie'];
 			
 		} else {
 			print_r($item);
 			print_r([__LINE__, __METHOD__]);
 			exit;
 		}
+		header('Location: /wechat/init');
 		echo '<a href="/wechat/init">init</a>';
 		# print_r(get_defined_vars());
     }
@@ -136,13 +155,9 @@ class _Controller extends \Astrology\Controller
 		}
 		
 		$key = $obj->SyncKey->List;
-		$ar = [];
-		foreach ($key as $row) {
-			# $ar[$row->Key] = $row->Val;
-			$ar[] = $row->Key . '_' . $row->Val;
-		}
-		$_SESSION['synckey'] = implode('|', $ar);
+		$this->update_synckey($key);
 		
+		header('Location: /wechat/notify');
 		echo '<a href="/wechat/notify">notify</a>';
 		# print_r(get_defined_vars());
 	}
@@ -162,8 +177,8 @@ class _Controller extends \Astrology\Controller
 		$info = [
 			'ClientMsgId' => $this->time,
 			'Code' => 3,
-			'FromUserName' => $init->User->UserName,
-			'ToUserName' => $init->User->UserName,
+			'FromUserName' => $this->_get('from', $init->User->UserName),
+			'ToUserName' => $this->_get('to', $init->User->UserName),
 		];
 		$arr += $info;
 		$json = json_encode($arr);
@@ -173,12 +188,14 @@ class _Controller extends \Astrology\Controller
 		$data = $curl->simulate($json, $this->header);
 		
 		file_put_contents('tmp/notify_data.txt', $data);
+		header('Location: /wechat/contact');
 		echo '<a href="/wechat/contact">contact</a>';
 		# print_r(get_defined_vars());
 	}
 	
 	public function contact()
 	{
+		
 		$data = unserialize(file_get_contents('tmp/cookie_data.txt'));
 		$xml = new \SimpleXMLElement($data[1]);
 		
@@ -187,6 +204,11 @@ class _Controller extends \Astrology\Controller
 		$data = $curl->simulate(null, $this->header_get);
 		
 		file_put_contents('tmp/contact_data.txt', $data);
+		/*
+		$data = file_get_contents('tmp/contact_data.txt');
+		*/
+		$this->user_name($data);
+		header('Location: /wechat/check');
 		echo '<a href="/wechat/check">check</a>';
 		# print_r(get_defined_vars());
 	}
@@ -218,16 +240,21 @@ class _Controller extends \Astrology\Controller
 		
 		$synccheck = $item['synccheck'];
 		$synccheck = preg_replace('/({|,)([a-z]+):/i', '$1"$2":', $synccheck);
-		$obj = json_decode($synccheck);
-		/*if ($obj->retcode) {
-			
+		$obj = json_decode($synccheck); # print_r($obj);
+		$code = 1;
+		if ($obj->retcode) {
+			/*
 			print_r([__LINE__, __METHOD__]);
 			exit;
+			*/
+			$code = 1;
 		}
-		*/
-		print_r($item);
+		
+		# print_r($item);
+		$this->_json_output($obj, json_encode($obj), $code);
 		echo '<a href="/wechat/batch">batch</a>';
 		# print_r(get_defined_vars());
+		
 	}
 	
 	public function batch()
@@ -274,31 +301,228 @@ class _Controller extends \Astrology\Controller
 	{
 		
 		$data = file_get_contents('tmp/init_data.txt');
-		$init = json_decode($data);		
+		$init = json_decode($data);
 		
 		$data = unserialize(file_get_contents('tmp/cookie_data.txt'));
 		$xml = new \SimpleXMLElement($data[1]);
 		
 		$base = file_get_contents('tmp/base_request.txt');
 		$obj = json_decode($base);
-		$obj->SyncKey = $init->SyncKey;
+		# $obj->SyncKey = $init->SyncKey;print_r($obj);
+		$obj->SyncKey = $this->convert_synckey(); # print_r($obj);exit;
 		$json = json_encode($obj);
-		
-		$url = "https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsync?sid=$xml->wxsid&skey=$xml->skey";
+
+		/**/
+		$url = "https://$this->host/cgi-bin/mmwebwx-bin/webwxsync?sid=$xml->wxsid&skey=$xml->skey&pass_ticket=$xml->pass_ticket";
 		$curl = new PhpCurl($url);
 		$data = $curl->simulate($json, $this->header, 1);
 		# print_r($data);exit;
 		
 		/*
 		$data = unserialize(file_get_contents('tmp/sync_data.txt'));
-		*/
-		$json = $data[1];		
-		$item = $this->parse_header($data[0]);
-		# file_put_contents('tmp/sync_data.txt', serialize($data));
 		
-		//检测
-		$cookie = $this->parse_cookie($item['set_cookie']);
-		$_SESSION['cookie'] = $this->merge_cookie($cookie);
+		
+		$data = [];
+		$data[0] = file_get_contents('tmp/sync_data.html');
+		$data[1] = file_get_contents('tmp/sync_data.json');
+		*/
+		
+		file_put_contents('tmp/sync_data.html', $data[0]);
+		file_put_contents('tmp/sync_data.json', $data[1]);
+		
+		
+		$json = $data[1];
+		$obj = json_decode($json);
+		
+		$dat = [];
+		$code = 1;
+		if (0 == $obj->BaseResponse->Ret) {
+			$item = $this->parse_header($data[0]);
+			# file_put_contents('tmp/sync_data.txt', serialize($data));
+			
+			
+			if (isset($item['set_cookie'])) {
+				$cookie = $this->parse_cookie($item['set_cookie']);
+				$_SESSION['weixin_cookie'] = $this->merge_cookie($cookie);
+			}
+			
+			
+			if ($obj->SyncKey->Count) {
+				$key = $obj->SyncKey->List;
+				$this->update_synckey($key);
+			}
+			
+			$dat = [$obj->AddMsgCount];
+			if ($obj->AddMsgCount) {
+				$dat = $this->msg_list($obj->AddMsgList, $init->User->UserName); # 
+			}
+			# print_r($obj);exit;
+		}
+		
+		$this->_json_output($dat, json_encode($dat), $code);
+		echo '<a href="/wechat/check">check</a>';
+	}
+	
+	
+	
+	public function msg($to = null, $content = null)
+	{
+		# $first = mt_rand(1000000, 9999999);
+		$id = $this->time; #  . $first;
+		$data = file_get_contents('tmp/init_data.txt');
+		$init = json_decode($data);
+		
+		$to = $to ? : $this->_get('to', $init->User->UserName);
+		$content = $content ? : $this->_get('content', '');
+		
+		$base = file_get_contents('tmp/base_request.txt');
+		$obj = json_decode($base);
+		$arr = (array) $obj;
+		$info = [
+			'Msg' => [
+				'ClientMsgId' => "$id",
+				'Content' => '<%1>',
+				'FromUserName' => $init->User->UserName,
+				'LocalID' => "$id",
+				'ToUserName' => $to,
+				'Type' => 1,
+			],
+			'Scene' => 0,
+		];
+		$arr += $info;
+		$json = json_encode($arr);
+		$json = str_replace('<%1>', addcslashes($content, '"') . time(), $json);
+		# print_r(get_defined_vars());exit;
+		
+		$url = "https://$this->host/cgi-bin/mmwebwx-bin/webwxsendmsg";
+		$curl = new PhpCurl($url);
+		$data = $curl->simulate($json, $this->header);
+		file_put_contents("tmp/msg_data_$to.txt", $data);
+	}
+	
+	public function msg_list($list, $self = null)
+	{
+		$arr = [];
+		foreach ($list as $row) {
+			// 个人用户
+			if (!preg_match('/^@@/', $row->FromUserName)) {
+				// 不是发给自己
+				if ($row->FromUserName != $row->ToUserName && $self != $row->FromUserName) { # print_r([$self, $row]);
+					// 可能更新了
+					if ($self != $row->ToUserName) {
+						file_put_contents("tmp/msg_list.txt", $self . '_' . $row->FromUserName . '_' . $row->ToUserName);
+					}
+					if ($row->Content) {
+						# $user = '@08894d343fad2ce140a395ec6c6f8079';
+						$user = $row->FromUserName;
+						$coupon = '';
+						if (preg_match('/http(|s):\/\/m.tb.cn\/([a-z0-9\.]+)/i', $row->Content, $matches)) {
+							#print_r($matches);
+							$url = 'https://m.tb.cn/' . $matches[2];
+							$alimama = new Alimama();
+							$info = $alimama->downloadCoupon($url);
+							
+							if (200 == $info['code']) {
+								$coupon = $info;
+							} else {
+								$coupon = 200;
+							}
+						}
+						
+						$arr[] = [
+							'msg_id' => $row->MsgId,
+							'msg_type' => $row->MsgType,
+							'user_name' => $user,
+							'nick_name' => $this->nick_name($user),
+							'content' => $row->Content,
+							'create_time' => $row->CreateTime,
+							'coupon' => $coupon,
+						];
+					}
+				}
+			}
+		}
+		
+		foreach ($arr as $row) { # print_r($row);exit;
+			$obj = $row['coupon'];
+			if ($obj) {
+				if (!is_numeric($obj)) {
+					extract($row['coupon']);
+					$msg = '[机器人助手]自动回复：稍后小主将回复您，谢谢！';
+					$msg = sprintf('返利%s%% 约￥%s 〖优惠券￥%s 券后价￥%s〗 【%s】 淘口令 %s 领券链接 %s', $rate, $fee, $amount, $price, $title, $command, $url);
+					$this->msg($row['user_name'], $msg . '?unid=' . $row['msg_id']); # 
+				} else {
+					$msg = '没有找到返利信息！更多优惠券 https://www.cpn.red/';
+					$this->msg($row['user_name'], $msg);
+				}
+			}
+		}
+		# print_r($arr);
+		return $arr;
+	}
+	
+	public function nick_name($user)
+	{
+		if (array_key_exists($user, $this->username)) {
+			return $this->username[$user];
+		}
+		
+		$data = file_get_contents('tmp/username.txt');
+		$obj = json_decode($data); # print_r($obj);exit;
+		#$list = $obj->MemberList;
+		$arr = [];
+		foreach ($obj as $key => $value) {
+			# $arr[$key] = $value;
+			if ($user == $key) {
+				return $this->username[$user] = $value;
+			}
+		}
+		return '';
+	}
+	
+	public function user_name($data)
+	{
+		$obj = json_decode($data);
+		$list = $obj->MemberList;
+		$arr = [];
+		foreach ($list as $row) {
+			$arr[$row->UserName] = $row->NickName;
+		}
+		$json = json_encode($arr);
+		file_put_contents('tmp/username.txt', $json);
+
+	}
+	
+	public function convert_synckey($key = null)
+	{
+		$key = $key ? : $this->synckey;
+		$arr = explode('|', $key);
+		
+		$list = [];
+		foreach ($arr as $row) {
+			if ($row) {
+				$itm = explode('_', $row);
+				$list[] = [
+					'Key' => $itm[0],
+					'Val' => $itm[1],
+				];
+			}
+		}
+		
+		$info = [
+			'Count' => count($list),
+			'List' => $list,
+		];
+		return $info;
+	}
+	
+	public function update_synckey($key)
+	{
+		$ar = [];
+		foreach ($key as $row) {
+			$ar[] = $row->Key . '_' . $row->Val;
+		}
+		$_SESSION['synckey'] = implode('|', $ar);
 	}
 	
 	public function get_uuid()
@@ -408,7 +632,7 @@ class _Controller extends \Astrology\Controller
 	public function merge_cookie($cookie)
 	{
 		$arr = preg_split('/;\s+/', $cookie); # print_r($arr);
-		$ar = preg_split('/;\s+/', $_SESSION['cookie']); # print_r($ar);
+		$ar = preg_split('/;\s+/', $_SESSION['weixin_cookie']); # print_r($ar);
 		
 		$cookies = [];		
 		foreach ($ar as $row) {

@@ -9,6 +9,7 @@ namespace Plugin\Robot;
 use DbTable\AlimamaChoiceExcel;
 use DbTable\AlimamaChoiceList;
 use DbTable\AlimamaProductCategory;
+use Astrology\Extension\PhpCurl;
 
 class Alimama extends \Plugin\Robot
 {
@@ -611,5 +612,220 @@ class Alimama extends \Plugin\Robot
             'result' => $result,
 			'pageCount' => 1,
         ];
+	}
+	
+	public function getCookieRow($key, $cookie = null)
+	{
+		$arr = preg_split('/;\s+/', $cookie);
+		$token = '';
+		foreach ($arr as $row) {
+			$itm = preg_split('/=/', $row, 2);
+			if ($key == $itm[0]) {
+				$token = $itm[1];
+				goto a;
+			}
+		}
+		
+		a:
+		return $token;
+	}
+	
+	public function downloadCoupon($url = null)
+	{
+		# $url = 'https://m.tb.cn/h.3gF2Zlo';
+		
+		$cookie = isset($_SESSION['taobao_cookie']) ? trim($_SESSION['taobao_cookie']) : '';
+		$token = $this->getCookieRow('_m_h5_tk', $cookie);
+		$exp = explode('_', $token);
+		$token = $exp[0];
+		
+		$encoding = $this->getCouponEncoding($url);
+		if (!is_numeric($encoding)) {
+			$data = [
+				'e' => $encoding,
+				'pid' => 'mm_33543472_5896322_20676495',
+			];
+			$json = json_encode($data);
+			
+			$time = time();
+			$time .= mt_rand(100, 999);	
+			
+			$sign = $this->getCouponSign($token, $json, $time);
+			$info = $this->getCouponInfo($time, $sign, $json);
+			# print_r(get_defined_vars());
+			
+			$file = 'tmp/tb/' . md5($url) . '.json';
+			if (file_exists($file)) {
+				$data = file_get_contents($file);
+			} else {
+				$http_header = ['X-HTTP-Method-Override: GET'];
+				$http_header[] = 'Cookie: ' . $cookie;
+				$curl = new PhpCurl($info);
+				$data = $curl->download($http_header);
+				file_put_contents($file, $data);
+			}
+			$obj = json_decode($data);
+			#print_r($obj);
+			$item = $obj->data->result->item->itemId;
+		} else {
+			$item = $encoding;
+		}
+		
+		if ($item) {
+			$cookie = isset($_SESSION['cookie']) ? trim($_SESSION['cookie']) : '';		
+			$obj = $this->getSearchJson($item, $cookie);
+			@$total = $obj->data->paginator->items;
+			if ($total) {
+				$list = $obj->data->pageList;
+				$token = $this->getCookieRow('_tb_token_', $cookie);
+				$obj = null;
+				foreach ($list as $row) {
+					$item = $row->auctionId;
+					$rate = $row->tkCommonRate;
+					$fee = $row->tkCommonFee;
+					$price = $row->zkPrice;
+					$amount = $row->couponAmount;
+					$title = $row->title;
+					if ($row->couponStartFee) {
+						if ($price >= $row->couponStartFee) {
+							$price -= $amount;
+						}
+					}
+					$url = $this->getAuctionCode($item, $token);
+					$obj = $this->getAuctionJson($item, $url, $cookie);
+					break;
+				}
+				# print_r($obj);
+				if ($obj) {
+					return $arr = [
+						'code' => 200,
+						'command' => $obj->data->couponLinkTaoToken,
+						'url' => $obj->data->couponShortLinkUrl,
+						'rate' => $rate,
+						'fee' => $fee,
+						'amount' => $amount,
+						'price' => $price,
+						'title' => $title,
+					];
+					print_r($arr);
+				}
+			}
+		}
+		
+		/* 返回数据 */
+		return [
+			'code' => 1,
+			'msg' => 'final',
+            'result' => $item,
+			'pageCount' => 1,
+        ];
+	}
+	
+	public function getAuctionJson($item, $url = null, $cookie = null)
+	{
+		$file = 'tmp/tb/' . $item . '.txt';
+		if (file_exists($file)) {
+			$data = file_get_contents($file);
+		} else {
+			$http_header = ['X-HTTP-Method-Override: GET'];
+			$http_header[] = 'Cookie: ' . $cookie;
+			$curl = new PhpCurl($url);
+			$data = $curl->download($http_header);
+			file_put_contents($file, $data);
+		}
+		return $obj = json_decode($data);
+	}
+	
+	public function getSearchJson($item, $cookie = null)
+	{
+		$file = 'tmp/tb/' . $item . '.json';
+		if (file_exists($file)) {
+			$data = file_get_contents($file);
+		} else {
+			$url = 'https://item.taobao.com/item.htm?id=' . $item;
+			$url = 'https://pub.alimama.com/items/search.json?q=' . urlencode($url);
+			
+			
+			$http_header = ['X-HTTP-Method-Override: GET'];
+			$http_header[] = 'Cookie: ' . $cookie;
+			$curl = new PhpCurl($url);
+			$data = $curl->download($http_header);
+			file_put_contents($file, $data);
+		}
+		return $obj = json_decode($data);
+		# print_r($obj);
+	}
+	
+	public function getCouponEncoding($url = 'https://m.tb.cn/h.3gF2Zlo')
+	{
+		$file = 'tmp/tb/' . md5($url) . '.html';
+		if (file_exists($file)) {
+			$content = file_get_contents($file);
+		} else {
+			$content = file_get_contents($url);
+			file_put_contents($file, $content);
+		}
+
+		$url = '';
+		if (preg_match("/var url = '(.*)';/", $content, $matches)) {
+			# print_r($matches);
+			$url = $matches[1];
+			$query_string = parse_url($url, PHP_URL_QUERY);
+			parse_str($query_string, $query_data);
+			# print_r($query_data);
+			$url = isset($query_data['e']) ? $query_data['e'] : '';
+			$url = $url ? : (isset($query_data['id']) ? $query_data['id'] : '');
+		}
+		return $url;
+	}
+	
+	public function getCouponInfo($time, $sign = null, $json = null)
+	{
+		$url = 'https://acs.m.taobao.com/h5/mtop.alimama.union.hsf.coupon.get/1.0/?';	
+		$query_data = [
+			'jsv' => '2.4.0',
+			'appKey' => 12574478,
+			't' => $time,
+			'sign' => $sign,
+			'api' => 'mtop.alimama.union.hsf.coupon.get',
+			'v' => '1.0',
+			#'AntiCreep' => 'true',
+			#'AntiFlood' => 'true',
+			'type' => 'json',
+			#'dataType' => 'jsonp',
+			#'callback' => 'mtopjsonp1',
+			'data' => $json,
+		];
+		
+		$query_string = http_build_query($query_data);
+		return $url .= $query_string;
+	}
+	
+	public function getAuctionCode($item, $token = null)
+	{
+		$url = 'https://pub.alimama.com/common/code/getAuctionCode.json?';
+		$query_data = [
+			'auctionid' => $item,
+            'adzoneid' => 20676495,
+            'siteid' => 5896322,
+            'scenes' => 1,
+            #'tkFinalCampaign' => 20,
+            #'t' => 1537251775365,
+            #'_tb_token_' => $token,
+            #'pvid' => '10_36.33.151.1_596_1537251735163',
+		];
+		
+		$query_string = http_build_query($query_data);
+		return $url .= $query_string;
+	}
+	
+	public function getCouponSign($_m_h5_tk, $data = null, $t = null)
+	{
+		if (is_array($data)) {
+			$data = json_encode($data);
+		}
+		$appKey = 12574478;
+		$str = "$_m_h5_tk&$t&$appKey&$data";
+		return md5($str);		
 	}
 }
