@@ -391,7 +391,7 @@ class _Controller extends \Astrology\Controller
 		];
 		$arr += $info;
 		$json = json_encode($arr);
-		$json = str_replace('<%1>', addcslashes($content, '"') . time(), $json);
+		$json = str_replace('<%1>', addcslashes($content, '"') . ' ' . date('Y/n/j H:i'), $json);
 		# print_r(get_defined_vars());exit;
 		
 		$url = "https://$this->host/cgi-bin/mmwebwx-bin/webwxsendmsg";
@@ -416,7 +416,7 @@ class _Controller extends \Astrology\Controller
 						# $user = '@08894d343fad2ce140a395ec6c6f8079';
 						$user = $row->FromUserName;
 						$coupon = '';
-						if (preg_match('/http(|s):\/\/m.tb.cn\/([a-z0-9\.]+)/i', $row->Content, $matches)) {
+						if (preg_match('/http(|s):\/\/m\.tb\.cn\/([a-z0-9\.]+)/i', $row->Content, $matches)) {
 							#print_r($matches);
 							$url = 'https://m.tb.cn/' . $matches[2];
 							$alimama = new Alimama();

@@ -444,7 +444,7 @@ class Alimama extends \Plugin\Robot
 		$where = $this->where_optimizeTime();
 		# $column = 'alimama_choice_excel.*, B.category_id';
 		$column = '*';
-		$column = 'class,taobaoke,promotion,cost,price,`group`,url,platform,excel_id,item,name,pic,sale,discount,start,end';
+		$column = 'class,taobaoke,promotion,cost,price,`group`,url,platform,excel_id,item,name,pic,sale,discount,`start`,end';
 		$option = ['excel_id ASC', "$offset,$limit"];
 		# $join = 'LEFT JOIN com_urlnk.alimama_product_category B ON B.title = alimama_choice_excel.class';
 		$join = null;
@@ -639,6 +639,7 @@ class Alimama extends \Plugin\Robot
 		$exp = explode('_', $token);
 		$token = $exp[0];
 		
+		$item = null;
 		$encoding = $this->getCouponEncoding($url);
 		if (!is_numeric($encoding)) {
 			$data = [
@@ -666,7 +667,7 @@ class Alimama extends \Plugin\Robot
 			}
 			$obj = json_decode($data);
 			#print_r($obj);
-			$item = $obj->data->result->item->itemId;
+			@$item = $obj->data->result->item->itemId;
 		} else {
 			$item = $encoding;
 		}
@@ -721,6 +722,20 @@ class Alimama extends \Plugin\Robot
         ];
 	}
 	
+	public function testIndex()
+	{
+		$url = 'https://a.m.taobao.com/i570312752843.htm?price=16.9&original_price=58&sourceType=item&sourceType=item&suid=279b02c1-9221-4e8a-b2ed-d732051bb9f3&ut_sk=1.W6H7g5JZO4MDABgbzceLrSdC_21646297_1537427848933.Copy.1&un=72db47e31d33390e4b68d5f77a161062&share_crt_v=1&sp_tk=77+lMThnQ2I0WG9nYVDvv6U=&cpp=1&shareurl=true&spm=a313p.22.170.972569079926&short_name=h.3TTCFew';
+		$url = 'https://m.tb.cn/h.3TTCFew';
+		$encoding = $this->getCouponEncoding($url);
+		
+        return [
+            'code' => 1,
+            'msg' => 'final',
+            'result' => $encoding,
+            'pageCount' => 1,
+        ];
+	}
+	
 	public function getAuctionJson($item, $url = null, $cookie = null)
 	{
 		$file = 'tmp/tb/' . $item . '.txt';
@@ -770,9 +785,15 @@ class Alimama extends \Plugin\Robot
 		if (preg_match("/var url = '(.*)';/", $content, $matches)) {
 			# print_r($matches);
 			$url = $matches[1];
+			if (preg_match('/http(|s):\/\/a\.m\.taobao\.com\/i(\d+)\.htm/i', $url, $matche_url)) {
+				return $matche_url[2];
+				# print_r($matche_url);
+			}
+			
+			# $parse_url = parse_url($url);
 			$query_string = parse_url($url, PHP_URL_QUERY);
 			parse_str($query_string, $query_data);
-			# print_r($query_data);
+			# print_r([$parse_url, $query_data]);exit;
 			$url = isset($query_data['e']) ? $query_data['e'] : '';
 			$url = $url ? : (isset($query_data['id']) ? $query_data['id'] : '');
 		}
