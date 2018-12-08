@@ -98,7 +98,7 @@ class Index extends _Controller
 			}
 		}
 		
-		include '../app/_Module/View/Index/play.php';
+		include APP_PATH . '/_Module/View/Index/play.php';
 		exit;
 	}
 }

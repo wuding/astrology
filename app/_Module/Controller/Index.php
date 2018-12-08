@@ -20,7 +20,7 @@ class Index extends _Controller
 	public function index()
 	{
 		$tongji = $this->tongji;
-		include '../app/_Module/View/Index/index.php';
+		include APP_PATH . '/_Module/View/Index/index.php';
 		exit;# 
 	}
 }
