@@ -35,6 +35,9 @@ class Alimama extends \Plugin\Robot
 			$cache_dir . "/$bill/$date.xls", //春节活动, 9.9大促预售爆款
 			$cache_dir . "/$bill/$date.xls", //聚划算拼团单品（建议转换淘口令传播）
 			$cache_dir . "/4/%1.json", //超级搜索 - 高佣活动
+			$cache_dir . "/$bill/$date.xls", //超级好货大额券榜
+			$cache_dir . "/$bill/$date.xls", //双11品牌尖货榜
+			$cache_dir . "/$bill/$date.xls", //双11好货高佣榜
         ];
 		
 		$this->urls = [
@@ -43,6 +46,9 @@ class Alimama extends \Plugin\Robot
 			'https://pub.alimama.com/operator/tollbox/excelDownload.json?excelId=MKT_HOT_EXCEL_LIST&adzoneId=126228652&siteId=35532130',
 			"https://pub.alimama.com/operator/tollbox/excelDownload.json?excelId=JUPINTUAN_LIST&adzoneId=126228652&siteId=35532130",
 			"https://pub.alimama.com/items/channel/qqhd.json?channel=qqhd&toPage=%1&sortType=13&dpyhq=1&perPageSize=50&shopTag=dpyhq&t=1531379311587&_tb_token_=&pvid=",
+			'https://pub.alimama.com/operator/tollbox/excelDownload.json?excelId=TB_1111_GOOD_COUPON_LIST&adzoneId=126228652&siteId=35532130',
+			'https://pub.alimama.com/operator/tollbox/excelDownload.json?excelId=TB_1111_HOT_BRAND_ITEM_LIST&adzoneId=126228652&siteId=35532130',
+			'https://pub.alimama.com/operator/tollbox/excelDownload.json?excelId=TB_1111_HIGH_COMM_LIST&adzoneId=126228652&siteId=35532130',
 		];
 	}
 	
@@ -198,6 +204,24 @@ class Alimama extends \Plugin\Robot
 				'coupon', 
 				'class'
 			],
+			7 => [
+				'class',
+				'shop',
+				'platform',
+				'item',
+				'name',
+				'taobaoke',
+				'pic',
+				'price',
+				'ratio',
+				'denomination',
+				'cost',
+				'total',
+				'remain',
+				'start',
+				'end',
+				'promotion',
+			],
 		];		
 		$key = isset($keys[$bill]) ? $keys[$bill] : [];
 		$num = count($key);
@@ -261,7 +285,7 @@ class Alimama extends \Plugin\Robot
 							$arr['cost'] = $arr['price'];
 						}
 						
-					} elseif (2 == $bill) {
+					} elseif (in_array($bill, [2, 7])) {
 						$arr['sale'] = $arr['total'] - $arr['remain'];
 						$url = parse_url($arr['promotion'], PHP_URL_QUERY);
 						parse_str($url, $query);
