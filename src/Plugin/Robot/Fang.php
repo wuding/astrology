@@ -312,10 +312,25 @@ class Fang extends \Plugin\Robot
                     'status' => 'status=404',
                 ];
             }
+
         } elseif (preg_match('/获取租房详情信息出错/', $html)) {
+            header('HTTP/1.1 502 Bad Gateway');
+            exit;
+
             $set = [
                 'status' => 'status=-404',
             ];
+
+        } elseif (preg_match('/请求超时/', $html)) {
+            /*
+            header('HTTP/1.1 504 Gateway Time-out');
+            exit;
+            */
+
+            $set = [
+                'status' => 'status=504',
+            ];
+
         } else {
             echo $html;
             print_r($doc);
