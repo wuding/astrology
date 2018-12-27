@@ -21,12 +21,13 @@ class PhpPdoMysql extends PhpPdo
 		return self::$dns = "mysql:host=$host;port=$port;dbname=$db_name";
 	}
 	
-	public function getDbh($username = null, $password = null)
+	public function getDbh($username = null, $password = null, $driver_options = null)
 	{
 		$username = $username ? : $this->username;
 		$password = $password ? : $this->password;
+		$driver_options = $driver_options ? : $this->driver_options;
 		try {
-			self::$dbh = new PDO(self::$dns, $username, $password);
+			self::$dbh = new PDO(self::$dns, $username, $password, $driver_options);
 		} catch (PDOException $e) {
 			print_r([$e->getMessage(), __FILE__, __LINE__]);
 			exit;

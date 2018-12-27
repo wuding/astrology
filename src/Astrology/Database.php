@@ -10,9 +10,12 @@ class Database
 	public $port = 3306;
 	public $user = 'root';
 	public $password = 'root';
+	public $driver_options = null;
+
 	public $db_name = 'mysql';
 	public $table_name = 'user';
 	public $primary_key = null;
+
 	public $join = '';
 	public $group_by = '';
 	public $having = '';
@@ -44,6 +47,7 @@ class Database
 			'db_name' => $this->db_name,
 			'username' => $this->user,
 			'password' => $this->password,
+			'driver_options' => $this->driver_options,
 		];
 		$this->getAdapter($this->driver, $arg);
 	}

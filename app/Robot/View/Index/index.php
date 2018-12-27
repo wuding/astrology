@@ -60,6 +60,7 @@ var offsettime = 0;
 var interval = null;
 var exec_task = 0;
 REQ = []
+timeout_id = null
 
 //Local Storage 列表生成
 var ele_request_log = document.getElementById('request_log');
@@ -111,10 +112,15 @@ function api(url)
         url = document.getElementById('url').value;
     }
 
-    var xhr = nowtime;	
+
+
+    var xhr = nowtime;
+    // clearTimeout( timeout_id )
+    // timeout_id = setTimeout( "api_reset('" + url + "', " + xhr + ")", 300000 )
     XHR[xhr] = new XMLHttpRequest();
     XHR[xhr].onreadystatechange = function() {
         if (4 == XHR[xhr].readyState) {
+        	// clearTimeout( timeout_id )
             if (200 == XHR[xhr].status) {
                 var text = XHR[xhr].responseText;
                 if (text) {
@@ -130,10 +136,15 @@ function api(url)
                 message('Problem retrieving data(' + XHR[xhr].status + '):' + XHR[xhr].statusText);
             }
         } else if (1 != XHR[xhr].readyState && 2 != XHR[xhr].readyState && 3 != XHR[xhr].readyState) {
+        	// clearTimeout( timeout_id )
             message('Problem(' + XHR[xhr].status + '):' + XHR[xhr].readyState);
         }
     };
     XHR[xhr].open('GET', url, true);
+    XHR[xhr].timeout = 300000
+    XHR[xhr].ontimeout = function (e) {
+        api_reset(url, xhr)
+    }
     XHR[xhr].send(null);
 }
 
