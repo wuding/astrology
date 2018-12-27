@@ -422,4 +422,19 @@ class Database
 	{
 		return self::$adapter->$name($arguments[0]);
 	}
+
+	/**
+	 * 清除数组的数字键名项
+	 * @param 	array 	$arr 	要处理的数组
+	 * @return 	array 			处理结果
+	 */
+	public function clearArrayByKey($arr)
+	{
+		foreach ($arr as $key => $value) {
+			if (is_numeric($key)) {
+				unset($arr[$key]);
+			}
+		}
+		return $arr;
+	}
 }

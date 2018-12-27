@@ -14,15 +14,19 @@ use DbTable\RentingSiteDetail;
 
 class Fang extends \Plugin\Robot
 {
+    // 规则
     public $enable_relay = true;
-    public $overwrite = true;
+    public $overwrite = false;
+    public $min_size = 1000;
+
+    // 参数
     public $api_host = 'http://lan.urlnk.com';
     public $site_id = 1;
-    public $city_abbr = 'sh';
     public $city_id = -1;
-    public $http_header = ['X-Requested-With: XMLHttpRequest'];
+    public $city_abbr = 'sh';
     public $city_path = '';
     public $city_name = '-';
+    public $http_header = ['X-Requested-With: XMLHttpRequest'];
 
 
     /**
@@ -297,7 +301,8 @@ class Fang extends \Plugin\Robot
         $slider = $doc->getElementById('slider');
         $section = $doc->getElementsByTagName('section');
         $body = $doc->getElementsByTagName('body');
-        
+        $set = null;
+
         // 404页面
         if ($body->length) {
             $class = $body[0]->getAttribute('class');
@@ -306,19 +311,27 @@ class Fang extends \Plugin\Robot
                 $set = [
                     'status' => 'status=404',
                 ];
-                $update = $Detail->fieldMessageQueue($row->detail_id, $set, 'cache_set');
-                return [404, $update];
             }
+        } elseif (preg_match('/获取租房详情信息出错/', $html)) {
+            $set = [
+                'status' => 'status=-404',
+            ];
         } else {
             echo $html;
             print_r($doc);
         }
-       
+
+        if ($set) {
+            $update = $Detail->fieldMessageQueue($row->detail_id, $set, 'cache_set');
+            return [404, $update];
+        }
+
         $data = [
             'site_id' => $this->site_id,
             'item_id' => $row->item_id,
             'type' => $row->type,
         ];
+
         // 幻灯片
         if ($slider) {
             $slides = [];
@@ -351,6 +364,10 @@ class Fang extends \Plugin\Robot
                 break;
             }
         }
+
+        $data = $Detail->clearArrayByKey($data);
+
+        # print_r($data);
 
         if (array_key_exists(0, $data)) {
             return $data;
@@ -822,8 +839,16 @@ class Fang extends \Plugin\Robot
             
             echo $put['data'];exit;
              */
-            $doc = $this->parse_dom($put['data'], null, null, 'gbk', [['/charset=\"gbk\"/', '/charset=gbk/'], ['charset="utf-8"', 'charset=utf-8']]); # echo $doc[1];exit;
-            
+            $doc = $this->parse_dom($put['data'], null, null, 'gbk', [
+                ['/charset=\"gbk\"/', '/charset=gbk/'], 
+                ['charset="utf-8"', 'charset=utf-8']
+            ]);
+
+            /*
+            print_r($doc);
+            exit;
+            */
+
             $put = $this->check_detail($doc, $row);
             $result[] = $put;
         }
