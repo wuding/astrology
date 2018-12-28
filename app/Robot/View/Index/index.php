@@ -141,7 +141,7 @@ function api(url)
         }
     };
     XHR[xhr].open('GET', url, true);
-    XHR[xhr].timeout = 300000
+    XHR[xhr].timeout = 590000
     XHR[xhr].ontimeout = function (e) {
         api_reset(url, xhr)
     }
