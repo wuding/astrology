@@ -115,12 +115,12 @@ function api(url)
 
 
     var xhr = nowtime;
-    // clearTimeout( timeout_id )
-    // timeout_id = setTimeout( "api_reset('" + url + "', " + xhr + ")", 300000 )
+    clearTimeout( timeout_id )
+    timeout_id = setTimeout( "api_reset('" + url + "', " + xhr + ")", 660000 )
     XHR[xhr] = new XMLHttpRequest();
     XHR[xhr].onreadystatechange = function() {
         if (4 == XHR[xhr].readyState) {
-        	// clearTimeout( timeout_id )
+        	clearTimeout( timeout_id )
             if (200 == XHR[xhr].status) {
                 var text = XHR[xhr].responseText;
                 if (text) {
@@ -136,15 +136,17 @@ function api(url)
                 message('Problem retrieving data(' + XHR[xhr].status + '):' + XHR[xhr].statusText);
             }
         } else if (1 != XHR[xhr].readyState && 2 != XHR[xhr].readyState && 3 != XHR[xhr].readyState) {
-        	// clearTimeout( timeout_id )
+        	clearTimeout( timeout_id )
             message('Problem(' + XHR[xhr].status + '):' + XHR[xhr].readyState);
         }
     };
     XHR[xhr].open('GET', url, true);
+    /*
     XHR[xhr].timeout = 590000
     XHR[xhr].ontimeout = function (e) {
         api_reset(url, xhr)
     }
+    */
     XHR[xhr].send(null);
 }
 
