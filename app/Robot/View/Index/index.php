@@ -116,7 +116,7 @@ function api(url)
 
     var xhr = nowtime;
     clearTimeout( timeout_id )
-    timeout_id = setTimeout( "api_reset('" + url + "', " + xhr + ")", 660000 )
+    timeout_id = setTimeout( "api_reset('" + url + "', " + xhr + ")", 595000 )
     XHR[xhr] = new XMLHttpRequest();
     XHR[xhr].onreadystatechange = function() {
         if (4 == XHR[xhr].readyState) {
