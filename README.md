@@ -8,7 +8,7 @@ composer create-project --prefer-dist wuding/astrology astrology dev-secret
 
 
 
-# ♉ Taurus-php
+# ♉ Taurus-php 2018.4.4
 
 包 wuding/taurus-php
 
