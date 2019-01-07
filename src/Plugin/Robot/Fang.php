@@ -139,6 +139,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 更新不需要改状态的
+     *
      * @return array api数据
      */
     public function updateStatus()
@@ -156,6 +157,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 更新状态
+     *
      * @return array api数据
      */
     public function optimizeStatus(){
@@ -182,6 +184,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 清除非正常状态的缓存队列
+     *
      * @return array api数据
      */
     public function updateCache(){
@@ -189,7 +192,7 @@ class Fang extends \Plugin\Robot
         $limit = 10;
         $Detail = new RentingSiteDetail;
         $where = "status != 1";       
-        $all = $Detail->fetchAll($where, 'detail_id,cache_set', 'detail_id', $page, $limit);
+        $all = $Detail->fetchAll($where, 'detail_id, cache_set', 'detail_id', $page, $limit);
         $pageCount = $Detail->pageCount($where, $limit);
 
         $result = [];
@@ -218,6 +221,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 下载出租列表
+     *
      * @return array api数据
      */
     public function downloadList()
@@ -254,6 +258,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 解析 DOM
+     *
      * @param  string $str           html
      * @param  string $charset       html字符集
      * @param  string $id            元素id
@@ -265,11 +270,7 @@ class Fang extends \Plugin\Robot
     {
         if ($from_encoding) {
             $mb = new Mbstring($str, $from_encoding);
-            if ($replace) {
-                $str = $mb->preg_replace($replace[0], $replace[1]);
-            } else {
-                $str = $mb->str;
-            }
+            $str = $replace ? $mb->preg_replace($replace[0], $replace[1]) : $mb->str;
         }
 
         $dom = new DOM($str, $charset);
@@ -282,6 +283,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 检测出租详情数据
+     *
      * @param  object $doc dom对象
      * @param  object $row 数据条目对象
      * @return array       检测结果
@@ -389,6 +391,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 获取刷新时间和地点区域
+     *
      * @param  object $node dom节点
      * @param  array  $data 原数据
      * @return array        返回数据
@@ -420,6 +423,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 获取地点区域
+     *
      * @param  object $node_list    a节点列表
      * @param  array  $data         原数据
      * @return array                返回数据
@@ -521,6 +525,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 获取租金价格和配套设施
+     *
      * @param  object $section section节点
      * @param  array  $data    原数据
      * @return array           返回数据
@@ -552,7 +557,8 @@ class Fang extends \Plugin\Robot
     }
 
     /**
-     * 获取租金价格和支付方式 
+     * 获取租金价格和支付方式
+     *
      * @param  object $node    div节点
      * @param  array  $data    原数据
      * @return array           返回数据
@@ -578,6 +584,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 获取详情
+     *
      * @param  object $node    div节点
      * @param  array  $data    原数据
      * @return array           返回数据
@@ -622,6 +629,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 获取配套设施
+     *
      * @param  object $node    div节点
      * @return string          返回数据
      */
@@ -642,6 +650,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 获取房源描述
+     *
      * @param  object $node dom节点
      * @param  array  $data 原数据
      * @return array        返回数据
@@ -670,6 +679,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 获取房源描述列表
+     *
      * @param  object $node dom节点
      * @param  array  $data 原数据
      * @return array        返回数据
@@ -700,6 +710,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 检测出租列表数据
+     *
      * @param  object $doc dom
      * @return array       检测结果集
      */
@@ -782,7 +793,7 @@ class Fang extends \Plugin\Robot
     /**
      * 下载PC版列表
      * 
-     * @return [type] [description]
+     * @return array     api数据
      */
     public function downloadPc()
     {
@@ -820,6 +831,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 下载出租详情
+     *
      * @return array api数据
      */
     public function downloadDetail()
@@ -831,7 +843,7 @@ class Fang extends \Plugin\Robot
         $limit = 10;
         $Detail = new RentingSiteDetail;
         $where = "status IN (-1,-2)";       
-        $all = $Detail->fetchAll($where, 'detail_id,city_name,item_id,type', 'detail_id', $page, $limit);
+        $all = $Detail->fetchAll($where, 'detail_id, city_name, item_id, type', 'detail_id', $page, $limit);
         $pageCount = $Detail->pageCount($where, $limit);
         
         $result = [];
@@ -881,6 +893,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 下载城市列表
+     *
      * @return array api数据
      */
     public function downloadCity()
@@ -904,6 +917,7 @@ class Fang extends \Plugin\Robot
 
     /**
      * 解析城市列表
+     *
      * @return array api数据
      */
     public function parseCity()
