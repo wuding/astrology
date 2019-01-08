@@ -23,8 +23,9 @@ class RentingSiteArea extends \Astrology\Database
 	public function provinceExists($name, $site_id)
 	{
 		$row = $this->findProv($name, $site_id, 'area_id');
-		$time = time();
+		
 		if (!$row) {
+			$time = time();
 			$data = [
 				'title' => $name,
 				'site_id' => $site_id,
