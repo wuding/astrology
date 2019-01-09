@@ -48,3 +48,4 @@ Fang 自定义初始化，下载、解析出租和地区列表及详情，更新
 
 RentingSiteArea 查找、检测省，检测行（城市、区县、乡镇、小区）
 
+RentingSiteDetail 检测行，获取多行
