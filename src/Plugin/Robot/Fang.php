@@ -16,7 +16,7 @@ class Fang extends \Plugin\Robot
 {
     // 规则
     public $enable_relay = true;
-    public $overwrite = false;
+    public $overwrite = true;
     public $min_size = 1000;
 
     // 参数
@@ -740,6 +740,8 @@ class Fang extends \Plugin\Robot
                     'data' => $bg->listingtype,
                     'pic' => $img,
                 ];
+
+                // 租金、刷新时间、标签
                 $tags = [];
                 for ($s = 0; $s < $span->length; $s++) {
                     $node = $span->item($s);
@@ -763,16 +765,13 @@ class Fang extends \Plugin\Robot
                     $arr['tags'] = implode(',', $tags);
                 }
 
+                // 户型、租赁方式，区县、小区
                 for ($i = 0; $i < $p->length; $i++) {
-                    if (1 < $i) {
-                        break;
-                    }
-
                     $nod = $p->item($i);
                     $html = $dom->innerHTML($nod);
                     $text = $dom->stripTagsContent($html);
                     $split = preg_split('/(\s+\-\s+|\s+)/', $text, 2);
-                    # print_r([$text, $split]);
+                    /*
                     switch ($i) {
                         case 0:
                             $arr['house_type'] = $split[0];
@@ -782,8 +781,17 @@ class Fang extends \Plugin\Robot
                             list($arr['district_name'], $arr['complex_name']) = $split;
                             break;                          
                     }
+                    */
+
+                    if (preg_match('/^\d+室|(整|合)租/', $text)) {
+                    	list($arr['house_type'], $arr['rental_method']) = $split;
+
+                    } elseif (preg_match('/\s+\-\s+/', $text)) {
+                    	list($arr['district_name'], $arr['complex_name']) = $split;
+                    	break;
+                    }
                 }
-                # print_r($arr);exit;
+                # print_r($arr);
                 $list[] = $detail->exist($arr, 1);
             }
         }
