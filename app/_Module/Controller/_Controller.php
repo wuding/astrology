@@ -194,7 +194,7 @@ class _Controller extends \Astrology\Controller
 		
 		$tongji = $this->tongji;
 		$second = $timeout;
-		$open_url = preg_replace("/^http(|s):\/+/i", '', $command_url);
+		$open_url = preg_replace("/^http(|s):\/+/i", '', $url);
 		$cmd_url = htmlspecialchars($command_url);
 		$urlencode = urlencode($code);
 		$url_encode = ($urlencode != $code) ? $this->url_shortening . $urlencode : '';
