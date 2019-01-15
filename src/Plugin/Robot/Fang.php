@@ -19,14 +19,22 @@ class Fang extends \Plugin\Robot
     public $overwrite = true;
     public $min_size = 1000;
 
-    // 参数
+    // 参数    
+    public $site_id = 1;    
+    public $city_abbr = 'sh';    
+    public $http_header = ['X-Requested-With: XMLHttpRequest'];
+
+    // 省略
     public $api_host = 'http://lan.urlnk.com';
-    public $site_id = 1;
     public $city_id = -1;
-    public $city_abbr = 'sh';
     public $city_path = '';
     public $city_name = '-';
-    public $http_header = ['X-Requested-With: XMLHttpRequest'];
+
+    const URL_CITY_LIST = 0;
+    const URL_PC_LIST = 1;
+    const URL_RENT_HOME = 2;
+    const URL_RENT_ITEM = 3;
+    const URL_RENT_LIST = 4;
 
 
     /**
@@ -36,9 +44,18 @@ class Fang extends \Plugin\Robot
      */
     public function _init()
     {
-        $cache_dir = CACHE_ROOT . '/http/zu.fang.com';
-        $this->api_host = 'http://' . $_SERVER['HTTP_HOST'];
         $Area = new RentingSiteArea;
+        $cache_dir = CACHE_ROOT . '/http/zu.fang.com';
+        $query_data = [
+            'type' => $this->attr['type'],
+        ];
+        if (isset($_GET['debug'])) {
+            $query_data['debug'] = $_GET['debug'];
+        }
+        $query_str = http_build_query($query_data);        
+
+        // 地址
+        $this->api_host = 'http://' . $_SERVER['HTTP_HOST'];        
 
         $this->paths = [
             $cache_dir . '/cities.aspx.gz', //城市列表
@@ -57,11 +74,13 @@ class Fang extends \Plugin\Robot
         ];
 
         $this->relay_urls = [
-            'parse/city' => "$this->api_host/robot/fang/parse/city?debug&type=json",
-            'download/zf' => "$this->api_host/robot/fang/download/zf?debug&type=json",
-            'download/list' => "$this->api_host/robot/fang/download/list?debug&type=json",
-            'download/detail' => "$this->api_host/robot/fang/download/detail?debug&type=json",
+            'parse/city' => "$this->api_host/robot/fang/parse/city?$query_str",
+            'download/zf' => "$this->api_host/robot/fang/download/zf?$query_str",
+            'download/list' => "$this->api_host/robot/fang/download/list?$query_str",
+            'download/detail' => "$this->api_host/robot/fang/download/detail?$query_str",
         ];
+
+        $this->http_header[] = 'Referer: https://m.fang.com/zf/';
 
         // 城市
         $ct = [
@@ -72,8 +91,6 @@ class Fang extends \Plugin\Robot
         $this->city_id = $Area->cityExists($ct, $set, 'area_id');
         $this->city_path = $this->city_abbr;
         $this->city_name = $this->city_abbr;
-
-        $this->http_header[] = 'Referer: https://m.fang.com/zf/';
     }
 
     /*
@@ -90,7 +107,7 @@ class Fang extends \Plugin\Robot
     public function downloadZf()
     {
         /* 下载 */
-        $size = $this->putFileCurl([], 2, $this->city_path);
+        $size = $this->putFileCurl([], self::URL_RENT_HOME, $this->city_path);
         if (!$size) {
             return [
                 'code' => 1, 
@@ -101,7 +118,7 @@ class Fang extends \Plugin\Robot
         # print_r($size);exit;
         
         /* 解析 */
-        $data = $this->getPathContents(2, $this->city_path);
+        $data = $this->getPathContents(self::URL_RENT_HOME, $this->city_path);
         $doc = $this->parse_dom($data, null, null, 'gbk', ['/charset=gbk/', 'charset=utf-8'])[0]; # echo exit;
         
         // 页数
@@ -160,7 +177,8 @@ class Fang extends \Plugin\Robot
      *
      * @return array api数据
      */
-    public function optimizeStatus(){
+    public function optimizeStatus()
+    {
         $page = $this->attr['page'];
         $limit = 10;
         $Detail = new RentingSiteDetail;
@@ -187,7 +205,8 @@ class Fang extends \Plugin\Robot
      *
      * @return array api数据
      */
-    public function updateCache(){
+    public function updateCache()
+    {
         $page = $this->attr['page'];
         $limit = 10;
         $Detail = new RentingSiteDetail;
@@ -226,13 +245,10 @@ class Fang extends \Plugin\Robot
      */
     public function downloadList()
     {
-        $key = 4;
-        
-
         /* 下载 */
-        $size = $this->putFileCurl($this->http_header, $key, $this->city_path, $this->attr['page']);
+        $size = $this->putFileCurl($this->http_header, self::URL_RENT_LIST, $this->city_path, $this->attr['page']);
         if (!$size) {
-            $file = $this->getProp($key, 'urls', $this->city_path, $this->attr['page']);
+            $file = $this->getProp(self::URL_RENT_LIST, 'urls', $this->city_path, $this->attr['page']);
             return [
                 'code' => 1, 
                 'msg' => 'download error', 
@@ -241,7 +257,7 @@ class Fang extends \Plugin\Robot
         }
 
         /* 检测 */
-        $data = $this->getPathContents($key, $this->city_path, $this->attr['page']);
+        $data = $this->getPathContents(self::URL_RENT_LIST, $this->city_path, $this->attr['page']);
         $doc = $this->parse_dom($data, 'utf-8')[0]; # echo exit;
         $list = $this->check_list($doc);
         #print_r($list);exit;
@@ -784,11 +800,11 @@ class Fang extends \Plugin\Robot
                     */
 
                     if (preg_match('/^\d+室|(整|合)租/', $text)) {
-                    	list($arr['house_type'], $arr['rental_method']) = $split;
+                        list($arr['house_type'], $arr['rental_method']) = $split;
 
                     } elseif (preg_match('/\s+\-\s+/', $text)) {
-                    	list($arr['district_name'], $arr['complex_name']) = $split;
-                    	break;
+                        list($arr['district_name'], $arr['complex_name']) = $split;
+                        break;
                     }
                 }
                 # print_r($arr);
@@ -799,7 +815,7 @@ class Fang extends \Plugin\Robot
     }
 
     /**
-     * 下载PC版列表
+     * 下载 PC 版列表
      * 
      * @return array     api数据
      */
@@ -816,7 +832,7 @@ class Fang extends \Plugin\Robot
         }
         */
 
-        $data = $this->getPathContents(1, 'mas', $this->attr['page']);
+        $data = $this->getPathContents(self::URL_PC_LIST, 'mas', $this->attr['page']);
         $str = gzdecode($data);
         # header('Content-Type: text/html; charset=utf-8');
         $mb = new Mbstring($str, 'gbk');        
@@ -856,7 +872,7 @@ class Fang extends \Plugin\Robot
         
         $result = [];
         foreach ($all as $row) {
-            $put = $this->putFileCurl([], 3, $row->city_name, $row->item_id, $row->type);
+            $put = $this->putFileCurl([], self::URL_RENT_ITEM, $row->city_name, $row->item_id, $row->type);
             # $put = 0; 
             if (!$put) {
                 return [
