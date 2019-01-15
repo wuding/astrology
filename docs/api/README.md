@@ -4,13 +4,13 @@
 
 ## 核心类
 
-Astrology\Start 导入配置，连接缓存，初始化路由，加载控制器，Composer 类加载规则添加
+[Astrology\Start](Start.md) 导入配置，连接缓存，初始化路由，加载控制器，Composer 类加载规则添加
 
-Astrology\Route 请求路径参数查询，扫描模块控制器，模块控制器动作参数名称及修正，键名合并数组
+[Astrology\Route](Route.md) 请求路径参数查询，扫描模块控制器，模块控制器动作参数名称及修正，键名合并数组
 
-Astrology\Controller （数组）变量值获取及过滤，配置项，获取动作方法，开启会话和视图
+[Astrology\Controller](Controller.md) （数组）变量值获取及过滤，配置项，获取动作方法，开启会话和视图
 
-Astrology\Database 导入配置，数据库适配器，SQL 语句，增查改删（及批量），数量页码，数组比较合并清除
+[Astrology\Database](Database.md) 导入配置，数据库适配器，SQL 语句，增查改删（及批量），数量页码，数组比较合并清除
 
 
 
