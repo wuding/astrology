@@ -70,6 +70,23 @@ http_header, api_host, urls, city_path, city_name
 
 1. 下载列表首页
 2. 解析 DOM，获取页数，检测列表
+3. 返回结果，转接任务
+
+
+
+### downloadList()
+
+1. 下载出租列表
+2. 解析 DOM，检测列表
+3. 返回结果，转接任务
+
+
+
+### downloadDetail()
+
+1. 按页获取数据库条目和总页数
+2. 下载出租详情，解析 DOM，检测详情
+3. 返回结果
 
 
 
@@ -103,4 +120,102 @@ http_header, api_host, urls, city_path, city_name
    - 户型、租赁方式
    - 区县、小区
 5. 数据库检测条目
+
+
+
+### check_detail($doc, $row)
+
+1. 异常处理：404、获取信息出错、请求超时；异常消息队列
+2. 幻灯图片
+3. 分析 section
+   - 时间、区域 xqCaption mb8
+   - 价格、设施 xqBox mb8
+   - 描述、小区 mBox
+4. 返回数据
+
+
+
+
+
+### xqCaption($node, $data = [])
+
+getSectionArea
+
+1. 分析 p
+   - 面包屑：地区
+   - 刷新时间
+2. 返回数据
+
+
+
+### xqBox($section, $data = [])
+
+getSectionPrice
+
+1. 分析 div
+
+   - 标签 stag
+   - 价格、支付 price-box mt20
+   - 详情 bb pdY10
+   - 配套设施 ptss-zf pdY14
+
+2. 返回数据
+
+
+### xqDescription($node, $data = [])
+
+getSectionDescription
+
+1. 分析 div
+   - 房源描述 fymsList pdX20
+2. 返回数据
+
+
+
+### xqCrumbs($node_list, $data = [])
+
+getAreaCrumbs
+
+1. 分析 a：区县、乡镇、小区
+2. 数据库检测条目：区县、乡镇、小区
+3. 返回数据
+
+
+
+### xqPrice($node, $data = [])
+
+getRentPay
+
+1. 分析 span 根据顺序判断
+2. 返回数据
+
+
+
+### xqTable($node, $data = [])
+
+getRentDetail
+
+1. 分析 li
+2. 检测：租赁方式、户型、建筑面积、楼层、朝向、装修、入住时间
+3. 总楼层
+4. 返回数据
+
+
+
+### xqFacility($node)
+
+getRentFacility
+
+1. 分析 span 检测 class
+2. 返回数据
+
+
+
+### xqFymsList($node, $data = [])
+
+getDescriptionList
+
+1. 分析 li
+2. 检测：房源亮点
+3. 返回数据
 

@@ -16,12 +16,12 @@ class Fang extends \Plugin\Robot
 {
     // 规则
     public $enable_relay = true;
-    public $overwrite = false;
+    public $overwrite = true;
     public $min_size = 1000;
 
     // 参数    
     public $site_id = 1;    
-    public $city_abbr = 'sh';    
+    public $city_abbr = 'mas';
     public $http_header = ['X-Requested-With: XMLHttpRequest'];
 
     // 省略
@@ -395,7 +395,7 @@ class Fang extends \Plugin\Robot
             }
         }
 
-        $data = $Detail->clearArrayByKey($data);
+        # $data = $Detail->clearArrayByKey($data);
 
         # print_r($data);
 
@@ -468,6 +468,7 @@ class Fang extends \Plugin\Robot
                     $id = $match[1];
                 } elseif (!preg_match('/^(\d+)$/', $id, $match)) {
                     $key = $i;
+                    // 其他情况
                 }
 
                 if (!is_numeric($key)) {
@@ -620,8 +621,7 @@ class Fang extends \Plugin\Robot
         for ($i = 0; $i < $span->length; $i++) {
             $nd = $span->item($i);
             $explode = explode('：', trim($nd->nodeValue));
-            $item = $explode[0];
-            $value = $explode[1];
+            list($item, $value) = $explode;
             if (array_key_exists($item, $arr)) {
                 $key = $arr[$item];
                 if ('floor' == $key) {
@@ -800,7 +800,12 @@ class Fang extends \Plugin\Robot
                     */
 
                     if (preg_match('/^\d+室|(整|合)租/', $text)) {
-                        list($arr['house_type'], $arr['rental_method']) = $split;
+                        if (preg_match('/\d+/', $text)) {
+                            list($arr['house_type'], $arr['rental_method']) = $split;
+                        } else {
+                            list($arr['rental_method']) = $split;
+                        }
+                        
 
                     } elseif (preg_match('/\s+\-\s+/', $text)) {
                         list($arr['district_name'], $arr['complex_name']) = $split;
