@@ -16,7 +16,7 @@ class Fang extends \Plugin\Robot
 {
     // 规则
     public $enable_relay = true;
-    public $overwrite = true;
+    public $overwrite = false;
     public $min_size = 1000;
 
     // 参数    
@@ -282,7 +282,7 @@ class Fang extends \Plugin\Robot
      * @param  array  $replace       html替换
      * @return object                dom元素
      */
-    public function parse_dom($str = null, $charset = null, $id = null, $from_encoding = null, $replace = [])
+    public function parse_dom($str, $charset = null, $id = null, $from_encoding = null, $replace = [])
     {
         if ($from_encoding) {
             $mb = new Mbstring($str, $from_encoding);

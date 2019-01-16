@@ -50,3 +50,57 @@
 | 20   | downloadCity()   |        | 下载城市列表             |
 | 21   | parseCity()      |        | 解析城市列表             |
 
+
+
+## 方法详情
+
+### _init()
+
+重置属性值：
+
+paths, relay_urls, city_id,
+
+可以省略：
+
+http_header, api_host, urls, city_path, city_name
+
+
+
+### downloadZf()
+
+1. 下载列表首页
+2. 解析 DOM，获取页数，检测列表
+
+
+
+### parse_dom($str, $charset = null, $id = null, $from_encoding = null, $replace = [])
+
+| 参数 | 类型 | 描述 |
+| -------- | :--: | ---- |
+| $str | string | html |
+| $charset | string | html 编码 |
+| $id | string | 元素 id |
+| $from_encoding | string | 源编码 |
+| $replace | array | html 替换 |
+
+1. 转码与替换
+2. 获取文档对象或者元素
+
+
+
+### check_list($doc)
+
+1. 检测有 data-bg 属性的列表
+2. 获取标题 h3 和图片 img
+3. 分析 span
+   - 价格 new
+   - 时间 flor
+   - 标签 red-z
+   - 实名认证 zfsmrz
+   - 顶 tag-yell
+   - 精 tag-jing
+4. 分析 p
+   - 户型、租赁方式
+   - 区县、小区
+5. 数据库检测条目
+
