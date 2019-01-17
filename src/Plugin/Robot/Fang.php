@@ -888,7 +888,7 @@ class Fang extends \Plugin\Robot
                 $data[$str] = $value->area_id;
             }
 
-            // 租赁方式和租金
+            // 租赁方式和租金、户型和面积
             $rental_method = $Method->exist(['title' => $row->rental_method]);
             $house_type = $Type->exist(['title' => $row->house_type]);
             $rental_price = trim($row->rental_price);
