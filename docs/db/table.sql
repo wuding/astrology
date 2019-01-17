@@ -88,6 +88,7 @@ DROP TABLE IF EXISTS `rent_list`;
 CREATE TABLE `rent_list` (
   `list_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '租房列表ID',
   `detail_id` int(10) DEFAULT '-1' COMMENT '详情标识',
+  `province_id` int(10) DEFAULT '-1' COMMENT '省市ID',
   `city_id` int(10) DEFAULT '-1' COMMENT '城市ID',
   `district_id` int(10) DEFAULT '-1' COMMENT '区县ID',
   `town_id` int(10) DEFAULT '-1' COMMENT '乡镇ID',
