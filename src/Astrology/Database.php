@@ -385,9 +385,8 @@ class Database
 
 		$diff = [];
 		foreach ($arr as $key => $value) {
-			if (isset($other[$key])) {
-				$val = $other[$key];
-				if ($value != $val) {
+			if (array_key_exists($key, $other)) {
+				if ($value != $val = $other[$key]) {
 					$diff[$key] = [$value, $val];
 				}
 			} elseif($null) {
