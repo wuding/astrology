@@ -237,7 +237,9 @@ NOWDOC;
 	 */
 	public function composerAutoload($type = 'PSR4', $prefix = '', $path = '', $useIncludePath = null)
 	{
-		$loader = new \Composer\Autoload\ClassLoader();
+		global $ClassLoader;
+		# $loader = new \Composer\Autoload\ClassLoader();
+		$loader = $ClassLoader;
 		switch ($type) {
 			case 'PSR4':
 				$loader->addPsr4($prefix, $path);

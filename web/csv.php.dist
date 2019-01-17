@@ -1,4 +1,16 @@
 <?php
+/**
+ * 配置
+ */
+$path = dirname(__FILE__) . '/';
+
+$path = 'K:\Astrology\storage\cache\http\www.alimama.com/';
+$php_excel = 'K:\Legend\PHPExcel-1.8.1/Classes/PHPExcel.php';
+
+$path = 'D:\Astrology\storage\cache\http\www.alimama.com/';
+$php_excel = 'D:\PHPExcel-1.8.1/Classes/PHPExcel.php';
+
+
 /* 调试 */
 if (isset($_GET['debug'])) {
     ini_set('display_errors', 1);
@@ -9,9 +21,8 @@ if (isset($_GET['debug'])) {
 /* 配置 */
 header("Content-type: text/html; charset=utf-8");
 $api_host = 'http://' . $_SERVER['HTTP_HOST'];
-$path = dirname(__FILE__) . '/';
-$path = 'D:\Astrology\storage\cache\http\www.alimama.com/';
-include_once 'D:\PHPExcel-1.8.1/Classes/PHPExcel.php';
+
+include_once $php_excel;
 
 /**
  *

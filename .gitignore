@@ -4,12 +4,18 @@ protected/runtime/*
 !protected/runtime/.gitignore
 protected/data/*.db
 themes/classic/views/
-web/img/
+
+# Composer
 vendor/
 composer.lock
+
+# Custom
+web/img/
+/web/tmp/
+/web/curl/
 logs/
+
+# file
 app/config.php
 app/bootstrap.php
 web/csv.php
-/web/tmp/
-/web/curl/

@@ -48,9 +48,9 @@ define('ANFORA_AUTOLOAD',
 
 /* 引入类加载器 */
 if (ANFORA_AUTOLOAD) {
-    require APP_PATH . '/../src/Anfora/autoload.php';
+    $ClassLoader = require APP_PATH . '/../src/Anfora/autoload.php';
 } else {
-    require APP_PATH . '/../vendor/autoload.php';
+    $ClassLoader = require APP_PATH . '/../vendor/autoload.php';
 }
 
 # include_once 'function.php';
