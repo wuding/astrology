@@ -855,78 +855,20 @@ class Fang extends \Plugin\Robot
         ];
     }
 
+    /**
+     * 优化出租列表
+     *
+     * @return     array  返回数据
+     */
     public function optimizeList()
     {
         $page = $this->attr['page'];
-        $limit = 10;
-        $offset =  $page * $limit - $limit;
-
-        $Detail = new RentingSiteDetail;
-        $Area = new RentingSiteArea;
+        $limit = 5;
+        
+        // 复刻多行
         $List = new RentList;
-        $Method = new RentalMethod;
-        $Type = new HouseType;
-        $Tag = new RentTag;
-
-        /* 取出列表 */
-        $where = $this->where_optimize_time();
-        $column = '*';
-        $option = ['detail_id ASC', "$offset,$limit"];
-        $all = $Detail->_select($where, $column, $option);
-        $pageCount = $Detail->pageCount($where, $limit);
-        # print_r($all);
-
-        /* 检测列表 */
-        $result = [];
-        foreach ($all as $key => $row) {
-            // 地区
-            $data = [];
-            $city_id = $this->city_id($row->city_name);            
-            $area = $Area->area_id($row->area_id);
-            foreach ($area as $k => $value) {
-                $str = $k . '_id';
-                $data[$str] = $value->area_id;
-            }
-
-            // 租赁方式和租金、户型和面积
-            $rental_method = $Method->exist(['title' => $row->rental_method]);
-            $house_type = $Type->exist(['title' => $row->house_type]);
-            $rental_price = trim($row->rental_price);
-            $building_area = trim($row->building_area);
-            if (preg_match('/(\d+)元\/月/', $rental_price, $matches)) {
-                [, $rental_price] = $matches;
-            } else {
-                $rental_price = -2;
-            }
-            if (preg_match('/(\d+)平米/', $building_area, $matches)) {
-                list(, $building_area) = $matches;
-            } else {
-                $building_area = -2;
-            }
-
-            // 图片、标签
-            $pic = trim($row->pic);
-            $pic = str_replace('//static.soufunimg.com/common_m/m_public/images/loadingpic.jpg', '', $pic);
-            $tags = $Tag->tag_ids($row->tags);
-
-            // 检测数据
-            $arr = [
-                'detail_id' => $row->detail_id,
-                'city_id' => $city_id,
-                'complex_id' => $row->complex_id,
-                'rental_method' => $rental_method,
-                'house_type' => $house_type,
-                'rental_price' => $rental_price,
-                'building_area' => $building_area,
-                'title' => $row->title,
-                'pic' => $pic,
-                'tags' => $tags,
-            ];
-            $arr += $data;
-            
-            $result[] = $List->exist($arr, 'synchronized');
-            # print_r([$result, $arr]);exit;
-        }
+        $arr = $List->fork($page, $limit);
+        list($result, $pageCount) = $arr;
 
         /* 接力任务 */
         $code = 0;
@@ -941,24 +883,9 @@ class Fang extends \Plugin\Robot
         ];
     }
 
-    public function where_optimize_time()
-    {
-        $List = new RentList;
-        $time = $List->getLastUpdated();
-        if (!$time) {
-            return '';
-        }
-        return $where = "updated > $time OR created > $time";
-    }
+    
 
-    public function city_id($abbr)
-    {
-        $arr = [
-            'mas' => 53,
-        ];
-
-        return isset($arr[$abbr]) ? $arr[$abbr] : 0;
-    }
+    
 
     /*
      +------------------------------
