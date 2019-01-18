@@ -102,4 +102,20 @@ class RentingSiteArea extends \Astrology\Database
         }
         return $data;
     }
+
+    /**
+     * 通过缩写获取城市 ID
+     *
+     * @param      string  $abbr   城市缩写
+     *
+     * @return     integer         返回城市 ID
+     */
+    public function city_id($abbr)
+    {
+        $arr = [
+            'mas' => 53,
+        ];
+
+        return isset($arr[$abbr]) ? $arr[$abbr] : 0;
+    }
 }
