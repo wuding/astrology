@@ -23,7 +23,7 @@ class _Controller extends \Astrology\Controller
 		$this->tongji = $stat;
 		$this->redirect = isset($_GET['redirect']);
 		$this->timeout = isset($_GET['timeout']) ? $_GET['timeout'] : null;
-		$this->url_shortening = $GLOBALS['CONFIG']['view']['url_shortening'];
+		@$this->url_shortening = $GLOBALS['CONFIG']['view']['url_shortening'] ? : 'http://' . $_SERVER['HTTP_HOST'] . '/';
 	}
 	
 	/*public function _Action()
@@ -60,9 +60,11 @@ class _Controller extends \Astrology\Controller
 				}
 				$this->_output($url, $row->name, $row->pic, '.' . $code, $row->qr, 'promotion', $row->timeout);
 			}
-		} else {
+		} 
+
 			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
-		}
+		
+		exit;
 	}
 	
 	/**
@@ -80,9 +82,11 @@ class _Controller extends \Astrology\Controller
 				$url = $row->url;
 				$this->_output($url, $row->title, null, '!' . $code, $row->qr, 'shortening', $row->timeout);
 			}
-		} else {
-			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 		}
+
+			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
+		
+		exit;
 	}
 	
 	/**
@@ -113,9 +117,11 @@ class _Controller extends \Astrology\Controller
 				}
 				$this->_output($url, $row->name, $row->pic, $code, $row->qr, 'item', $row->timeout);
 			}
-		} else {
+		} 
+
 			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
-		}
+		
+		exit;
 	}
 	
 	/**
@@ -147,10 +153,12 @@ class _Controller extends \Astrology\Controller
 			} else {
 				$coupon->insert(['command' => $code, 'symbol' => $type, 'created' => time()]);
 			}
-		} else {
-			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
 		}
-		# print_r([$GLOBALS['PATH'], $matches, $row]);exit;
+
+			$this->_NotFound([$row, __METHOD__, __FILE__, __LINE__]);
+		
+		# print_r([$GLOBALS['PATH'], $matches, $row]);
+		exit;
 	}
 	
 	public function _output($url, $name = '', $pic = '', $code = '', $qr = null, $type = null, $timeout = 5)
@@ -200,8 +208,8 @@ class _Controller extends \Astrology\Controller
 		$url_encode = ($urlencode != $code) ? $this->url_shortening . $urlencode : '';
 		
 		# print_r(get_defined_vars()); exit;
-		include '../app/_Module/View/_Controller/output.html';
-		# exit;
+		include APP_PATH . '/_Module/View/_Controller/output.html';
+		exit;# 
 	}
 	
 	/**
@@ -217,7 +225,7 @@ class _Controller extends \Astrology\Controller
 		$info = print_r($arr, true);
 		
 		$tongji = $this->tongji;
-		include '../app/_Module/View/_Controller/notfound.php';
-		# exit;
+		include APP_PATH . '/_Module/View/_Controller/notfound.php';
+		exit;# 
 	}
 }

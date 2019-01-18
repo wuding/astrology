@@ -104,9 +104,13 @@ class RentList extends \Astrology\Database
         $data = [];
         $data['city_id'] = $Area->city_id($row->city_name);            
         $area = $Area->area_id($row->area_id);
+        $area_ids = [
+            $data['city_id']
+        ];
         foreach ($area as $k => $value) {
             $str = $k . '_id';
             $data[$str] = $value->area_id;
+            $area_ids[] = $value->area_id;
         }
 
         // 租赁方式和租金、户型和面积
@@ -141,6 +145,7 @@ class RentList extends \Astrology\Database
             'title' => $row->title,
             'pic' => $pic,
             'tags' => $tags,
+            'area_ids' => implode(',', array_unique($area_ids)),
         ];
         return $arr += $data;
     }

@@ -37,6 +37,8 @@ class _Controller extends \Astrology\Controller
                 $cookie = trim($_POST['cookie']);
                 if ($cookie) {
                     $_SESSION['cookie'] = $cookie;
+                    $filename = 'tmp/tb/alimama_cookie.txt';
+                    file_put_contents($filename, $cookie);
                 } else {
                     unset($_SESSION['cookie']);
                 }

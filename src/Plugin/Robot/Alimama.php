@@ -9,6 +9,7 @@ namespace Plugin\Robot;
 use DbTable\AlimamaChoiceExcel;
 use DbTable\AlimamaChoiceList;
 use DbTable\AlimamaProductCategory;
+use DbTable\TaobaoCommand;
 use Astrology\Extension\PhpCurl;
 
 class Alimama extends \Plugin\Robot
@@ -721,43 +722,9 @@ class Alimama extends \Plugin\Robot
         }
         
         if ($item) {
-            $cookie = isset($_SESSION['cookie']) ? trim($_SESSION['cookie']) : '';      
-            $obj = $this->getSearchJson($item, $cookie);
-            @$total = $obj->data->paginator->items;
-            if ($total) {
-                $list = $obj->data->pageList;
-                $token = $this->getCookieRow('_tb_token_', $cookie);
-                $obj = null;
-                foreach ($list as $row) {
-                    $item = $row->auctionId;
-                    $rate = $row->tkCommonRate;
-                    $fee = $row->tkCommonFee;
-                    $price = $row->zkPrice;
-                    $amount = $row->couponAmount;
-                    $title = $row->title;
-                    if ($row->couponStartFee) {
-                        if ($price >= $row->couponStartFee) {
-                            $price -= $amount;
-                        }
-                    }
-                    $url = $this->getAuctionCode($item, $token);
-                    $obj = $this->getAuctionJson($item, $url, $cookie);
-                    break;
-                }
-                # print_r($obj);
-                if ($obj) {
-                    return $arr = [
-                        'code' => 200,
-                        'command' => $obj->data->couponLinkTaoToken,
-                        'url' => $obj->data->couponShortLinkUrl,
-                        'rate' => $rate,
-                        'fee' => $fee,
-                        'amount' => $amount,
-                        'price' => $price,
-                        'title' => $title,
-                    ];
-                    print_r($arr);
-                }
+            $arr = $this->getAuctionData($item);
+            if ($arr) {
+                return $arr;
             }
         }
         
@@ -801,11 +768,14 @@ class Alimama extends \Plugin\Robot
     
     public function getSearchJson($item, $cookie = null)
     {
-        $file = 'tmp/tb/' . $item . '.json';
+        $path = 'K:\dev\git\astrology\web/';
+        $path = '';
+        $file = $path . 'tmp/tb/' . $item . '.json';
         if (file_exists($file)) {
             $data = file_get_contents($file);
         } else {
             $url = 'https://item.taobao.com/item.htm?id=' . $item;
+            # $url = 'https://detail.tmall.com/item.htm?id=583011557332';
             $url = 'https://pub.alimama.com/items/search.json?q=' . urlencode($url);
             
             
@@ -817,6 +787,139 @@ class Alimama extends \Plugin\Robot
         }
         return $obj = json_decode($data);
         # print_r($obj);
+    }
+
+    /**
+     * 动作 - 搜索促销
+     */
+    public function searchPromo()
+    {
+        $item = array_key_exists('q', $_GET) ? $_GET['q'] : '';
+        $api = isset($_GET['api']) ? $_GET['api'] : 0;
+        $json = $this->getAuctionData($item, $api);
+        if ($api) {
+            $List = new AlimamaChoiceList;
+            $Command = new TaobaoCommand;
+
+            list($obj, $row) = $json;
+            $data = $obj->data;
+
+            $cpn_token = $data->couponLinkTaoToken;
+            $cpn_link = $data->couponLink;
+            $cpn_short = $data->couponShortLinkUrl;
+
+            $tao_token = $data->taoToken;
+            $tao_link = $data->clickUrl;
+            $tao_short = $data->shortLinkUrl;
+
+            $_command = $cpn_token ? : $tao_token;
+            $symbol = mb_substr($_command, 0, 1);
+            $_command = preg_replace('/[^a-z0-9]+/i', '', $_command);
+            $url = $cpn_link ? : $tao_link;
+            $shorturl = $cpn_short ? : $tao_short;
+            $qr_url = urlencode($shorturl);
+            $note = $tao_token . '\r\n' . $tao_link . '\r\n' . $tao_short;
+
+            $set = [
+                'command' => $_command,
+                'symbol' => $symbol,
+                'url' => $url,
+                'shorturl' => $shorturl,
+                'pic' => $row->pictUrl,
+                'qr' => "//gqrcode.alicdn.com/img?type=hv&text=$qr_url%3Faf%3D3&h=300&w=300",
+                'title' => $row->title,
+                'note' => $note,
+            ];
+            # print_r($set);exit;
+            $exist_cmd = $Command->exist($set);
+
+            $full = $row->couponStartFee;
+            $discount = $row->couponAmount;
+            $price = $cost = $row->zkPrice;
+            if ($price >= $full) {
+                $price -= $discount;
+            }
+            $sold = $row->biz30day;
+            $sold = $row->couponTotalCount - $row->couponLeftCount;
+
+            $arr = [
+                'excel_id' => -1,
+                'item_id' => $row->auctionId,
+                'category_id' => -1,
+                'title' => $row->title,
+                'pic' => $row->pictUrl,
+                # 'url' => $url,
+                # 'link' => $link,
+                'site' => -1,
+                'sold' => $sold,
+                'cost' => $cost,
+                'price' => $price,
+                'save' => $discount,
+                'start' => $row->couponEffectiveStartTime . ' 00:00:00',
+                'end' => $row->couponEffectiveEndTime . ' 23:59:59',
+                'tao_token' => $_command,
+            ];
+            $exist = $List->exist($arr);
+            echo json_encode([$exist_cmd, $exist]);
+            # print_r($json);
+            exit;
+        }
+        print_r($json);
+    }
+
+    public function getAuctionData($item, $api = null)
+    {
+        if (!$item) {
+            return false;
+        }
+
+        $filename = 'tmp/tb/alimama_cookie.txt';
+
+        $cookie = isset($_SESSION['cookie']) ? trim($_SESSION['cookie']) : '';
+        $cookie = $cookie ? : file_get_contents($filename);
+        # echo $cookie;exit;
+        $obj = $this->getSearchJson($item, $cookie);
+        @$total = $obj->data->paginator->items;
+        if ($total) {
+            $list = $obj->data->pageList;
+            $token = $this->getCookieRow('_tb_token_', $cookie);
+            $obj = null;
+            foreach ($list as $row) {
+                $item = $row->auctionId;
+                $rate = $row->tkCommonRate;
+                $fee = $row->tkCommonFee;
+                $price = $row->zkPrice;
+                $amount = $row->couponAmount;
+                $title = $row->title;
+                if ($row->couponStartFee) {
+                    if ($price >= $row->couponStartFee) {
+                        $price -= $amount;
+                    }
+                }
+                $url = $this->getAuctionCode($item, $token);
+                $obj = $this->getAuctionJson($item, $url, $cookie);
+                break;
+            }
+            # print_r($obj);
+            if ($obj) {
+                if ($api) {
+                    return [$obj, $row];
+                }
+                return $arr = [
+                    'code' => 200,
+                    'command' => $obj->data->couponLinkTaoToken,
+                    'url' => $obj->data->couponShortLinkUrl,
+                    'rate' => $rate,
+                    'fee' => $fee,
+                    'amount' => $amount,
+                    'price' => $price,
+                    'title' => $title,
+                ];
+                print_r($arr);
+            }
+        }
+
+        return false;
     }
     
     public function getCouponEncoding($url = 'https://m.tb.cn/h.3gF2Zlo')
