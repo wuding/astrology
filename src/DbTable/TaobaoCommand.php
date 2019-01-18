@@ -36,7 +36,7 @@ class TaobaoCommand extends \Astrology\Database
 			$data[$key] = $value[1];
 		}
 		
-		print_r([$data, $row, $arr]);exit; # 
+		# print_r([$data, $row, $arr]); 
 		
 		/* 更新 */
 		if ($data) {
