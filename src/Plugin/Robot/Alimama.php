@@ -773,20 +773,24 @@ class Alimama extends \Plugin\Robot
         $file = $path . 'tmp/tb/' . $item . '.json';
         if (file_exists($file)) {
             $data = file_get_contents($file);
-        } else {
-            $url = 'https://item.taobao.com/item.htm?id=' . $item;
-            # $url = 'https://detail.tmall.com/item.htm?id=583011557332';
-            $url = 'https://pub.alimama.com/items/search.json?q=' . urlencode($url);
-            
-            
-            $http_header = ['X-HTTP-Method-Override: GET'];
-            $http_header[] = 'Cookie: ' . $cookie;
-            $curl = new PhpCurl($url);
-            $data = $curl->download($http_header);
+            return $obj = json_decode($data);
+        }
+
+        $url = 'https://item.taobao.com/item.htm?id=' . $item;
+        # $url = 'https://detail.tmall.com/item.htm?id=583011557332';
+        $url = 'https://pub.alimama.com/items/search.json?q=' . urlencode($url);
+        
+        
+        $http_header = ['X-HTTP-Method-Override: GET'];
+        $http_header[] = 'Cookie: ' . $cookie;
+        $curl = new PhpCurl($url);
+        echo $data = $curl->download($http_header);
+        $obj = json_decode($data);
+        $list = $obj->data->pageList;
+        if ($list) {
             file_put_contents($file, $data);
         }
-        return $obj = json_decode($data);
-        # print_r($obj);
+        return $obj;
     }
 
     /**
@@ -798,13 +802,18 @@ class Alimama extends \Plugin\Robot
         $api = isset($_GET['api']) ? $_GET['api'] : 0;
         $json = $this->getAuctionData($item, $api);
         if ($api) {
+            if (false === $json) {
+                echo '{}';
+                exit;
+            }
+
             $List = new AlimamaChoiceList;
             $Command = new TaobaoCommand;
 
             list($obj, $row) = $json;
             $data = $obj->data;
 
-            $cpn_token = $data->couponLinkTaoToken;
+            $cpn_token = $data->couponLinkTaoToken ?? '';
             $cpn_link = $data->couponLink;
             $cpn_short = $data->couponShortLinkUrl;
 
@@ -839,8 +848,9 @@ class Alimama extends \Plugin\Robot
             if ($price >= $full) {
                 $price -= $discount;
             }
-            $sold = $row->biz30day;
-            $sold = $row->couponTotalCount - $row->couponLeftCount;
+            $sold = $row->couponTotalCount ? $row->couponTotalCount - $row->couponLeftCount : $row->biz30day;
+            $start = $row->couponEffectiveStartTime ? $row->couponEffectiveStartTime . ' 00:00:00' : null;
+            $end = $row->couponEffectiveEndTime ? $row->couponEffectiveEndTime . ' 23:59:59' : null;
 
             $arr = [
                 'excel_id' => -1,
@@ -855,11 +865,12 @@ class Alimama extends \Plugin\Robot
                 'cost' => $cost,
                 'price' => $price,
                 'save' => $discount,
-                'start' => $row->couponEffectiveStartTime . ' 00:00:00',
-                'end' => $row->couponEffectiveEndTime . ' 23:59:59',
+                'start' => $start,
+                'end' => $end,
                 'tao_token' => $_command,
             ];
-            $exist = $List->exist($arr);
+            # print_r($arr);
+            $exist = $List->exist($arr, $row->auctionId);
             echo json_encode([$exist_cmd, $exist]);
             # print_r($json);
             exit;
@@ -884,21 +895,23 @@ class Alimama extends \Plugin\Robot
             $list = $obj->data->pageList;
             $token = $this->getCookieRow('_tb_token_', $cookie);
             $obj = null;
-            foreach ($list as $row) {
-                $item = $row->auctionId;
-                $rate = $row->tkCommonRate;
-                $fee = $row->tkCommonFee;
-                $price = $row->zkPrice;
-                $amount = $row->couponAmount;
-                $title = $row->title;
-                if ($row->couponStartFee) {
-                    if ($price >= $row->couponStartFee) {
-                        $price -= $amount;
+            if ($list) {
+                foreach ($list as $row) {
+                    $item = $row->auctionId;
+                    $rate = $row->tkCommonRate;
+                    $fee = $row->tkCommonFee;
+                    $price = $row->zkPrice;
+                    $amount = $row->couponAmount;
+                    $title = $row->title;
+                    if ($row->couponStartFee) {
+                        if ($price >= $row->couponStartFee) {
+                            $price -= $amount;
+                        }
                     }
+                    $url = $this->getAuctionCode($item, $token);
+                    $obj = $this->getAuctionJson($item, $url, $cookie);
+                    break;
                 }
-                $url = $this->getAuctionCode($item, $token);
-                $obj = $this->getAuctionJson($item, $url, $cookie);
-                break;
             }
             # print_r($obj);
             if ($obj) {

@@ -24,13 +24,16 @@ class AlimamaChoiceList extends \Astrology\Database
 	 * 检测条目是否存在
 	 *
 	 */
-	public function exist($arr)
+	public function exist($arr, $item_id = null)
 	{
 		$primary_key = $this->primary_key;
 		$time = time();
 		$where = [
 			'excel_id' => $arr['excel_id'],
 		];
+		if ($item_id) {
+			$where['item_id'] = $item_id;
+		}
 		$row = $this->sel($where, 'list_id,excel_id,item_id,category_id,title,pic,site,sold,cost,price,save,start,end');
 		# print_r([$row, $where]);exit;
 		if (!$row || !isset($row->list_id)) {
