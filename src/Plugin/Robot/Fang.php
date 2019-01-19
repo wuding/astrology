@@ -106,14 +106,17 @@ class Fang extends \Plugin\Robot
         }
         # print_r($arr);exit; 
         $obj = (object) $arr;
-        $limit = 16;
-        $_SESSION['next_page'] = $next_page = $obj->pagesize / $limit + 1;
-        $_SESSION['total_page'] = $total_page = ceil($obj->total / $limit);
+        
 
         /* 列表 */
         $doc = $doc->getElementById('content');     
         $list = $this->check_list($doc);
         # print_r($list);exit; 
+        
+        // count($list) / 2
+        $limit = 16;
+        $_SESSION['next_page'] = $next_page = $obj->pagesize / $limit + 1;
+        $_SESSION['total_page'] = $total_page = ceil($obj->total / $limit);
         
         $msg = $this->enable_relay ? $this->relay_urls['download/list'] . "&page=$next_page" : '';
         return [
@@ -133,6 +136,20 @@ class Fang extends \Plugin\Robot
         $Detail = new RentingSiteDetail;
         # $Detail ->return = 'update.sql';
         $update = $Detail->update(['status' => 1], ['cache_set' => "NOT LIKE '%\"status\":%'"]);
+        $msg = '';
+        return [
+            'msg' => $msg,
+            'result' => $update,
+            'pageCount' => 1,
+        ];
+    }
+
+    public function updateSync()
+    {
+        $List = new RentList;
+        # $Detail ->return = 'update.sql';
+        $update = $List->update(['updated = synchronized']);
+
         $msg = '';
         return [
             'msg' => $msg,
@@ -829,16 +846,15 @@ class Fang extends \Plugin\Robot
     public function optimizeList()
     {
         $page = $this->attr['page'];
-        $limit = 5;
         
         // 复刻多行
         $List = new RentList;
-        $arr = $List->fork($page, $limit);
+        $arr = $List->fork($page, $this->optimize_lists);
         list($result, $pageCount) = $arr;
 
         /* 接力任务 */
         $code = 0;
-        $msg = '';
+        $msg = $this->enable_relay ? $this->relay_urls['update/sync'] : '';
 
         /* 返回数据 */
         return [
@@ -870,11 +886,11 @@ class Fang extends \Plugin\Robot
         $this->min_size = 200;
         $this->returnVars = ['data', 'filesize']; # 
         $page = $this->attr['page'];
-        $limit = 10;
+        $this->download_details = 10;
         $Detail = new RentingSiteDetail;
         $where = "status IN (-1,-2)";       
-        $all = $Detail->fetchAll($where, 'detail_id, city_name, item_id, type', 'detail_id', $page, $limit);
-        $pageCount = $Detail->pageCount($where, $limit);
+        $all = $Detail->fetchAll($where, 'detail_id, city_name, item_id, type', 'detail_id', $page, $this->download_details);
+        $pageCount = $Detail->pageCount($where, $this->download_details);
         
         $result = [];
         foreach ($all as $row) {
@@ -907,7 +923,7 @@ class Fang extends \Plugin\Robot
             $result[] = $put;
         }
 
-        $msg = '';
+        $msg = $this->enable_relay ? $this->relay_urls['optimize/list'] : '';
         return [
             'msg' => $msg,
             'result' => $result,

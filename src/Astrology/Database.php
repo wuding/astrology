@@ -94,13 +94,16 @@ class Database
 		
 		$arr = [];
 		foreach ($data as $key => $value) {
-			if (null !== $value) {
-				$value = addslashes($value);
-				$arr []= "`$key` = '$value'";
+			if (is_numeric($key)) {
+				$arr[] = $value;
 			} else {
-				$arr []= "`$key` = NULL";
+				$value = 'NULL';
+				if (null !== $value) {
+					$value = addslashes($value);
+					$value = "'$value'";
+				}
+				$arr[]= "`$key` = $value";
 			}
-			
 		}
 		return $str = implode(", ", $arr);
 	}

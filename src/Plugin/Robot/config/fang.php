@@ -11,6 +11,8 @@ return [
         'enable_relay' => true,
         'overwrite' => false,
         'min_size' => 1000,
+        'download_details' => 10,
+        'optimize_lists' => 5,
         'site_id' => 1,
         'city_abbr' => 'mas',
         'api_host' => $api_host,
@@ -34,6 +36,8 @@ return [
             'download/zf' => "$api_host/robot/fang/download/zf?$query_str",
             'download/list' => "$api_host/robot/fang/download/list?$query_str",
             'download/detail' => "$api_host/robot/fang/download/detail?$query_str",
+            'optimize/list' => "$api_host/robot/fang/optimize/list?$query_str",
+            'update/sync' => "$api_host/robot/fang/update/sync?$query_str",
         ],
     ],
     'append' => [
