@@ -25,7 +25,7 @@ class Fang extends \Plugin\Robot
     // 参数    
     public $site_id = 1;    
     public $city_abbr = 'mas';
-    public $http_header = ['X-Requested-With: XMLHttpRequest'];
+    public $http_header = ['X-Requested-With: XMLHttpRequest', 'Referer: https://m.fang.com/zf/'];
 
     // 省略
     public $api_host = 'http://lan.urlnk.com';
@@ -47,44 +47,10 @@ class Fang extends \Plugin\Robot
      */
     public function _init()
     {
+        $config = include 'config/fang.php';
+        $this->setVars($config['var']);
+
         $Area = new RentingSiteArea;
-        $cache_dir = CACHE_ROOT . '/http/zu.fang.com';
-        $query_data = [
-            'type' => $this->attr['type'],
-        ];
-        if (isset($_GET['debug'])) {
-            $query_data['debug'] = $_GET['debug'];
-        }
-        $query_str = http_build_query($query_data);        
-
-        // 地址
-        $this->api_host = 'http://' . $_SERVER['HTTP_HOST'];        
-
-        $this->paths = [
-            $cache_dir . '/cities.aspx.gz', //城市列表
-            $cache_dir . '/%1/house/i3%2.gz', //出租列表pc 1城市 2页码
-            $cache_dir . '/m/zf/%1/index.html', //出租首页 1城市
-            $cache_dir . '/m/zf/%1/%3/%2.html', //出租详情 1城市 2ID 3类型
-            $cache_dir . '/m/zf/%1/%2.html', //出租列表 1城市 2页码
-        ];
-
-        $this->urls = [
-            'http://zu.fang.com/cities.aspx',
-            'http://%1.zu.fang.com/house/i3%2/',
-            'https://m.fang.com/zf/%1/',
-            'https://m.fang.com/zf/%1/%3_%2.html',
-            'https://m.fang.com/zf/?renttype=cz&c=zf&a=ajaxGetList&city=%1&page=%2',
-        ];
-
-        $this->relay_urls = [
-            'parse/city' => "$this->api_host/robot/fang/parse/city?$query_str",
-            'download/zf' => "$this->api_host/robot/fang/download/zf?$query_str",
-            'download/list' => "$this->api_host/robot/fang/download/list?$query_str",
-            'download/detail' => "$this->api_host/robot/fang/download/detail?$query_str",
-        ];
-
-        $this->http_header[] = 'Referer: https://m.fang.com/zf/';
-
         // 城市
         $ct = [
             'site_id' => $this->site_id,

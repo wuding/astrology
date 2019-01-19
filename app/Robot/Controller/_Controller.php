@@ -7,15 +7,22 @@ use Astrology\Route;
 class _Controller extends \Astrology\Controller
 {
     public $tongji = null;
+    public $query_args = [];
     
     public function __construct()
     {
         parent::__construct();
         
         # header("Access-Control-Allow-Origin: *");
-        $this->page = $this->_get('page', 1, FILTER_VALIDATE_INT);
-        $this->limit = $this->_get('limit', 1, FILTER_VALIDATE_INT);
-        $this->type = $this->_get('type', '');
+
+        /* 查询数组 */
+        // 默认修正值定义
+        $arr = [
+            'page' => (object) [1, FILTER_VALIDATE_INT],
+            'limit' => (object) [1, FILTER_VALIDATE_INT],
+            'type' => '',
+        ];
+        $this->query_args = $this->array_variable($arr, 1);
     }
     /*
     public function _NotFound()
@@ -93,13 +100,8 @@ class _Controller extends \Astrology\Controller
         $action = $route->getParam(0);
         $type = $route->getParam(1);        
         $class = '\Plugin\Robot\\' . $route->fixName($name);
-        $attr = [
-            'page' => $this->page,
-            'limit' => $this->limit,
-            'type' => $this->type,
-        ];
         
-        $robot = new $class($attr);
+        $robot = new $class($this->query_args);
         if (!empty($robot->func_format)) {
             $type .= ' ' . $robot->func_format;
         }
@@ -127,10 +129,9 @@ class _Controller extends \Astrology\Controller
         }
             
         // 自动下一页
-        if ($this->page < $result['pageCount']) {
-            parse_str($_SERVER['QUERY_STRING'], $query_data);
-            $query_data['page'] = $this->page + 1;
-            $encoded_string = http_build_query($query_data);
+        if ($this->query_args['page'] < $result['pageCount']) {
+            $this->query_args['page']++;
+            $encoded_string = http_build_query($this->query_args);
             $url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);           
             $msg = $robot->api_host . $url_path .'?'. $encoded_string;
 
@@ -145,7 +146,7 @@ class _Controller extends \Astrology\Controller
             'msg' => $msg,
             'data' => $result
         ];
-        if ('json' == $this->type) {
+        if ('json' == $this->query_args['type']) {
             return json_encode($value);
         }
         return $value;
