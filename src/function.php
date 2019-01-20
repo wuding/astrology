@@ -18,7 +18,8 @@ function _isset($arr, $key = '', $value = '')
 
 	// 大于等于 7.0
 	if (version_compare(phpversion(), '7.0.0', '>=')) {
-		return $arr[$key] ?? $value;
+		return eval("\$result = \$arr[\$key] ?? \$value;");
+		print_r($result);exit;
 	}
 
 	// 低版本
