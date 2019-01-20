@@ -813,7 +813,7 @@ class Alimama extends \Plugin\Robot
             list($obj, $row) = $json;
             $data = $obj->data;
 
-            $cpn_token = $data->couponLinkTaoToken ?? '';
+            $cpn_token = _isset($data, 'couponLinkTaoToken');
             $cpn_link = $data->couponLink;
             $cpn_short = $data->couponShortLinkUrl;
 
