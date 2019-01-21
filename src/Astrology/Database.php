@@ -21,6 +21,7 @@ class Database
 	public $having = '';
 	
 	public $return = null;
+	public $logs = [];
 	
 	public function __construct($arg = [])
 	{
@@ -280,6 +281,10 @@ class Database
 		}
 		if (null !== $offset) {
 			$sql .= " OFFSET $offset";
+		}
+		if ('select.sql' == $this->return) {
+			# return $sql;
+			$this->logs[] = $sql;
 		}
 		return self::$adapter->select($sql);
 	}
