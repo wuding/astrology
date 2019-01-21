@@ -69,7 +69,7 @@ class Database
 	
 	public function query($sql = null)
 	{
-		return self::$adapter->query($sql);
+		return $this->logs($sql, 'query') ? : self::$adapter->query($sql);
 	}
 	
 	public function from($name = null)
@@ -98,12 +98,12 @@ class Database
 			if (is_numeric($key)) {
 				$arr[] = $value;
 			} else {
-				$value = 'NULL';
+				$val = 'NULL';
 				if (null !== $value) {
 					$value = addslashes($value);
-					$value = "'$value'";
+					$val = "'$value'";
 				}
-				$arr[]= "`$key` = $value";
+				$arr[]= "`$key` = $val";
 			}
 		}
 		return $str = implode(", ", $arr);
@@ -146,7 +146,7 @@ class Database
 		$db_table = $this->from();
 		$sql = "INSERT INTO $db_table SET ";
 		$sql .= $this->sqlSet($data);
-		return self::$adapter->insert($sql);
+		return $this->logs($sql, 'insert') ? : self::$adapter->insert($sql);
 	}
 	
 	/**
@@ -193,13 +193,10 @@ class Database
 		
 		$sql = "INSERT INTO $db_table $field VALUES ";
 		$sql .= $values;
-		if ('into.sql' == $this->return) {
-			return $sql;
-		}
-		return self::$adapter->insert($sql);
+		return $this->logs($sql, 'into') ? : self::$adapter->insert($sql);
 	}
 	
-	public function find($where = null, $column = '*', $order = null, $limit = 1)
+	public function find($where = null, $column = '*', $order = null, $limit = 1, $call = null)
 	{
 		$db_table = $this->from();
 		$column = $this->sqlColumns($column);
@@ -212,16 +209,13 @@ class Database
 			$sql .= " ORDER BY $order";
 		}
 		$sql .= " LIMIT $limit";#  echo $sql;exit;
-		if ('find.sql' == $this->return) {
-			return $sql;
-		}
-		return self::$adapter->find($sql);
+		return $this->logs($sql, $call ? : 'find') ? : self::$adapter->find($sql);
 	}
 	
 	public function sel($where = null, $column = null, $order = null, $group = [], $join = null)
 	{
 		$column = $column ? : ($this->primary_key ? : '*');
-		return $this->find($where, $column, $order);
+		return $this->find($where, $column, $order, 1, 'sel');
 	}
 	
 	public function count($where = null)
@@ -232,8 +226,8 @@ class Database
 		if ($where) {
 			$sql .= " WHERE $where";
 		}
-		$row = self::$adapter->find($sql);
-		return $num = $row ? $row->num : 0;
+		$row = $this->logs($sql, 'count') ? : self::$adapter->find($sql);
+		return $num = $row ? (is_object($row) ? $row->num : $row) : 0;
 	}
 
 	/**
@@ -282,11 +276,19 @@ class Database
 		if (null !== $offset) {
 			$sql .= " OFFSET $offset";
 		}
-		if ('select.sql' == $this->return) {
-			# return $sql;
-			$this->logs[] = $sql;
+		return $this->logs($sql, 'select') ? : self::$adapter->select($sql);
+	}
+
+	public function logs($sql, $type = null)
+	{
+		if (is_array($this->return)) {
+			if (in_array($type, $this->return)) {
+				$this->logs[] = $sql;
+			}
+		} elseif (is_string($this->return) && $type === $this->return) {
+			return $sql;
 		}
-		return self::$adapter->select($sql);
+		return false;
 	}
 	
 	public function _select($where = null, $column = null, $option = [], $group = [], $join = [])
@@ -318,7 +320,7 @@ class Database
 		return $this->select($where, $column, $order, $limit);
 	}
 	
-	public function update($set = [], $where = null, $order = null, $limit = null)
+	public function update($set = [], $where = null, $order = null, $limit = null, $call = null)
 	{
 		$db_table = $this->from();
 		$sql = "UPDATE $db_table SET ";
@@ -338,10 +340,7 @@ class Database
 			$condition .= " LIMIT $limit";
 		}
 		$sql .= $condition;
-		if ('update.sql' == $this->return) {
-			return $sql;
-		}
-		$exec = $this->exec($sql);
+		$exec = $this->logs($sql, $call ? : 'update') ? : $this->exec($sql);
 		/*
 		if ('update.status' == $this->return) {
 			if ($exec) {
@@ -372,7 +371,7 @@ class Database
 			$where = isset($row[1]) ? $row[1] : null;
 			$order = isset($row[2]) ? $row[2] : null;
 			$limit = isset($row[3]) ? $row[3] : null;
-			$result []= $this->update($set, $where, $order, $limit);
+			$result []= $this->update($set, $where, $order, $limit, 'set');
 		}
 		return $result;
 	}
