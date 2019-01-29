@@ -38,7 +38,7 @@ function unicode_decode($str, $type = null)
 	return _isset($obj, 'str', '');
 }
 
-function str_match($subject, $pattern, $value = null, $type = false)
+function str_match($pattern, $subject, $value = null, $type = false)
 {
 	$val = $value;
 	$match = preg_match($pattern, $subject);
