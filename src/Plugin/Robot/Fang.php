@@ -744,7 +744,7 @@ class Fang extends \Plugin\Robot
                     'agent_id' => _isset($bg, 'agentid'),
                     'type' => _isset($bg, 'housetype'),
                     'data' => _isset($bg, 'listingtype'),
-                    'pic' => $img,
+                    'pic' => trim($img, '"'),
                 ];
 
                 // 租金、刷新时间、标签

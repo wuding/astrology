@@ -28,10 +28,12 @@ function _isset($arr, $key = '', $value = null)
 
 function unicode_decode($str, $type = null)
 {
-	if (!$type) {
+	$str = trim($str);
+	if (!$type || !$str) {
 		return $str;
 	}
-	
+
+	$str = preg_replace('/\"&#13;/', '', $str);
 	$obj = json_decode('{"str":"' . $str . '"}');
-	return $obj->str;
+	return _isset($obj, 'str', '');
 }
