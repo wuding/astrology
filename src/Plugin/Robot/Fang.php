@@ -725,8 +725,8 @@ class Fang extends \Plugin\Robot
         $list = [];
         for ($j = 0; $j < $len; $j++) {
             $nd = $li->item($j);            
-            # $data_bg = $nd->getAttribute('data-bg');
-            $data_bg = preg_replace('/\\\"/', '"', $nd->getAttribute('data-bg'));
+            $data_bg = $nd->getAttribute('data-bg');
+            $data_bg = preg_replace('/\\\"/', '"', $data_bg);
             if ($data_bg) {
                 $h3 = $nd->getElementsByTagName('h3');              
                 $bg = json_decode($data_bg);
@@ -772,7 +772,8 @@ class Fang extends \Plugin\Robot
                 for ($i = 0; $i < $p->length; $i++) {
                     $nod = $p->item($i);
                     $html = $dom->innerHTML($nod);
-                    $text = $dom->stripTagsContent($html);
+                    # $text = $dom->stripTagsContent($html); //5.4 会乱码
+                    $text = preg_replace('/(<[^>]+>)/', '', $html);
                     $split = preg_split('/(\s+\-\s+|\s+)/', $text, 2);
                     /*
                     switch ($i) {
