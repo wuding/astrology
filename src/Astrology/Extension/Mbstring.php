@@ -16,6 +16,8 @@ class Mbstring
 	
 	public function init($str, $from_encoding = null, $to_encoding = 'utf-8')
 	{
+		// 有些时候，参数默认值并不会有效，所以还是重新检测定义
+		$to_encoding = $to_encoding ? : 'utf-8';
 		$this->string = $str;
 		if ($from_encoding) {
 			$this->from_encoding = $from_encoding;

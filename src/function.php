@@ -10,7 +10,7 @@
  *
  * @return     mixed                  运算结果
  */
-function _isset($arr, $key = '', $value = '')
+function _isset($arr, $key = '', $value = null)
 {
 	if (is_object($arr)) {
 		$arr = (array) $arr;

@@ -725,7 +725,8 @@ class Fang extends \Plugin\Robot
         $list = [];
         for ($j = 0; $j < $len; $j++) {
             $nd = $li->item($j);            
-            $data_bg = $nd->getAttribute('data-bg');
+            # $data_bg = $nd->getAttribute('data-bg');
+            $data_bg = preg_replace('/\\\"/', '"', $nd->getAttribute('data-bg'));
             if ($data_bg) {
                 $h3 = $nd->getElementsByTagName('h3');              
                 $bg = json_decode($data_bg);
@@ -736,10 +737,10 @@ class Fang extends \Plugin\Robot
                     'site_id' => $this->site_id,
                     'city_name' => $this->city_name,
                     'title' => trim($h3->item(0)->nodeValue),
-                    'item_id' => $bg->houseid,
-                    'agent_id' => $bg->agentid,
-                    'type' => $bg->housetype,
-                    'data' => $bg->listingtype,
+                    'item_id' => _isset($bg, 'houseid'),
+                    'agent_id' => _isset($bg, 'agentid'),
+                    'type' => _isset($bg, 'housetype'),
+                    'data' => _isset($bg, 'listingtype'),
                     'pic' => $img,
                 ];
 
