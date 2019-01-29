@@ -716,7 +716,7 @@ class Fang extends \Plugin\Robot
      * @param  object $doc dom
      * @return array       检测结果集
      */
-    public function check_list($doc, $type = null)
+    public function check_list($doc, $type = null, $debug = false)
     {
         $detail = new RentingSiteDetail;
         $dom = new DOM();
@@ -824,8 +824,7 @@ class Fang extends \Plugin\Robot
                         break;
                     }
                 }
-                # print_r($arr);
-                $list[] = $detail->exist($arr, 1);
+                $list[] = $debug ? $arr : $detail->exist($arr, 1);
             }
         }
         return $list;
