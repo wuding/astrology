@@ -245,7 +245,7 @@ class Fang extends \Plugin\Robot
         /* 检测 */
         $data = $this->getPathContents(self::URL_RENT_LIST, $this->city_path, $this->attr['page']);
         $doc = $this->parse_dom($data, 'utf-8')[0]; # echo exit;
-        $list = $this->check_list($doc);
+        $list = $this->check_list($doc, 'json');
         #print_r($list);exit;
         #
         
@@ -716,7 +716,7 @@ class Fang extends \Plugin\Robot
      * @param  object $doc dom
      * @return array       检测结果集
      */
-    public function check_list($doc)
+    public function check_list($doc, $type = null)
     {
         $detail = new RentingSiteDetail;
         $dom = new DOM();
@@ -728,15 +728,18 @@ class Fang extends \Plugin\Robot
             $data_bg = $nd->getAttribute('data-bg');
             $data_bg = preg_replace('/\\\"/', '"', $data_bg);
             if ($data_bg) {
-                $h3 = $nd->getElementsByTagName('h3');              
+                $h3 = $nd->getElementsByTagName('h3');
+                $title = $h3->item(0)->nodeValue;
+                $title = unicode_decode($title, $type);
                 $bg = json_decode($data_bg);
                 $img = $nd->getElementsByTagName('img')->item(0)->getAttribute('data-original');
+                $img = unicode_decode($img, $type);
                 $span = $nd->getElementsByTagName('span');
                 $p = $nd->getElementsByTagName('p');
                 $arr = [
                     'site_id' => $this->site_id,
                     'city_name' => $this->city_name,
-                    'title' => trim($h3->item(0)->nodeValue),
+                    'title' => trim($title),
                     'item_id' => _isset($bg, 'houseid'),
                     'agent_id' => _isset($bg, 'agentid'),
                     'type' => _isset($bg, 'housetype'),
@@ -774,6 +777,7 @@ class Fang extends \Plugin\Robot
                     $html = $dom->innerHTML($nod);
                     # $text = $dom->stripTagsContent($html); //5.4 会乱码
                     $text = preg_replace('/(<[^>]+>)/', '', $html);
+                    $text = unicode_decode($text, $type);
                     $split = preg_split('/(\s+\-\s+|\s+)/', $text);
                     $count = count($split);
                     /*

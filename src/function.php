@@ -25,3 +25,13 @@ function _isset($arr, $key = '', $value = null)
 	// 低版本
 	return isset($arr[$key]) ? $arr[$key] : $value;
 }
+
+function unicode_decode($str, $type = null)
+{
+	if (!$type) {
+		return $str;
+	}
+	
+	$obj = json_decode('{"str":"' . $str . '"}');
+	return $obj->str;
+}
