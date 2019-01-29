@@ -774,7 +774,8 @@ class Fang extends \Plugin\Robot
                     $html = $dom->innerHTML($nod);
                     # $text = $dom->stripTagsContent($html); //5.4 会乱码
                     $text = preg_replace('/(<[^>]+>)/', '', $html);
-                    $split = preg_split('/(\s+\-\s+|\s+)/', $text, 2);
+                    $split = preg_split('/(\s+\-\s+|\s+)/', $text);
+                    $count = count($split);
                     /*
                     switch ($i) {
                         case 0:
@@ -787,7 +788,16 @@ class Fang extends \Plugin\Robot
                     }
                     */
 
-                    if (preg_match('/^\d+室|(整|合)租/', $text)) {
+                    if (preg_match('/^\d+元/', $text)) {
+						if (2 < $count) {
+							list($rental_price, $arr['house_type'], $arr['rental_method']) = $split;
+						} else {
+							list($arr['house_type'], $arr['rental_method']) = $split;
+						}
+                        
+                        
+
+                    } elseif (preg_match('/^\d+室|(整|合)租/', $text)) {
                         if (preg_match('/\d+/', $text)) {
                             list($arr['house_type'], $arr['rental_method']) = $split;
                         } else {
@@ -796,7 +806,11 @@ class Fang extends \Plugin\Robot
                         
 
                     } elseif (preg_match('/\s+\-\s+/', $text)) {
-                        list($arr['district_name'], $arr['complex_name']) = $split;
+						if (2 < $count) {
+							list($refresh_time, $arr['district_name'], $arr['complex_name']) = $split;
+						} else {
+							list($arr['district_name'], $arr['complex_name']) = $split;
+						}
                         break;
                     }
                 }
