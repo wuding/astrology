@@ -268,16 +268,19 @@ class Fang extends \Plugin\Robot
      * @param  array  $replace       html替换
      * @return object                dom元素
      */
-    public function parse_dom($str, $charset = null, $id = null, $from_encoding = null, $replace = [])
+    public function parse_dom($str, $charset = null, $id = null, $from_encoding = null, $replace = [], $is_detail = false)
     {
         $str = preg_replace('/<\/html>(.*)/i', '</html>', $str);
+        if ($is_detail) {
+            $str = preg_replace('/<\/div><\/body><\/html>/', '</body></html>', $str);
+        }
         
         if ($from_encoding) {
             $mb = new Mbstring($str, $from_encoding);
             $str = $replace ? $mb->preg_replace($replace[0], $replace[1]) : $mb->str;
         }
 
-        $dom = new DOM($str, $charset);
+        $dom = new DOM($str, $charset, $is_detail);
         $doc = $dom->doc;
         if ($id) {
             $doc = $doc->getElementById($id);
@@ -302,13 +305,14 @@ class Fang extends \Plugin\Robot
 
         $Detail = new RentingSiteDetail;
         $html = $doc[1];
-        # $doc = $doc[0];
+        $doc = $doc[0];# 
+        /*
         $html = preg_replace('/<\/div><\/body><\/html>/', '</body></html>', $html);
         $doc = new \DOMDocument('1.0', ' utf-8');
         $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
         @$doc->loadHTML($html);
         # echo $doc->saveHTML();exit;
-        $dom = new DOM();
+        */        
         $slider = $doc->getElementById('slider');
         $section = $doc->getElementsByTagName('section');
         $body = $doc->getElementsByTagName('body');
@@ -945,7 +949,7 @@ class Fang extends \Plugin\Robot
             $doc = $this->parse_dom($put['data'], null, null, 'gbk', [
                 ['/charset=\"gbk\"/', '/charset=gbk/'], 
                 ['charset="utf-8"', 'charset=utf-8']
-            ]);
+            ], true);
 
             /*
             print_r($doc);
