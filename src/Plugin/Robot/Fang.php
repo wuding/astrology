@@ -270,6 +270,8 @@ class Fang extends \Plugin\Robot
      */
     public function parse_dom($str, $charset = null, $id = null, $from_encoding = null, $replace = [])
     {
+        $str = preg_replace('/<\/html>(.*)/i', '</html>', $str);
+        
         if ($from_encoding) {
             $mb = new Mbstring($str, $from_encoding);
             $str = $replace ? $mb->preg_replace($replace[0], $replace[1]) : $mb->str;
@@ -309,7 +311,7 @@ class Fang extends \Plugin\Robot
 
         // 404页面
         if ($body->length) {
-        	# $class = $body[0]->getAttribute('class'); //5.4 不能用数组访问
+            # $class = $body[0]->getAttribute('class'); //5.4 不能用数组访问
             $class = $body->item(0)->getAttribute('class');
             if ('box404' == $class) {
                 # $update = $Detail->update(['cache_set' => 'status=404'], $row->detail_id);
@@ -794,17 +796,17 @@ class Fang extends \Plugin\Robot
                     */
 
                     if (preg_match('/^\d+元/', $text)) {
-						if (2 < $count) {
-							list($rental_price, $arr['house_type'], $arr['rental_method']) = $split;
-						} else {
-							list($house_type, $arr['rental_method']) = $split;
-							/*
-							if (!preg_match('/^\d+元/', $house_type)) {
-								$arr['house_type'] = $house_type;
-							}
-							*/
-							$arr['house_type'] = str_match('/^\d+元/', $house_type, null, 1);
-						}
+                        if (2 < $count) {
+                            list($rental_price, $arr['house_type'], $arr['rental_method']) = $split;
+                        } else {
+                            list($house_type, $arr['rental_method']) = $split;
+                            /*
+                            if (!preg_match('/^\d+元/', $house_type)) {
+                                $arr['house_type'] = $house_type;
+                            }
+                            */
+                            $arr['house_type'] = str_match('/^\d+元/', $house_type, null, 1);
+                        }
                         
                         
 
@@ -817,11 +819,11 @@ class Fang extends \Plugin\Robot
                         
 
                     } elseif (preg_match('/\s+\-\s+/', $text)) {
-						if (2 < $count) {
-							list($refresh_time, $arr['district_name'], $arr['complex_name']) = $split;
-						} else {
-							list($arr['district_name'], $arr['complex_name']) = $split;
-						}
+                        if (2 < $count) {
+                            list($refresh_time, $arr['district_name'], $arr['complex_name']) = $split;
+                        } else {
+                            list($arr['district_name'], $arr['complex_name']) = $split;
+                        }
                         break;
                     }
                 }
