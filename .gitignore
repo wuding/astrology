@@ -13,7 +13,7 @@ composer.lock
 web/img/
 /web/tmp/
 /web/curl/
-logs/
+# logs/
 
 # file
 app/config.php
