@@ -309,7 +309,8 @@ class Fang extends \Plugin\Robot
 
         // 404页面
         if ($body->length) {
-            $class = $body[0]->getAttribute('class');
+        	# $class = $body[0]->getAttribute('class'); //5.4 不能用数组访问
+            $class = $body->item(0)->getAttribute('class');
             if ('box404' == $class) {
                 # $update = $Detail->update(['cache_set' => 'status=404'], $row->detail_id);
                 $set = [
