@@ -292,7 +292,7 @@ class Fang extends \Plugin\Robot
      * @param  object $row 数据条目对象
      * @return array       检测结果
      */
-    public function check_detail($doc, $row = null)
+    public function check_detail($doc, $row = null, $debug = false)
     {
         /*
         print_r($doc);
@@ -302,7 +302,12 @@ class Fang extends \Plugin\Robot
 
         $Detail = new RentingSiteDetail;
         $html = $doc[1];
-        $doc = $doc[0];
+        # $doc = $doc[0];
+        $html = preg_replace('/<\/div><\/body><\/html>/', '</body></html>', $html);
+        $doc = new \DOMDocument('1.0', ' utf-8');
+        $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+        @$doc->loadHTML($html);
+        # echo $doc->saveHTML();exit;
         $dom = new DOM();
         $slider = $doc->getElementById('slider');
         $section = $doc->getElementsByTagName('section');
@@ -388,7 +393,7 @@ class Fang extends \Plugin\Robot
 
         # print_r($data);
 
-        if (array_key_exists(0, $data)) {
+        if (array_key_exists(0, $data) || $debug) {
             return $data;
         }
         return $Detail->exist($data);
@@ -698,8 +703,8 @@ class Fang extends \Plugin\Robot
         ];
         for ($i = 0; $i < $span->length; $i++) {
             $nd = $span->item($i);
-            $h3 = $nd->getElementsByTagName('h3')[0];
-            $p = $nd->getElementsByTagName('p')[0];
+            $h3 = $nd->getElementsByTagName('h3')->item(0);
+            $p = $nd->getElementsByTagName('p')->item(0);
             $key = trim($h3->nodeValue);
             if (array_key_exists($key, $keys)) {
                 $column = $keys[$key];
@@ -950,6 +955,7 @@ class Fang extends \Plugin\Robot
             $put = $this->check_detail($doc, $row);
             $result[] = $put;
         }
+        # print_r($result);exit;
 
         $msg = $this->enable_relay ? $this->relay_urls['optimize/list'] : '';
         return [

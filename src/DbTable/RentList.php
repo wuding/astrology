@@ -119,7 +119,8 @@ class RentList extends \Astrology\Database
         $rental_price = trim($row->rental_price);
         $building_area = trim($row->building_area);
         if (preg_match('/(\d+)元\/月/', $rental_price, $matches)) {
-            [, $rental_price] = $matches;
+            # [, $rental_price] = $matches; //5.4 是行不通的
+            list(, $rental_price) = $matches;
         } else {
             $rental_price = -2;
         }
