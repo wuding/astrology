@@ -796,7 +796,13 @@ class Fang extends \Plugin\Robot
 						if (2 < $count) {
 							list($rental_price, $arr['house_type'], $arr['rental_method']) = $split;
 						} else {
-							list($arr['house_type'], $arr['rental_method']) = $split;
+							list($house_type, $arr['rental_method']) = $split;
+							/*
+							if (!preg_match('/^\d+元/', $house_type)) {
+								$arr['house_type'] = $house_type;
+							}
+							*/
+							$arr['house_type'] = str_match('/^\d+元/', $house_type, null, 1);
 						}
                         
                         

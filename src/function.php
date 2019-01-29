@@ -37,3 +37,13 @@ function unicode_decode($str, $type = null)
 	$obj = json_decode('{"str":"' . $str . '"}');
 	return _isset($obj, 'str', '');
 }
+
+function str_match($subject, $pattern, $value = null, $type = false)
+{
+	$val = $value;
+	$match = preg_match($pattern, $subject);
+	if ($type) {
+		return $f = $match ? $val : $subject;
+	}
+	return $z = $match ? $subject : $val;
+}
