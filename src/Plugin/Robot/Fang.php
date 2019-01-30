@@ -237,7 +237,7 @@ class Fang extends \Plugin\Robot
             $file = $this->getProp(self::URL_RENT_LIST, 'urls', $this->city_path, $this->attr['page']);
             return [
                 'code' => 1, 
-                'msg' => 'download error', 
+                'msg' => $_SERVER['REQUEST_URI'], 
                 'info' => [__FILE__, __LINE__, $file],
             ];
         }
