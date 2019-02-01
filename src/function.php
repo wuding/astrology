@@ -47,3 +47,25 @@ function str_match($pattern, $subject, $value = null, $type = false)
 	}
 	return $z = $match ? $subject : $val;
 }
+
+function _unset($arr, $keys = [])
+{
+	$reg = [];
+	// 按键名
+	foreach ($keys => $val) {
+		if (preg_match('/\//', $val)) {
+			$reg[] = $val;
+		} else {
+			unset($arr[$val]);
+		}
+	}
+	// 正则
+	foreach ($reg as $exp) {
+		foreach ($arr as $key => $value) {
+			if (preg_match($exp, $key))
+				unset($arr[$key]);
+			}
+		}
+	}
+	return $arr;
+}

@@ -314,6 +314,7 @@ class Fang extends \Plugin\Robot
         # echo $doc->saveHTML();exit;
         */        
         $slider = $doc->getElementById('slider');
+        $phone = $doc->getElementById('phone');
         $section = $doc->getElementsByTagName('section');
         $body = $doc->getElementsByTagName('body');
         $set = null;
@@ -373,6 +374,10 @@ class Fang extends \Plugin\Robot
             $data['slides'] = implode(',', $slides);
         }
 
+        if ($phone) {
+            $data['phone'] = $phone->nodeValue;
+        }
+
         for ($i = 0; $i < $section->length; $i++) {
             $node = $section->item($i);
             $class = $node->getAttribute('class');
@@ -392,6 +397,9 @@ class Fang extends \Plugin\Robot
                 break;
             }
         }
+
+        $keys = ['', 'origin', 'house_type_intro', 'community_introduction', 'surroundings', 'service_introduction', '/^\d+$/'];
+        $data = _unset($data, $keys);
 
         # $data = $Detail->clearArrayByKey($data);
 
@@ -615,11 +623,16 @@ class Fang extends \Plugin\Robot
             '朝向' => 'orientation',
             '装修' => 'decoration',
             '入住时间' => 'check_in_time',
+            '地铁' => 'metro',
+            '来源' => 'origin',
         ];
         for ($i = 0; $i < $span->length; $i++) {
             $nd = $span->item($i);
             $explode = explode('：', trim($nd->nodeValue));
             list($item, $value) = $explode;
+            $a = $nd->getElementsByTagName('a');
+            $aNode = $a->item(0);
+            $href = $aNode->getAttribute('href');
             if (array_key_exists($item, $arr)) {
                 $key = $arr[$item];
                 if ('floor' == $key) {
@@ -630,6 +643,11 @@ class Fang extends \Plugin\Robot
                         $value = $exp[0];
                     } elseif (2 < $count) {
                         $data[] = $explode;
+                    }
+                } elseif ('metro' == $key) {
+                    if (preg_match('/m\.fang\.com\/zf\/[a-z]+\/r(\d+)b(\d+)\//i', $href, $matches)) {
+                        $data['metro_line'] = $matches[1];
+                        $data['metro_station'] = $matches[2];
                     }
                 }
                 $data[$key] = $value;
@@ -704,12 +722,22 @@ class Fang extends \Plugin\Robot
         $arr = [];
         $keys = [
             '房源亮点' => 'description',
+            '户型介绍' => 'house_type_intro',
+            '小区介绍' => 'community_introduction',
+            '周边配套' => 'surroundings',
+            '服务介绍' => 'service_introduction',
         ];
         for ($i = 0; $i < $span->length; $i++) {
             $nd = $span->item($i);
             $h3 = $nd->getElementsByTagName('h3')->item(0);
             $p = $nd->getElementsByTagName('p')->item(0);
-            $key = trim($h3->nodeValue);
+            $title = _isset($h3, 'nodeValue');
+            if (!$title) {
+                print_r($data);
+                print_r([$nd->nodeValue, __FILE__, __LINE__]);
+                exit;
+            }
+            $key = trim($title);
             if (array_key_exists($key, $keys)) {
                 $column = $keys[$key];
                 $data[$column] = trim($p->nodeValue);
