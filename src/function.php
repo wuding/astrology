@@ -52,7 +52,7 @@ function _unset($arr, $keys = [])
 {
 	$reg = [];
 	// 按键名
-	foreach ($keys => $val) {
+	foreach ($keys as $val) {
 		if (preg_match('/\//', $val)) {
 			$reg[] = $val;
 		} else {
