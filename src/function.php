@@ -62,7 +62,7 @@ function _unset($arr, $keys = [])
 	// 正则
 	foreach ($reg as $exp) {
 		foreach ($arr as $key => $value) {
-			if (preg_match($exp, $key))
+			if (preg_match($exp, $key)) {
 				unset($arr[$key]);
 			}
 		}
