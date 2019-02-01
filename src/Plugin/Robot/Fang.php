@@ -630,9 +630,8 @@ class Fang extends \Plugin\Robot
             $nd = $span->item($i);
             $explode = explode('：', trim($nd->nodeValue));
             list($item, $value) = $explode;
-            $a = $nd->getElementsByTagName('a');
-            $aNode = $a->item(0);
-            $href = $aNode->getAttribute('href');
+            $a = $nd->getElementsByTagName('a')->item(0);
+            $href = $a ? $a->getAttribute('href') : '';
             if (array_key_exists($item, $arr)) {
                 $key = $arr[$item];
                 if ('floor' == $key) {
@@ -731,16 +730,25 @@ class Fang extends \Plugin\Robot
             $nd = $span->item($i);
             $h3 = $nd->getElementsByTagName('h3')->item(0);
             $p = $nd->getElementsByTagName('p')->item(0);
-            $title = _isset($h3, 'nodeValue');
-            if (!$title) {
-                print_r($data);
-                print_r([$nd->nodeValue, __FILE__, __LINE__]);
-                exit;
+            $a = $nd->getElementsByTagName('a')->item(0);
+            $href = '';
+            $title = isset($h3->nodeValue) ? $h3->nodeValue : '';
+            $value = isset($p->nodeValue) ? $p->nodeValue : '';
+            if (!$title && $a) {
+                $href = $a->getAttribute('href');
+                $tt = $a->nodeValue;
+                $exp = explode('：', $tt);
+                list($title, $value) = $tt;
             }
             $key = trim($title);
+            if (!$key) {
+                print_r($data);
+                print_r([$span->length, $a->nodeValue, $h3->nodeValue, $p->nodeValue, $nd->nodeValue, __FILE__, __LINE__]);
+                exit;
+            }
             if (array_key_exists($key, $keys)) {
                 $column = $keys[$key];
-                $data[$column] = trim($p->nodeValue);
+                $data[$column] = trim($value);
             } else {
                 $data[] = $key;
             }
