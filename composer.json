@@ -7,24 +7,25 @@
     "homepage": "https://github.com/wuding/astrology",
     "license": "Apache-2.0",
     "authors": [
-	    {
-	      "name": "Benny Wu",
-	      "email": "contact@wubenli.com",
-	      "homepage": "http://wubenli.com",
-	      "role": "Developer"
-	    }
-	  ],
+        {
+          "name": "Benny Wu",
+          "email": "contact@wubenli.com",
+          "homepage": "http://wubenli.com",
+          "role": "Developer"
+        }
+      ],
     "require": {
-    	"php": ">=5.4",
+        "php": ">=5.4",
         "catfan/Medoo": "^1.5",
         "league/plates": "^3.3"
     },
     "autoload": {
         "psr-4": {
-        	"Astrology\\": "src/Astrology/",
-			"Plugin\\": "src/Plugin/",
-			"DbTable\\": "src/DbTable/",
-			"Anfora\\": "src/Anfora/"
-    	}
+            "Astrology\\": "src/Astrology/",
+            "Plugin\\": "src/Plugin/",
+            "DbTable\\": "src/DbTable/",
+            "Anfora\\": "src/Anfora/"
+        },
+        "files": ["src/function.php"]
     }
 }

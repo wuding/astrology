@@ -26,6 +26,7 @@ function _isset($arr, $key = '', $value = null)
 	return isset($arr[$key]) ? $arr[$key] : $value;
 }
 
+if (!function_exists('unicode_decode')) {
 function unicode_decode($str, $type = null)
 {
 	$str = trim($str);
@@ -36,6 +37,7 @@ function unicode_decode($str, $type = null)
 	$str = preg_replace('/\"&#13;/', '', $str);
 	$obj = json_decode('{"str":"' . $str . '"}');
 	return _isset($obj, 'str', '');
+}
 }
 
 function str_match($pattern, $subject, $value = null, $type = false)

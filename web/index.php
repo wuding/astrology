@@ -28,7 +28,7 @@ if (isset($_GET['phpinfo']) || (isset($_SERVER['PATH_INFO']) && '/phpinfo' == $_
 }
 
 
-require __DIR__ . '/../src/function.php';
+# require __DIR__ . '/../src/function.php';
 
 /* 启动 Astrology */
 require_once __DIR__ . '/../app/bootstrap.php';
