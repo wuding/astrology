@@ -1066,6 +1066,9 @@ class Fang extends \Plugin\Robot
         for ($i = 0; $i < $len; $i++) {
             $node = $li->item($i);
             $strong = $node->getElementsByTagName('strong');
+            $b = $node->getElementsByTagName('b');
+            $bold = $strong->item(0) ? : $b->item(0);
+            $title = $bold->nodeValue;
             $a = $node->getElementsByTagName('a');
             $prov = $i;
             if (0 == $i) { //直辖市
@@ -1073,17 +1076,18 @@ class Fang extends \Plugin\Robot
             } elseif ($last == $i) { //其他
                 $prov = 0;
             } else { //省市自治区
-                $prov = $strong->item(0)->nodeValue;
-                $prov = $area->provinceExists($prov, $this->site_id);
+                $prov = $area->provinceExists($title, $this->site_id);
             }
 
             // 市
             $length = $a->length;
-            $cities = [];           
+            $cities = [];
             for ($j = 0; $j < $length; $j++) {
                 $nd = $a->item($j);
                 $spell = $nd->getAttribute('spell');
                 $href = $nd->getAttribute('href');
+                $class = $nd->getAttribute('class');
+                $hot = 'red' == $class ? 1 : 0;
                 $abbr = '';
                 if (preg_match('/^(http:|)\/\/([a-z]+\.zu|zu\.[a-z]+)\.fang\.com/i', $href, $matches)) {
                     # print_r($matches);
@@ -1098,14 +1102,15 @@ class Fang extends \Plugin\Robot
                 $set = [
                     'name' => $spell,
                     'abbr' => $abbr,
+                    'hot' => $hot,
                 ];
                 $city = $area->cityExists($ct, $set, 'area_id');
-                $cities[$city] = $ct + $set;
+                $cities[$city] = array_merge($ct, $set);
             }
-            $arr[] = [$prov, $cities];
+            $arr[$title] = $cities;
             
         }
-        # print_r($arr);
+        # print_r($arr);exit;
         
         $msg = $this->enable_relay ? $this->relay_urls['download/zf'] : '';
         return [
