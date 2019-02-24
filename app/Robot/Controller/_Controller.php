@@ -72,6 +72,8 @@ class _Controller extends \Astrology\Controller
                 $cookie = trim($_POST['cookie']);
                 if ($cookie) {
                     $_SESSION['taobao_cookie'] = $cookie;
+                    $filename = 'tmp/tb/taobao_cookie.txt';
+                    file_put_contents($filename, $cookie);
                 } else {
                     unset($_SESSION['taobao_cookie']);
                 }
