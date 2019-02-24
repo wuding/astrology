@@ -679,11 +679,13 @@ class Alimama extends \Plugin\Robot
         return $token;
     }
     
-    public function downloadCoupon($url = null)
+    public function downloadCoupon($url = null, $api = null)
     {
         # $url = 'https://m.tb.cn/h.3gF2Zlo';
         
         $cookie = isset($_SESSION['taobao_cookie']) ? trim($_SESSION['taobao_cookie']) : '';
+        $filename = 'tmp/tb/taobao_cookie.txt';
+        $cookie = $cookie ? : file_get_contents($filename);
         $token = $this->getCookieRow('_m_h5_tk', $cookie);
         $exp = explode('_', $token);
         $token = $exp[0];
@@ -722,11 +724,12 @@ class Alimama extends \Plugin\Robot
         }
         
         if ($item) {
-            $arr = $this->getAuctionData($item);
+            $arr = $this->getAuctionData($item, $api);
             if ($arr) {
                 return $arr;
             }
         }
+
         
         /* 返回数据 */
         return [
@@ -754,7 +757,7 @@ class Alimama extends \Plugin\Robot
     public function getAuctionJson($item, $url = null, $cookie = null)
     {
         $file = 'tmp/tb/' . $item . '.txt';
-        if (file_exists($file)) {
+        if (file_exists($file) && filesize($file)) {
             $data = file_get_contents($file);
         } else {
             $http_header = ['X-HTTP-Method-Override: GET'];
@@ -762,6 +765,7 @@ class Alimama extends \Plugin\Robot
             $curl = new PhpCurl($url);
             $data = $curl->download($http_header);
             file_put_contents($file, $data);
+            
         }
         return $obj = json_decode($data);
     }
@@ -798,9 +802,15 @@ class Alimama extends \Plugin\Robot
      */
     public function searchPromo()
     {
-        $item = array_key_exists('q', $_GET) ? $_GET['q'] : '';
+        $item = array_key_exists('q', $_GET) ? trim($_GET['q']) : '';
         $api = isset($_GET['api']) ? $_GET['api'] : 0;
-        $json = $this->getAuctionData($item, $api);
+        if (is_numeric($item)) {
+            $json = $this->getAuctionData($item, $api);
+
+        } elseif (preg_match('/^http(|s):\/\/m\.tb\.cn\/(.*)/i', $item)) {
+            $json = $this->downloadCoupon($item, $api);
+        }
+
         if ($api) {
             if (false === $json) {
                 echo '{}';
@@ -810,7 +820,7 @@ class Alimama extends \Plugin\Robot
             $List = new AlimamaChoiceList;
             $Command = new TaobaoCommand;
 
-            list($obj, $row) = $json;
+            list($obj, $row, $item_id) = $json;
             $data = $obj->data;
 
             $cpn_token = _isset($data, 'couponLinkTaoToken');
@@ -850,8 +860,9 @@ class Alimama extends \Plugin\Robot
             }
             $sold = $row->couponTotalCount ? $row->couponTotalCount - $row->couponLeftCount : $row->biz30day;
             $start = $row->couponEffectiveStartTime ? $row->couponEffectiveStartTime . ' 00:00:00' : null;
-            $end = $row->couponEffectiveEndTime ? $row->couponEffectiveEndTime . ' 23:59:59' : null;
-
+            $date = date('Y-m-d', time() + 86400);
+            $end = $row->couponEffectiveEndTime ? $row->couponEffectiveEndTime . ' 23:59:59' : $date;
+            
             $arr = [
                 'excel_id' => -1,
                 'item_id' => $row->auctionId,
@@ -871,7 +882,7 @@ class Alimama extends \Plugin\Robot
             ];
             # print_r($arr);
             $exist = $List->exist($arr, $row->auctionId);
-            echo json_encode([$exist_cmd, $exist]);
+            echo json_encode([$exist_cmd, $exist, $item_id]);
             # print_r($json);
             exit;
         }
@@ -916,7 +927,7 @@ class Alimama extends \Plugin\Robot
             # print_r($obj);
             if ($obj) {
                 if ($api) {
-                    return [$obj, $row];
+                    return [$obj, $row, $item];
                 }
                 return $arr = [
                     'code' => 200,
