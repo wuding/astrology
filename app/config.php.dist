@@ -40,4 +40,8 @@ return array(
 		'timeout' => -1,
 	),
 	'env' => '',
+	'func' => [
+		'config' => [],
+		'load' => ['variable', 'str', 'pcre'],
+	],
 );
