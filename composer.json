@@ -16,8 +16,9 @@
       ],
     "require": {
         "php": ">=5.4",
-        "catfan/Medoo": "^1.5",
-        "league/plates": "^3.3"
+        "catfan/medoo": "^1.5",
+        "league/plates": "^3.3",
+        "wuding/php-ext": "^1.0.1"
     },
     "autoload": {
         "psr-4": {
@@ -26,6 +27,6 @@
             "DbTable\\": "src/DbTable/",
             "Anfora\\": "src/Anfora/"
         },
-        "files": ["src/function.php"]
+        "files": []
     }
 }

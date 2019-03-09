@@ -2,7 +2,7 @@
 
 namespace Astrology;
 
-use Astrology\Extension\PhpMemcache;
+use Ext\PhpMemcache;
 
 class Start
 {
@@ -13,8 +13,11 @@ class Start
 	public function __construct()
 	{
 		# $GLOBALS['CONFIG'] = \Anfora\Import::file(APP_PATH . '/config.php');
-		$GLOBALS['CONFIG'] = include_once(APP_PATH . '/config.php');
+		$GLOBALS['CONFIG'] = $cfg = include_once(APP_PATH . '/config.php');
 		# print_r($GLOBALS['CONFIG']);
+
+		// 依赖函数
+		func($cfg['func']['config'], $cfg['func']['load']);
 		
 		if (!$this->_disable_cache && extension_loaded('memcache')) {# 
 			$this->cache = new PhpMemcache;

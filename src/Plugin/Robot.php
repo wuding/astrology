@@ -4,9 +4,9 @@
  */
 namespace Plugin;
 
-use Astrology\Extension\Filesystem;
-use Astrology\Extension\SimpleXML;
-use Astrology\Extension\PhpCurl;
+use Ext\Filesystem;
+use Ext\SimpleXML;
+use Ext\PhpCurl;
 use Astrology\Database;
 use DbTable\VideoCollect;
 

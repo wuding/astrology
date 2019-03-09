@@ -10,7 +10,7 @@ use DbTable\AlimamaChoiceExcel;
 use DbTable\AlimamaChoiceList;
 use DbTable\AlimamaProductCategory;
 use DbTable\TaobaoCommand;
-use Astrology\Extension\PhpCurl;
+use Ext\PhpCurl;
 
 class Alimama extends \Plugin\Robot
 {

@@ -63,7 +63,7 @@ class Database
 		$name = str_replace('_', ' ', $name);
 		$name = ucwords($name);
 		$name = str_replace(' ', '', $name);
-		$class = '\Astrology\Extension\Php' . $name;
+		$class = '\Ext\Php' . $name;
 		return self::$adapter = new $class($arg);
 	}
 	

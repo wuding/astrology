@@ -6,8 +6,8 @@
  */
 namespace Plugin\Robot;
 
-use Astrology\Extension\Mbstring;
-use Astrology\Extension\DOM;
+use Ext\Mbstring;
+use Ext\DOM;
 use DbTable\RentingSiteArea;
 use DbTable\RentingSiteDetail;
 use DbTable\RentList;
@@ -1047,7 +1047,7 @@ class Fang extends \Plugin\Robot
         
         /*
         $path = $this->getProp(0, 'paths');     
-        \Astrology\Extension\Zlib::uncompress($path, $path . '.txt');
+        \Ext\Zlib::uncompress($path, $path . '.txt');
         */
         
         $str = gzdecode($data);

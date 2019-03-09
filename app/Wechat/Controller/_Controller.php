@@ -2,7 +2,7 @@
 namespace Controller;
 
 use Astrology\Route;
-use Astrology\Extension\PhpCurl;
+use Ext\PhpCurl;
 use Plugin\Robot\Alimama;
 
 class _Controller extends \Astrology\Controller
