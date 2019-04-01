@@ -18,6 +18,7 @@ class Index extends _Controller
 	public function index()
 	{
 		$query = isset($_GET['q']) ? trim($_GET['q']) : '';
+		$query_title = isset($_GET['title']) ? $_GET['title'] : null;
 		$tongji = $this->tongji;
 		$m3u8 = new \DbTable\HlsM3u8;		
 		$title = '在线M3U8播放器';
@@ -29,6 +30,8 @@ class Index extends _Controller
 		if ($query) {
 			if (preg_match('/^http(|s):\/\//', $query)) {
 				$url = $query;
+				$data_arr = ['url' => $query, 'title' => $query_title];
+				$arr = $m3u8->exist($data_arr);
 
 			} else {
 				$like = $query;

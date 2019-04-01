@@ -150,6 +150,11 @@ p i {
 		</div>
 	</form>
 	<div id="video"></div>
+	<div id="audio" style="display: none">
+		<audio src="http://developer.mozilla.org/@api/deki/files/2926/=AudioTest_(1).ogg" autoplay controls="controls">
+  			Your browser does not support the <code>audio</code> element.
+		</audio>
+	</div>
 	<ul>
 	<?php
 	foreach ($arr as $key => $value) {
@@ -193,6 +198,12 @@ function play(u, tt) {
 		
 		obj.video[0] = [ u, '', '', 0 ]
 		console.log( JSON.stringify( obj ) )
+		if (u.match(/\.aac$/i)) {
+			document.getElementsByTagName('audio')[0].src = u
+			video.style.display = 'none'
+			audio.style.display = 'block'
+			return false
+		}
 		player = new chplayer( obj )
 		return false
 	} else {
