@@ -198,7 +198,7 @@ function play(u, tt) {
 		
 		obj.video[0] = [ u, '', '', 0 ]
 		console.log( JSON.stringify( obj ) )
-		if (u.match(/\.aac$/i)) {
+		if (u.match(/\.(aac|mp3)$/i)) {
 			document.getElementsByTagName('audio')[0].src = u
 			video.style.display = 'none'
 			audio.style.display = 'block'
