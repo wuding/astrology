@@ -86,6 +86,9 @@ class Robot
      */
     public function getProp($key = 0, $property = 'urls')
     {
+        if (is_array($property)) {
+            extract($property);
+        }
         if (!isset($this->{$property}[$key])) {
             return false;
         }
@@ -94,6 +97,19 @@ class Robot
             $arg = func_get_arg($i);
             $j = $i - 1;
             $tpl = preg_replace("/%$j/", $arg, $tpl);
+        }
+        if (!file_exists($tpl) && isset($func_args)) {
+            $tpl = $this->{$property}[$key];
+            $func_get_args = func_get_args();
+            foreach ($func_args as $key => $value) {
+                $func_get_args[$key] = $value;
+            }
+            for ($i = 2; $i < func_num_args(); $i++) {
+                $arg = $func_get_args[$i];
+                $j = $i - 1;
+                $tpl = preg_replace("/%$j/", $arg, $tpl);
+            }
+            # print_r([func_get_args(), get_defined_vars()]);exit;
         }
         return $tpl;
     }
