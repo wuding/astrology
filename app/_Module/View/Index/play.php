@@ -151,7 +151,7 @@ p i {
 	</form>
 	<div id="video"></div>
 	<div id="audio" style="display: none">
-		<audio src="http://developer.mozilla.org/@api/deki/files/2926/=AudioTest_(1).ogg" autoplay controls="controls">
+		<audio src="http://developer.mozilla.org/@api/deki/files/2926/=AudioTest_(1).ogg" autoplay="autoplay" controls="controls">
   			Your browser does not support the <code>audio</code> element.
 		</audio>
 	</div>
