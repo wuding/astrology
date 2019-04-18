@@ -662,8 +662,8 @@ class Alimama extends \Plugin\Robot
 
         /* 返回数据 */
         return [
-            'code' => 1,
-            'msg' => 'final',
+            'code' => $code,
+            'msg' => $msg,
             'result' => $result,
             'pageCount' => 1,
         ];
@@ -678,11 +678,12 @@ class Alimama extends \Plugin\Robot
         $result = [];
         $arr = [1, 2, 3];
         foreach ($arr as $key) {
-            $path = $this->getProp($key, 'paths');
-            $yesterday = date('m-d', strtotime('-1days'));
+            # $path = $this->getProp($key, 'paths');
             $date = date('m-d');
+            $path = $this->cache_dir . "/$key/$date.xls";
+            $yesterday = date('m-d', strtotime('-1days'));
             $name = str_replace($date, $yesterday, $path);
-            $result[] = @unlink($name);
+            $result[$name] = @unlink($name);
         }
 
         /* 返回数据 */
