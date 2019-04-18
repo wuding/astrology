@@ -654,6 +654,35 @@ class Alimama extends \Plugin\Robot
         $sql = "OPTIMIZE TABLE `alimama_choice_csv`, `alimama_choice_excel`, `alimama_choice_list`, `alimama_product_category`";
         $result = $List->query($sql);
 
+        /* 接力任务 */
+        $code = 0;
+        $msg = "$this->api_host/robot/alimama/clean/download?debug&type=json";
+
+        /* 返回数据 */
+        return [
+            'code' => 1,
+            'msg' => 'final',
+            'result' => $result,
+            'pageCount' => 1,
+        ];
+    }
+
+    /**
+     * 清理下载的 Excel 文件
+     */
+    public function cleanDownload()
+    {
+        // 清理处理过的下载文件
+        $result = [];
+        $arr = [1, 2, 3];
+        foreach ($arr as $key) {
+            $path = $this->getProp($key, 'paths');
+            $yesterday = date('m-d', strtotime('-1days'));
+            $date = date('m-d');
+            $name = str_replace($date, $yesterday, $path);
+            $result[] = @unlink($name);
+        }
+
         /* 返回数据 */
         return [
             'code' => 1,
