@@ -28,10 +28,11 @@ class Alimama extends \Plugin\Robot
         $this->bill = $bill = isset($_GET['bill']) ? (int) $_GET['bill'] : 1;       
         $this->cache_dir = $cache_dir = CACHE_ROOT . '/http/www.alimama.com';
         $this->api_host = 'http://' . $_SERVER['HTTP_HOST'];
-        $date = date('m-d');
+        $this->date = $date = date('m-d');
+        $this->date_minus_one_day = date('m-d', strtotime('-1 day'));
         
         $this->paths = [
-            $cache_dir . "/$bill/$date.csv",
+            $cache_dir . "/%1/%2.csv",
             $cache_dir . "/$bill/$date.xls", //精选优质商品清单（内含优惠券）
             $cache_dir . "/$bill/$date.xls", //春节活动, 9.9大促预售爆款
             $cache_dir . "/$bill/$date.xls", //聚划算拼团单品（建议转换淘口令传播）
@@ -39,6 +40,7 @@ class Alimama extends \Plugin\Robot
             $cache_dir . "/$bill/$date.xls", //超级好货大额券榜
             $cache_dir . "/$bill/$date.xls", //双11品牌尖货榜
             $cache_dir . "/$bill/$date.xls", //双11好货高佣榜
+            'csv' => '/%1/%2.csv',
         ];
         
         $this->urls = [
@@ -127,7 +129,7 @@ class Alimama extends \Plugin\Robot
         $offset = $this->attr['limit'] - 1;
         $bill = $this->bill;
         $key = 0;
-        $path = $this->getProp($key, 'paths');
+        $path = $this->getProp($key, ['property' => 'paths', 'func_args' => [3 => $this->date_minus_one_day]], $bill, $this->date);
         # $path = $this->cache_dir . "/$bill.csv";
         
         $count = 500;
