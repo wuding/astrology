@@ -8,6 +8,7 @@ namespace Plugin\Robot;
 
 use DbTable\AlimamaChoiceExcel;
 use DbTable\AlimamaChoiceList;
+use DbTable\AlimamaChoiceCsv;
 use DbTable\AlimamaProductCategory;
 use DbTable\TaobaoCommand;
 use Ext\PhpCurl;
@@ -685,6 +686,27 @@ class Alimama extends \Plugin\Robot
             $name = str_replace($date, $yesterday, $path);
             $result[$name] = @unlink($name);
         }
+
+        /* 返回数据 */
+        return [
+            'code' => 1,
+            'msg' => 'final',
+            'result' => $result,
+            'pageCount' => 1,
+        ];
+    }
+
+    /**
+     * 清理無效優惠券條目
+     */
+    public function cleanDatabase()
+    {
+        $List = new AlimamaChoiceList;
+        $Excel = new AlimamaChoiceExcel;
+        $Csv = new AlimamaChoiceCsv;
+        $result[] = $List->delete(["`end` < '" . date('Y-m-d') . "'"]);
+        $result[] = $Excel->delete(["`end` < '" . date('Y-m-d') . "'"]);
+        $result[] = $Csv->delete(["`end` < '" . date('Y-m-d') . "'"]);
 
         /* 返回数据 */
         return [
