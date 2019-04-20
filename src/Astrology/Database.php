@@ -211,6 +211,20 @@ class Database
 		$sql .= " LIMIT $limit";#  echo $sql;exit;
 		return $this->logs($sql, $call ? : 'find') ? : self::$adapter->find($sql);
 	}
+
+	/**
+	 * 刪除數據庫表圖層
+	 */
+	public function delete($where = null, $column = '*')
+	{
+		$db_table = $this->from();
+		$sql = "DELETE FROM $db_table";
+		$where = $this->sqlWhere($where);
+		if ($where) {
+			$sql .= " WHERE $where";
+		}
+		return $this->logs($sql, 'delete') ? : self::$adapter->query($sql);
+	}
 	
 	public function sel($where = null, $column = null, $order = null, $group = [], $join = null)
 	{
