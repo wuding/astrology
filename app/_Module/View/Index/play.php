@@ -6,136 +6,7 @@
     <title><?=$title?></title>
 	<!--script type="text/javascript" src="http://192.168.100.4/chplayer-master/chplayer/chplayer.min.js"></script-->
 	<script type="text/javascript" src="http://cpn.red/chplayer/chplayer.min.js"></script>
-	<style>
-html {
-	width: 100%;
-	height: 100%;
-}
-
-body {
-	width: 100%;
-	height: 100%;
-	margin: 0;
-}
-
-.container {
-	height: 100%;
-	width: 100%;
-	max-width: 800px;
-	margin: 0 auto;
-}
-
-form {
-	overflow:hidden;
-	<?=$hide ? 'display: none;' : ''?>
-}
-
-.left {
-	width: 90%;
-	float: left;
-}
-
-.right {
-	width: 10%;
-	float: left;
-}
-
-#url,
-button
-{
-	width: 100%;
-	display: block;
-}
-
-#url {
-	
-}
-
-button {
-	max-height: 23px;
-}
-
-#video {
-	height: 100%;
-	max-height: 450px;
-	display: none;
-}
-
-ul {
-	overflow: hidden;
-}
-
-li {
-	width: 100%;
-	float: left;
-}
-
-fieldset {
-    margin: 0 auto;
-    padding: 0 0 10px 0;
-    border-width: 1px;
-    border-right: none;
-    border-bottom: none;
-    border-left: none;
-    overflow: hidden;
-	/*width: 320px;*/
-}
-
-legend {
-    margin: 0 auto;
-	padding: 0 10px;
-}
-
-fieldset div {
-	overflow: hidden;
-	margin: 0 auto;
-	padding: 10px;
-	width: 300px;
-	text-align: center;
-}
-
-blockquote {
-	margin: 0;
-	width: 50%;
-	float: left;
-	line-height: 100px;
-}
-
-p {
-	margin: 0;
-	width: 120px;
-	width: 50%;
-	float: left;
-}
-
-img {
-	width: 120px;
-	height: 120px;
-	background-image: url(/img/wx_hbfl.jpg);
-	background-size: 140px;
-    background-position: -10px -50px;
-}
-
-p i {
-	display: block;
-	clear: left;
-	line-height: 14px;
-	font-size: 14px;
-	font-style: normal;
-}
-
-@media (min-width: 640px) {
-	li {
-		width: 50%;
-	}
-}
-
-@media (min-width: 960px) {
-	li {
-		width: 33%;
-	}
-}
-	</style>
+	<link rel="stylesheet" type="text/css" href="http://<?=$cdn_host?>/yingmi/v1/css/plain.css">
 </head>
 
 <body>
@@ -157,8 +28,10 @@ p i {
 	</div>
 	<ul>
 	<?php
+	$i = 0;
 	foreach ($arr as $key => $value) {
-		echo "<li><a href='/play/$value->name'>$value->title</a></li>";
+		$i++;
+		echo "<li><b>$i. </b><a href='/play/$value->name'>$value->title</a></li>";
 	}
 	?>
 	</ul>
