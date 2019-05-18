@@ -92,6 +92,8 @@ class Index extends _Controller
                 $like = $like ? : $title;
             }
         }
+
+        $cdn_host = $GLOBALS['CONFIG']['view']['cdn_host'];
         include APP_PATH . '/_Module/View/Index/play.php';
         exit;
     }
