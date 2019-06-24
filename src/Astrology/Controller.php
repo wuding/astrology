@@ -190,13 +190,13 @@ class Controller
             if ('info' === $this->_enable_view) {
                 print_r([$arr, __METHOD__, __LINE__, __FILE__]);
             } else {
-                $var = is_array($arr) ? $arr : [];
+                $arr = is_array($arr) ? $arr : [];
                 $m = $GLOBALS['MODULE_NAME'];
                 $c = $GLOBALS['CONTROLLER_NAME'];
                 $a = $GLOBALS['ACTION_NAME'];
                 $script = $this->_view_script ? : "$c/$a";
                 $tpl = new \League\Plates\Engine(APP_PATH . "/$m/View");
-                echo $html = $tpl->render($script, $var);# 
+                echo $html = $tpl->render($script, $arr);
             }
             
         // 直接输出
