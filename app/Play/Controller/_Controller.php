@@ -13,6 +13,7 @@ class _Controller extends \Astrology\Controller
 
     public function __construct()
     {
+        // 统计
         $stat = 0;
         if (isset($_GET['stat'])) {
             $stat = $_GET['stat'];
@@ -21,18 +22,24 @@ class _Controller extends \Astrology\Controller
             $stat = $_COOKIE['stat'];
         }
         $this->tongji = $stat;
+
+        $GLOBALS['MODULE_NAME'] = '_Module';
+        $this->_view_script = "Index/play";
     }
 
     public function __call($name, $arguments)
     {
-        $tongji = $this->tongji;
+        // 定义
         $m3u8 = new \DbTable\HlsM3u8;
-        $title = '在线M3U8播放器';
-        $url = '';
         $hide = 0;
         $where = null;
-        $like = '';
 
+        // 视图
+        $cdn_host = $GLOBALS['CONFIG']['view']['cdn_host'];
+        $tongji = $this->tongji;
+        $title = '在线M3U8播放器';
+
+        $like = $url = '';
         $row = $m3u8->findByName($name);
         if ($row) {
             $url = $row->url;
@@ -43,8 +50,6 @@ class _Controller extends \Astrology\Controller
             }
         }
         $arr = $m3u8->fetchAll($where, 'title,name');
-
-        include __DIR__ . '/../../../app/_Module/View/Index/play.php';
-        exit;
+        return get_defined_vars();
     }
 }
