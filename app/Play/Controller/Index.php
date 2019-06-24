@@ -5,6 +5,7 @@
 namespace Controller;
 
 use Astrology\Route;
+use DbTable\HlsM3u8;
 
 class Index extends _Controller
 {
@@ -20,15 +21,23 @@ class Index extends _Controller
 
     public function index()
     {
+        // 定义
+        $m3u8 = new HlsM3u8;
+        $hide = 0;
+
+        // 查询
         $query = isset($_GET['q']) ? trim($_GET['q']) : '';
         $query_title = isset($_GET['title']) ? $_GET['title'] : null;
         $cudr = _isset($_GET, 'edit', []);
+
+        // 视图
+        $cdn_host = $GLOBALS['CONFIG']['view']['cdn_host'];
         $tongji = $this->tongji;
-        $m3u8 = new \DbTable\HlsM3u8;
         $title = '在线M3U8播放器';
-        $url = '';
-        $hide = 0;
-        $like = '';
+
+        $like = $url = '';
+        $arr = array();
+
         // 查询类型
         if ($query) {
             if (preg_match('/^http(|s):\/\//', $query)) {
@@ -93,8 +102,14 @@ class Index extends _Controller
             }
         }
 
-        $cdn_host = $GLOBALS['CONFIG']['view']['cdn_host'];
-        include APP_PATH . '/_Module/View/Index/play.php';
-        exit;
+        $vars = array(
+            'cdn_host' => $cdn_host,
+            'tongji' => $tongji,
+            'title' => $title,
+            'like' => $like,
+            'url' => $url,
+            'arr' => $arr,
+        );
+        return $vars;
     }
 }
