@@ -42,8 +42,12 @@ class Index extends _Controller
         if ($query) {
             if (preg_match('/^http(|s):\/\//', $query)) {
                 $url = $query;
-                $data_arr = ['url' => $query, 'title' => $query_title];
+                $data_arr = array();
+                if ($query_title) {
+                    $data_arr['title'] = $query_title;
+                }
                 $data_arr = array_merge($data_arr, $cudr);
+                $m3u8->where_array = array('url' => $query);
                 $arr = $m3u8->exist($data_arr);
 
             } else {

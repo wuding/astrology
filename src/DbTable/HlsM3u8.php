@@ -10,6 +10,8 @@ class HlsM3u8 extends \Astrology\Database
     public $columns = [
         'row' => '*',
     ];
+    public $where_array = null;
+
     /**
      * 根据名称查找
      *
@@ -45,10 +47,21 @@ class HlsM3u8 extends \Astrology\Database
                 'url' => $arr,
             ];
         }
+
         /* 查询 */
-        $where = [
-            'url' => $arr['url'],
-        ];
+        $where = array();
+        if (null !== $this->where_array) {
+            $where = $this->where_array;
+            if (!array_key_exists('url', $arr)) {
+                $arr['url'] = $where['url'];
+            }
+
+        } elseif (array_key_exists('url', $arr)) {
+            $where = [
+                'url' => $arr['url'],
+            ];
+        }
+
         $option = [$sort, $limit, $offset];
         # $row = $this->sel($where, '*');
         $row = $this->sel($where, $this->columns['row']);
