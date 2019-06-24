@@ -4,9 +4,9 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width">
     <title><?=$title?></title>
-	<!--script type="text/javascript" src="http://192.168.100.4/chplayer-master/chplayer/chplayer.min.js"></script-->
-	<script type="text/javascript" src="http://cpn.red/chplayer/chplayer.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="http://<?=$cdn_host?>/yingmi/v1/css/plain.css">
+	<script type="text/javascript" src="https://<?=$cdn_host?>/github/niandeng-ckplayer/chplayer/chplayer/chplayer.min.js"></script>
+	<!--script type="text/javascript" src="http://cpn.red/chplayer/chplayer.min.js"></script-->
+	<link rel="stylesheet" type="text/css" href="http://<?=$cdn_host?>/site/yingmi/v1/css/plain.css">
 </head>
 
 <body>
@@ -22,7 +22,8 @@
 	</form>
 	<div id="video"></div>
 	<div id="audio" style="display: none">
-		<audio src="http://developer.mozilla.org/@api/deki/files/2926/=AudioTest_(1).ogg" autoplay="autoplay" controls="controls">
+		<!-- http://developer.mozilla.org/@api/deki/files/2926/=AudioTest_(1).ogg -->
+		<audio src="" autoplay="autoplay" controls="controls">
   			Your browser does not support the <code>audio</code> element.
 		</audio>
 	</div>
