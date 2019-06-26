@@ -73,7 +73,7 @@ class Index extends _Controller
                 $max = $arr[0]->m3u8_id;
                 $only = count($arr);
                 // 从中取一个
-                if ($where) {
+                if ($like) {
                     /*
                     $ids = [];
                     $data = [];
