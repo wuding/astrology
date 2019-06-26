@@ -43,8 +43,8 @@
 				<a href="https://www.cpn.red/" target="_blank">www.cpn.red</a>
 			</blockquote>
 			<p>
-				<a href="/img/wx_hbfl.jpg" target="_qr">
-					<img src="/img/px.png">
+				<a href="//<?=$cdn_host?>/site/yingmi/v1/img/wx_hbfl.jpg" target="_qr">
+					<img src="//<?=$cdn_host?>/img/px.png">
 					<i>微信扫码加群</i>
 				</a>
 			</p>
