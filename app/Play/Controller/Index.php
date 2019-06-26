@@ -56,10 +56,10 @@ class Index extends _Controller
         }
 
         // 查找数据
-        $where = null;
+        $where = "status > 1";
         if ($like) {
             $like = addslashes($like);
-            $where = "title LIKE '%$like%'";
+            $where = "status > 0 AND title LIKE '%$like%'";
         }
         $arr = $m3u8->fetchAll($where, 'm3u8_id,title,name,url');
 
