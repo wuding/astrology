@@ -29,10 +29,19 @@ class _Controller extends \Astrology\Controller
 
     public function __call($name, $arguments)
     {
+        $PATHS = $GLOBALS['PATHS'];
+        array_shift($PATHS);
+        array_shift($PATHS);
+        $play_name = implode('/', $PATHS);
+        if ($play_name != $name) {
+            $name = $play_name;
+        }
+        # print_r([$name, $play_name, $PATHS]);exit;
+
         // 定义
         $m3u8 = new \DbTable\HlsM3u8;
         $hide = 0;
-        $where = null;
+        $where = array('status > 1');
 
         // 视图
         $cdn_host = $GLOBALS['CONFIG']['view']['cdn_host'];
@@ -48,6 +57,8 @@ class _Controller extends \Astrology\Controller
             if ($row->playlist) {
                 $where = ['playlist' => $row->playlist];
             }
+        } else {
+            header('Location: /play?q=' . urlencode($name));
         }
         $arr = $m3u8->fetchAll($where, 'title,name');
         return get_defined_vars();
