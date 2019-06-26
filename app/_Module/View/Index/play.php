@@ -52,48 +52,7 @@
 	</fieldset>
 </div>
 
-<script>
-var obj = {
-	container: '#video',
-	variable: 'player',
-	video:[
-		[ url, '', '', 0 ]
-	]
-};
-var player;
-
-function play(u, tt) {
-	video.style.display = 'block'
-	u = u ? u : url.value
-	if (u.match(/^http/i)) {
-		if (!tt) {
-			document.title = '在线M3U8播放器'
-		}
-		
-		obj.video[0] = [ u, '', '', 0 ]
-		console.log( JSON.stringify( obj ) )
-		if (u.match(/\.(aac|mp3)$/i)) {
-			document.getElementsByTagName('audio')[0].src = u
-			video.style.display = 'none'
-			audio.style.display = 'block'
-			return false
-		}
-		player = new chplayer( obj )
-		return false
-	} else {
-		return true
-	}
-}
-
-m3u8_url = url.getAttribute('data-url')
-data_title = url.getAttribute('data-title')
-if (m3u8_url) {
-	play(m3u8_url, data_title)
-} else {
-	url.focus()
-}
-</script>
-
+<script type="text/javascript" src="//<?=$cdn_host?>/site/yingmi/v1/js/play.js"></script>
 <?php
 include __DIR__ . '/../_helper/tongji.php';
 ?>
