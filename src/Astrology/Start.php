@@ -220,6 +220,7 @@ NOWDOC;
 			# print_r([__line__, $ROUTES]);exit;
 		}
 		$GLOBALS['PATH'] = $route->path;
+		$GLOBALS['PATHS'] = preg_split('/\//', $route->path);
 		
 		/* 创建控制器类的实例 */
 		if (class_exists($class_name)) {
