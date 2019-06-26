@@ -13,7 +13,7 @@
 <div class="container">
 	<form action="/play" method="get" onsubmit="return play();">
 		<div class="left">
-			<input id="url" name="q" value="<?=htmlspecialchars($like ? : $url)?>" placeholder="请输入m3u8地址或搜索影片名称" onfocus="this.select()" data-url="<?=htmlspecialchars($url)?>">
+			<input id="url" name="q" value="<?=htmlspecialchars($like ? : $url)?>" placeholder="请输入m3u8地址或搜索影片名称" onfocus="this.select()" data-url="<?=htmlspecialchars($url)?>" data-title="<?=htmlspecialchars($like)?>">
 			<input type="hidden" name="debug" value="">
 		</div>	
 		<div class="right">
@@ -86,10 +86,11 @@ function play(u, tt) {
 }
 
 m3u8_url = url.getAttribute('data-url')
+data_title = url.getAttribute('data-title')
 if (m3u8_url) {
-	play(m3u8_url, '<?=htmlspecialchars($like)?>');
+	play(m3u8_url, data_title)
 } else {
-	url.focus();
+	url.focus()
 }
 </script>
 
