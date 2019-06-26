@@ -51,3 +51,23 @@ check
 batch
 
 sync
+
+
+
+## CDN
+
+### img
+
+http://urlnk.cc/img/px.png
+
+### github
+
+https://urlnk.cc/github/niandeng-ckplayer/chplayer/chplayer/chplayer.min.js
+
+### site
+
+http://urlnk.cc/site/yingmi/v1/img/wx_hbfl.jpg
+
+http://urlnk.cc/site/yingmi/v1/css/plain.css
+
+http://urlnk.cc/site/yingmi/v1/js/play.js
