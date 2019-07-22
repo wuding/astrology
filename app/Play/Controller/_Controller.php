@@ -13,6 +13,20 @@ class _Controller extends \Astrology\Controller
 
     public function __construct()
     {
+        session_start();
+        $view_script = "Index/play";
+
+        // 退出
+        if (isset($_GET['logout'])) {
+            $this->_logout();
+        }
+
+        // 登录
+        if (!$this->_session() && !isset($_GET['logout'])) {
+            $this->_auth();
+            $view_script = 'Index/auth';
+        }
+
         // 统计
         $stat = 0;
         if (isset($_GET['stat'])) {
@@ -24,7 +38,7 @@ class _Controller extends \Astrology\Controller
         $this->tongji = $stat;
 
         $GLOBALS['MODULE_NAME'] = '_Module';
-        $this->_view_script = "Index/play";
+        $this->_view_script = $view_script;
     }
 
     public function __call($name, $arguments)
@@ -62,5 +76,48 @@ class _Controller extends \Astrology\Controller
         }
         $arr = $m3u8->fetchAll($where, 'title,name');
         return get_defined_vars();
+    }
+
+    public function _session()
+    {
+        $authorized = $_SESSION['auth'] = null;
+        $user = $pass = $GLOBALS['CONFIG']['auth'];
+
+        if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW']) && isset($_SESSION['authorized'])) {
+            # print_r($_SERVER);
+            if ($user == $_SERVER['PHP_AUTH_USER'] && $pass == $_SERVER['PHP_AUTH_PW']) {
+                $authorized = $_SESSION['auth'] = true;
+            }
+        }
+        return $authorized;
+    }
+
+    public function _auth()
+    {
+        header('WWW-Authenticate: Basic Realm="Login please"');
+        header('HTTP/1.0 401 Unauthorized');
+        $_SESSION['authorized'] = true;
+    }
+
+    public function session_get($key, $value = null)
+    {
+        $get = $value;
+        if (isset($_SESSION[$key])) {
+            if (!$value) {
+                $get = $_SESSION[$key];
+            } elseif (!$_SESSION[$key]) {
+            } else {
+                $get = $_SESSION[$key];
+            }
+        }
+        return $get;
+    }
+
+    public function _logout()
+    {
+        $_SESSION = array();
+        unset($_COOKIE[session_name()]);
+        session_destroy();
+        echo 'logging out ...';
     }
 }
