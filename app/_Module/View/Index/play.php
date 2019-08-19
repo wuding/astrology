@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
     <title><?=$title?></title>
-    <script type="text/javascript" src="https://<?=$mirror_host?>/git/github.com/niandeng-ckplayer/chplayer/chplayer/chplayer.min.js"></script>
+    <script type="text/javascript" src="//<?=$mirror_host?>/git/github.com/niandeng-ckplayer/chplayer/chplayer/chplayer.min.js"></script>
     <!--script type="text/javascript" src="http://cpn.red/chplayer/chplayer.min.js"></script-->
-    <link rel="stylesheet" type="text/css" href="http://<?=$cdn_host?>/v1/yingmi/css/plain.css?v=4">
+    <link rel="stylesheet" type="text/css" href="//<?=$cdn_host?>/v1/yingmi/css/plain.css?v=4">
 </head>
 
 <body>
