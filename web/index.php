@@ -1,4 +1,7 @@
 <?php
+
+global $ClassLoader;
+
 $DEBUG_INPUT = null;
 # print_r($_GET);exit;
 // 错误报告
