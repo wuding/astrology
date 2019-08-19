@@ -16,6 +16,7 @@ class _Controller extends \Astrology\Controller
         session_start();
         $view_script = "Index/play";
 
+        /*
         // 退出
         if (isset($_GET['logout'])) {
             $this->_logout();
@@ -26,6 +27,7 @@ class _Controller extends \Astrology\Controller
             $this->_auth();
             $view_script = 'Index/auth';
         }
+        */
 
         // 统计
         $stat = 0;
@@ -58,7 +60,7 @@ class _Controller extends \Astrology\Controller
         $where = array('status > 1');
 
         // 视图
-        $cdn_host = $GLOBALS['CONFIG']['view']['cdn_host'];
+        extract($GLOBALS['CONFIG']['view']);
         $tongji = $this->tongji;
         $title = '在线M3U8播放器';
 
@@ -74,7 +76,7 @@ class _Controller extends \Astrology\Controller
         } else {
             header('Location: /play?q=' . urlencode($name));
         }
-        $arr = $m3u8->fetchAll($where, 'title,name');
+        $arr = $m3u8->fetchAll($where, 'title,name,m3u8_id');
         return get_defined_vars();
     }
 

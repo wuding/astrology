@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
     <title><?=$title?></title>
-    <script type="text/javascript" src="https://<?=$cdn_host?>/github/niandeng-ckplayer/chplayer/chplayer/chplayer.min.js"></script>
+    <script type="text/javascript" src="https://<?=$mirror_host?>/git/github.com/niandeng-ckplayer/chplayer/chplayer/chplayer.min.js"></script>
     <!--script type="text/javascript" src="http://cpn.red/chplayer/chplayer.min.js"></script-->
-    <link rel="stylesheet" type="text/css" href="http://<?=$cdn_host?>/site/yingmi/v1/css/plain.css">
+    <link rel="stylesheet" type="text/css" href="http://<?=$cdn_host?>/v1/yingmi/css/plain.css?v=4">
 </head>
 
 <body>
@@ -32,7 +32,9 @@
     $i = 0;
     foreach ($arr as $key => $value) {
         $i++;
-        echo "<li><b>$i. </b><a href='/play/$value->name'>$value->title</a></li>";
+        $tt = $value->title ? $value->title : $value->m3u8_id;
+        $id = $value->name ? $value->name : $value->m3u8_id;
+        echo "<li><a href='/play/$id'>$tt</a></li>"; //<b>$i. </b>
     }
     ?>
     </ul>
@@ -52,7 +54,7 @@
     </fieldset>
 </div>
 
-<script type="text/javascript" src="//<?=$cdn_host?>/site/yingmi/v1/js/play.js"></script>
+<script type="text/javascript" src="//<?=$cdn_host?>/v1/yingmi/js/play.js"></script>
 <?php
 include __DIR__ . '/../_helper/tongji.php';
 ?>

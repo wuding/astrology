@@ -26,11 +26,13 @@ class Index extends _Controller
         $hide = 0;
 
         // 查询
+        $playlist = isset($_GET['playlist']) ? trim($_GET['playlist']) : '';
         $query = isset($_GET['q']) ? trim($_GET['q']) : '';
         $query_title = isset($_GET['title']) ? $_GET['title'] : null;
         $cudr = _isset($_GET, 'edit', []);
 
         // 视图
+        $mirror_host = $GLOBALS['CONFIG']['view']['mirror_host'];
         $cdn_host = $GLOBALS['CONFIG']['view']['cdn_host'];
         $tongji = $this->tongji;
         $title = '在线M3U8播放器';
@@ -60,6 +62,8 @@ class Index extends _Controller
         if ($like) {
             $like = addslashes($like);
             $where = "status > 0 AND title LIKE '%$like%'";
+        } elseif ($playlist) {
+            $where = "status > 0 AND playlist='$playlist'";
         }
         $arr = $m3u8->fetchAll($where, 'm3u8_id,title,name,url');
 
@@ -107,6 +111,7 @@ class Index extends _Controller
         }
 
         $vars = array(
+            'mirror_host' => $mirror_host,
             'cdn_host' => $cdn_host,
             'tongji' => $tongji,
             'title' => $title,

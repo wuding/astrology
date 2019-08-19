@@ -18,8 +18,9 @@ class HlsM3u8 extends \Astrology\Database
      */
     public function findByName($name)
     {
+        $field = is_numeric($name) ? 'm3u8_id' : 'name';
         $where = [
-            'name' => $name,
+            $field => $name,
         ];
         return $row = $this->sel($where, '*');
     }
