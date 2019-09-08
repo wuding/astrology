@@ -73,6 +73,7 @@ class HlsM3u8 extends \Astrology\Database
             $data = [
                 'created' => $time,
                 $lockTime => $time,
+                'status' => 2,
             ];
             $data += $arr;
             return $this->insert($data);
