@@ -61,6 +61,7 @@ var interval = null;
 var exec_task = 0;
 REQ = []
 timeout_id = null
+timeout_milliseconds = 1017000
 
 //Local Storage 列表生成
 var ele_request_log = document.getElementById('request_log');
@@ -116,7 +117,7 @@ function api(url)
 
     var xhr = nowtime;
     clearTimeout( timeout_id )
-    timeout_id = setTimeout( "api_reset('" + url + "', " + xhr + ")", 590000 )
+    timeout_id = setTimeout( "api_reset('" + url + "', " + xhr + ")", timeout_milliseconds )
     XHR[xhr] = new XMLHttpRequest();
     XHR[xhr].onreadystatechange = function() {
         if (4 == XHR[xhr].readyState) {
