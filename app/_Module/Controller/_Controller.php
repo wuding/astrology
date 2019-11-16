@@ -220,8 +220,8 @@ class _Controller extends \Astrology\Controller
 		$title = '凑婆娘优惠券_短网址服务 缩址工具 更方便!';
 		$html = '';
 		$html .= "<h3 style=\"text-align: center; background:#000; color:#fff;  padding: 10px; margin: 0\">404 页面未找到</h3>";
-		$html .= "<script>window.scrollTo(0,0); setTimeout(\"location.href='https://www.coupons.name/'\", 3000);</script>";
-		$html .= "<blockquote style=\"text-align: center\">即将转到 <a href=\"https://www.coupons.name\">www.coupons.name</a></blockquote>";
+		$html .= "<script>window.scrollTo(0,0); setTimeout(\"location.href='https://www.cpn.red/'\", 3000);</script>";
+		$html .= "<blockquote style=\"text-align: center\">即将转到 <a href=\"https://www.cpn.red\">www.cpn.red</a></blockquote>";
 		$info = print_r($arr, true);
 		
 		$tongji = $this->tongji;
