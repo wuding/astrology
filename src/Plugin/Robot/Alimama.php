@@ -84,6 +84,8 @@ class Alimama extends \Plugin\Robot
     public function downloadExcel()
     {
         $cookie = isset($_SESSION['cookie']) ? trim($_SESSION['cookie']) : '';
+        $filename = 'tmp/tb/alimama_cookie.txt';
++       $cookie = $cookie ? : file_get_contents($filename);
         $http_header = ['X-HTTP-Method-Override: GET'];
         $http_header[] = 'Cookie: ' . $cookie;
         $size = $this->putFileCurl($http_header, $this->bill, $this->attr['page']);
