@@ -98,7 +98,7 @@ class Robot
             $j = $i - 1;
             $tpl = preg_replace("/%$j/", $arg, $tpl);
         }
-        if (!file_exists($tpl) && isset($func_args)) {
+        if ($property != 'urls' && !file_exists($tpl) && isset($func_args)) {
             $tpl = $this->{$property}[$key];
             $func_get_args = func_get_args();
             foreach ($func_args as $key => $value) {
