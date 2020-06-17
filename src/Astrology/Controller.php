@@ -43,8 +43,10 @@ class Controller
     
     public function array_variable($arr = array(), $query_merge = null)
     {
-        $result = array();
-        parse_str($_SERVER['QUERY_STRING'], $query_result);
+        $result = $query_result = array();
+        if (isset($_SERVER['QUERY_STRING'])) {
+            parse_str($_SERVER['QUERY_STRING'], $query_result);
+        }
 
         foreach ($arr as $key => $value) {
             $idx = $key;

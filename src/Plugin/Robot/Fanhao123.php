@@ -1,7 +1,8 @@
 <?php
 /**
  * 番号大全-番号之家
- * http://www.fanhao123.org
+ * - http://www.fanhao123.org
+ * http://www.fanhao33.com/
  */
 namespace Plugin\Robot;
 
