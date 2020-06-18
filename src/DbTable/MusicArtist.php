@@ -33,8 +33,8 @@ class MusicArtist extends \Astrology\Database
                 'created' => $time,
                 'updated' => $time,
             ];
-            $data += $arr;
-            return $this->insert($data);
+            $arr += $data;
+            return $this->insert($arr);
         }
 
         /* 比较 */

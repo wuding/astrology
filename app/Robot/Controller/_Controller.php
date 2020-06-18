@@ -129,9 +129,9 @@ class _Controller extends \Astrology\Controller
             unset($result['code']);
             $extend++;
         }
-            
+
         // 自动下一页
-        if ($this->query_args['page'] < $result['pageCount']) {
+        if (!$msg && $this->query_args['page'] < $result['pageCount']) {
             $this->query_args['page']++;
             $encoded_string = http_build_query($this->query_args);
             $url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);           
