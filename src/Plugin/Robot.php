@@ -17,7 +17,7 @@ class Robot
     public $page_reverse = false; //页码时间逆向排序
     
     // 设置
-    public $cache_root = 'D:\aries\cache\http';
+    public $cache_root = 'L:\Server\Mirror\http';
     public $urls = [];
     public $paths = [];
     public $_url_list_key = 0;
@@ -43,6 +43,8 @@ class Robot
         if ($arg) {
             $this->initialization($arg);
         }
+        $config = include 'Robot/config/robot.php';
+        $this->setVars($config['var']);
         $this->_init();
     }
     

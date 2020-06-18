@@ -1,0 +1,13 @@
+<?php
+$cache_root = CACHE_ROOT;
+$api_host = 'http://' . $_SERVER['HTTP_HOST'];
+
+return [
+    'var' => [
+        'api_host' => $api_host,
+        'cache_root' => $cache_root,
+    ],
+    'append' => [
+        '',
+    ],
+];

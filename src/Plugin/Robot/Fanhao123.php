@@ -10,17 +10,19 @@ class Fanhao123 extends \Plugin\Robot
 {
 	# public $func_format = 'json';
 	public $site_id = 42;
+	public $api_host = 'http://127.0.0.1:9000';
 	
 	/**
 	 * 自定义初始化 
 	 */
 	public function _init()
 	{
-		$this->cache_dir = $this->cache_root . '/www.fanhao123.org/';
+		$domain = 'www.fanhao33.com';
+		$this->cache_dir = $this->cache_root . "/$domain/";
 		
 		$this->urls = [
-			'http://www.fanhao123.org/L/nvyou%1.html',
-			'http://www.fanhao123.org/k/%1_%2.html'
+			"http://$domain/L/nvyou%1.html",
+			"http://$domain/k/%1_%2.html"
 		];
 		
 		$this->paths = [
@@ -62,7 +64,7 @@ class Fanhao123 extends \Plugin\Robot
 			$href = $a[0]->getAttribute('href');
 			$text = $a[0]->nodeValue;
 			$src = $img[0]->getAttribute('src');
-			if (preg_match('/\/([a-z]+)_(\d+)\./i', $href, $matches)) {
+			if (preg_match('/\/([a-z]+|)_(\d+)\./i', $href, $matches)) {
 				# print_r($matches);
 				# $arr[] = [$matches[1], $matches[2], $text, $src];
 				$data = [
@@ -74,12 +76,19 @@ class Fanhao123 extends \Plugin\Robot
 				];
 				$arr[] = $VideoCollect->check($data);
 			} else {
-				echo $text. PHP_EOL;
-				echo $href . PHP_EOL;
+				print_r(array($text, $href, __FILE__, __LINE__));
 				exit;
 			}
 		}
-		return ['result' => $arr];
+
+		$msg = '';
+		$pageCount = 26;
+
+		return [
+			'result' => $arr,
+			'msg' => $msg,
+			'pageCount' => $pageCount,
+		];
 	}
 	
 	/*

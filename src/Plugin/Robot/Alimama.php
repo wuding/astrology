@@ -557,7 +557,7 @@ class Alimama extends \Plugin\Robot
             'code' => $code,
             'msg' => $msg,
             'result' => $result,
-            'pageCount' => $pageCount,            
+            'pageCount' => $pageCount,
         ];
     }
     
