@@ -25,7 +25,7 @@ class MusicArtist extends \Astrology\Database
             'site' => $arr['site'],
             'artist' => $arr['artist'],
         ];
-        $row = $this->sel($where, '*');
+        $row = $this->get($where, '*');
 
         if (!$row) {
             $data = [

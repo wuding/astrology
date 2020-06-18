@@ -2,6 +2,8 @@
 
 namespace Astrology;
 
+use PDO;
+
 class Database
 {
 	public static $adapter = null;
@@ -28,6 +30,9 @@ class Database
 		if (!$arg) {
 			$arg = $GLOBALS['CONFIG']['database'];
 		}
+		$driver_options = array(
+		    PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+		);
 		$this->init($arg);
 		$this->_init();
 	}
@@ -43,9 +48,12 @@ class Database
 	{
 		$this->setVar($arg);
 		$arg = [
+			'dsn_prefix' => 'mysql',
 			'host' => $this->host,
 			'port' => $this->port,
-			'db_name' => $this->db_name,
+			'dbname' => $this->db_name,
+			'unix_socket' => '/tmp/mysql.sock',
+			'charset' => 'utf8mb4',
 			'username' => $this->user,
 			'password' => $this->password,
 			'driver_options' => $this->driver_options,
@@ -209,7 +217,7 @@ class Database
 			$sql .= " ORDER BY $order";
 		}
 		$sql .= " LIMIT $limit";#  echo $sql;exit;
-		return $this->logs($sql, $call ? : 'find') ? : self::$adapter->find($sql);
+		return $this->logs($sql, $call ? : 'find') ? : self::$adapter->get($sql);
 	}
 
 	/**
@@ -226,10 +234,10 @@ class Database
 		return $this->logs($sql, 'delete') ? : self::$adapter->query($sql);
 	}
 	
-	public function sel($where = null, $column = null, $order = null, $group = [], $join = null)
+	public function get($where = null, $column = null, $order = null, $group = [], $join = null)
 	{
 		$column = $column ? : ($this->primary_key ? : '*');
-		return $this->find($where, $column, $order, 1, 'sel');
+		return $this->find($where, $column, $order, 1, 'get');
 	}
 	
 	public function count($where = null)
@@ -358,7 +366,7 @@ class Database
 		/*
 		if ('update.status' == $this->return) {
 			if ($exec) {
-				return $row = $this->sel($where, '*', $order);
+				return $row = $this->get($where, '*', $order);
 			}
 		}
 		*/
@@ -444,7 +452,7 @@ class Database
 	
 	public function __call($name, $arguments)
 	{
-		return self::$adapter->$name($arguments[0]);
+		return call_user_func_array(array(self::$adapter, $name), $arguments);
 	}
 
 	/**
