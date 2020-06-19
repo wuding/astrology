@@ -205,6 +205,8 @@ class Music163 extends \Plugin\Robot
             $filename = $this->cache_dir . '/artist.json';
             if (preg_match('/<textarea id=\"song-list-pre-data\" style=\"display:none;\">(.*)<\/textarea>/', $str, $matches)) {
                 $put = file_put_contents($filename, $matches[1]);
+            } else {
+                goto __AR__;
             }
             $son = file_get_contents($filename);
             $arr = json_decode($son);
@@ -267,6 +269,7 @@ class Music163 extends \Plugin\Robot
             $i++;
         }
 
+        __AR__:
         // 艺术家
         $data = [
             'site' => $this->site_id,
