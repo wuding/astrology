@@ -173,6 +173,7 @@ class Music163 extends \Plugin\Robot
         $page = $this->attr['page'];
         $Artist = new MusicArtist;
         $Song = new MusicSong;
+        $arr = null;
 
         // 获取总量和艺术家 ID
         $count = $Artist->count("site = $this->site_id");
@@ -183,11 +184,23 @@ class Music163 extends \Plugin\Robot
         $str = $this->getPathContents(self::URL_ARTIST_PAGE, $artistId);
         $doc = new \DOMDocument('1.0', 'utf-8');
         @$doc->loadHTML($str);
+
+        // 艺术家名称
         $ar = $doc->getElementById('artist-name');
-        $name = $ar->nodeValue;
+        if (null === $ar) {
+            if (preg_match('/<h2 id=\"artist-name\" ([^<\/]+)>(.*)<\/h2>/', $str, $matches)) {
+                $name = $matches[2];
+            }
+        } else {
+            $name = $ar->nodeValue;
+        }
+
+        // 歌曲列表
         $so = $doc->getElementById('song-list-pre-data');
-        $song = $so->nodeValue;
-        $arr = json_decode($song);
+        if ($so) {
+            $song = $so->nodeValue;
+            $arr = json_decode($song);
+        }
         if (!is_array($arr)) {
             $filename = $this->cache_dir . '/artist.json';
             if (preg_match('/<textarea id=\"song-list-pre-data\" style=\"display:none;\">(.*)<\/textarea>/', $str, $matches)) {
@@ -201,6 +214,8 @@ class Music163 extends \Plugin\Robot
                 exit;
             }
         }
+
+        // 处理结果
         $result = [
             'artists' => -1,
             'song' => [],
