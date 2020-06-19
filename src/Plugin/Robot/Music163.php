@@ -188,6 +188,19 @@ class Music163 extends \Plugin\Robot
         $so = $doc->getElementById('song-list-pre-data');
         $song = $so->nodeValue;
         $arr = json_decode($song);
+        if (!is_array($arr)) {
+            $filename = $this->cache_dir . '/artist.json';
+            if (preg_match('/<textarea id=\"song-list-pre-data\" style=\"display:none;\">(.*)<\/textarea>/', $str, $matches)) {
+                $put = file_put_contents($filename, $matches[1]);
+            }
+            $son = file_get_contents($filename);
+            $arr = json_decode($son);
+            $unlink = unlink($filename);
+            if (!is_array($arr)) {
+                print_r(array($filename, $artistId, __FILE__, __LINE__));
+                exit;
+            }
+        }
         $result = [
             'artists' => -1,
             'song' => [],
