@@ -9,12 +9,17 @@ namespace Plugin\Robot;
 
 use DbTable\MusicArtist;
 use DbTable\MusicSong;
+use DbTable\MusicSiteLyric;
+use DbTable\MusicSiteAudio;
+use DbTable\MusicSiteAudioUrl;
+use Metowolf\Meting;
 
 class Music163 extends \Plugin\Robot
 {
     // 参数
     public $site_id = 1;
     public $cats = '1001,1002,1003,2001,2002,2003,4001,4002,4003,6001,6002,6003,7001,7002,7003';
+    public $api_cookie = 'os=pc; osver=Microsoft-Windows-10-Professional-build-10586-64bit; appver=2.0.3.131777; channel=netease; __remember_me=true';
 
     const URL_ARTIST_PAGE = 0;
     const URL_ARTIST_LIST = 1;
@@ -174,6 +179,13 @@ class Music163 extends \Plugin\Robot
         $Artist = new MusicArtist;
         $Song = new MusicSong;
         $arr = null;
+        $time = time();
+
+        // 处理结果
+        $result = [
+            'artist' => -1,
+            'song' => [],
+        ];
 
         // 获取总量和艺术家 ID
         $count = $Artist->count("site = $this->site_id");
@@ -182,6 +194,14 @@ class Music163 extends \Plugin\Robot
 
         // 解析 HTML
         $str = $this->getPathContents(self::URL_ARTIST_PAGE, $artistId);
+        if ('0' === $str) {
+            $data = [
+                'updated' => $time,
+                'status' => -3,
+            ];
+            $result['update'] = $Artist->update($data, $artistId);
+            goto __END__;
+        }
         $doc = new \DOMDocument('1.0', 'utf-8');
         @$doc->loadHTML($str);
 
@@ -217,11 +237,11 @@ class Music163 extends \Plugin\Robot
             }
         }
 
-        // 处理结果
-        $result = [
-            'artists' => -1,
-            'song' => [],
-        ];
+        // 调试
+        if (isset($_GET['debug']) && 'test' == $_GET['debug']) {
+            print_r([$arr, __FILE__, __LINE__]);
+            exit;
+        }
 
         // 热门歌曲
         $i = 1;
@@ -248,7 +268,7 @@ class Music163 extends \Plugin\Robot
             // 探测
             /*
             copyrightId 0 -1
-            status 0 3
+            status -1 0 1 3
             fee 0 8
             score 100 95
             transNames []
@@ -278,11 +298,234 @@ class Music163 extends \Plugin\Robot
         ];
         $result['artist'] = $exist = $Artist->exist($data);
 
+        __END__:
         $msg = '';
         return [
             'msg' => $msg,
             'result' => $result,
             'pageCount' => $count,
         ];
+    }
+
+    public function downloadLyric()
+    {
+        $page = $this->attr['page'];
+        $Song = new MusicSong;
+        $Lyric = new MusicSiteLyric;
+        $api = new Meting('netease');
+        $result = [];
+        if ($this->api_cookie) {
+            $api->cookie($this->api_cookie);
+        }
+
+        // 获取总量和歌曲 ID
+        $count = $Song->count("site = $this->site_id");
+        $row = $Song->offset($page - 1, $this->site_id);
+        $songId = $row->song;
+        $json = $api->lyric($songId);
+        $obj = json_decode($json);
+
+        // 属性检测
+        if (isset($obj->nolyric)) {
+            if (1 == $obj->nolyric) {
+                goto __END__;
+            }
+            print_r(array($obj, __FILE__, __LINE__));
+            exit;
+        }
+        if (!isset($obj->klyric)) {
+            $obj->klyric = new \stdClass;
+        }
+        if (!isset($obj->tlyric)) {
+            $obj->tlyric = new \stdClass;
+        }
+        if (!isset($obj->klyric->lyric)) {
+            $obj->klyric->lyric = null;
+        }
+        if (!isset($obj->tlyric->lyric)) {
+            $obj->tlyric->lyric = null;
+        }
+
+        // 写入
+        if (isset($obj->lrc) && $obj->lrc->lyric) {
+            $result['lrc'] = $this->lyric($songId, $obj->lrc, 1);
+        }
+        if ($obj->klyric->lyric) {
+            $result['klyric'] = $this->lyric($songId, $obj->klyric, 2);
+        }
+        if ($obj->tlyric->lyric) {
+            $result['tlyric'] = $this->lyric($songId, $obj->tlyric, 3);
+        }
+
+        __END__:
+        $msg = '';
+        return [
+            'msg' => $msg,
+            'result' => $result,
+            'pageCount' => $count,
+        ];
+    }
+
+    public function lyric($songId, $obj, $type = 0)
+    {
+        if (!trim($obj->lyric)) {
+            return -1;
+        }
+        $arr = ['_', 'lrc', 'xml', 'txt'];
+        $ext = $arr[$type];
+        $Lyric = new MusicSiteLyric;
+        $filename = "$this->cache_dir/lyric/$songId-$obj->version.$ext";
+        $put = file_put_contents($filename, $obj->lyric);
+        if (false === $put) {
+            print_r(array($filename, $put, $obj, __FILE__, __LINE__));
+            exit;
+        }
+
+        // 检测
+        $data = [
+            'site' => $this->site_id,
+            'song' => $songId,
+            'version' => $obj->version,
+            'size' => $put,
+            'type' => $type,
+        ];
+        return $Lyric->exist($data);
+    }
+
+    public function downloadAudio()
+    {
+        $page = $this->attr['page'];
+        $Audio = new MusicSiteAudio;
+        $Url = new MusicSiteAudioUrl;
+        $Song = new MusicSong;
+        $api = new Meting('netease');
+        if ($this->api_cookie) {
+            $api->cookie($this->api_cookie);
+        }
+
+        // 获取总量和歌曲 ID
+        $count = $Song->count("site = $this->site_id");
+        $row = $Song->offset($page - 1, $this->site_id);
+        $songId = $row->song;
+        $result = ['song' => $songId];
+
+        // 主要
+        $u = $Song->get(array('site' => $this->site_id, 'song' => $songId), 'download');
+        if ($download = $u->download) {
+            goto __END__;
+        }
+        $json = $api->url($songId);
+        $row = json_decode($json);
+        $md5 = md5($json);
+
+        // 日志
+        $filename = "$this->cache_dir/logs/url/$songId.json";
+        $contents = @file_get_contents($filename);
+        if (false === $contents) {
+            $arr = [];
+            $arr[$md5] = $row;
+            $data = json_encode($arr);
+            $put = file_put_contents($filename, $data);
+
+        } else {
+            $log = (array) json_decode($contents);
+            if (!isset($log[$md5])) {
+                $log[$md5] = $row;
+                $data = json_encode($log);
+                $put = file_put_contents($filename, $data);
+            }
+        }
+
+        // 写入
+        $arr = [];
+        $download = 0;
+        foreach ($row->data as $key => $value) {
+            $exist = $urlId = $up = $update = $dl = null;
+            if (!$value->url) {
+                goto __LOG__;
+            }
+
+            // 音频
+            $data = [
+                'site' => $this->site_id,
+                'song' => $songId,
+                'md5' => $value->md5,
+                'size' => $value->size,
+                'br' => $value->br,
+            ];
+            $exist = $Audio->exist($data, true);
+            if (is_object($exist)) {
+                if (1 == $exist->status) {
+                    goto __LOG__;
+                }
+
+            } elseif (!is_numeric($exist) || !$exist) {
+                var_dump($exist);
+                print_r(array($data, __FILE__, __LINE__));
+                exit;
+            }
+
+            // 地址
+            $dat = [
+                'audio' => $exist,
+                'url' => $value->url,
+            ];
+            $urlId = $Url->exist($dat);
+            if (!is_numeric($urlId) || !$urlId) {
+                var_dump($urlId);
+                print_r(array($dat, __FILE__, __LINE__));
+                exit;
+            }
+
+            // 下载
+            $dl = $this->download($value->url, $songId, $exist, $urlId);
+            $size = $dl['put'];
+            $status = $size ? 1 : -3;
+            if ($size) {
+                $download++;
+            }
+            $up = $Url->update(
+                array('status' => $status, 'size' => $size, 'extension' => $dl['ext']),
+                $urlId
+            );
+            $update = $Audio->update(
+                array('status' => $status),
+                $exist
+            );
+
+            // 记录
+            __LOG__:
+            $arr[] = array(
+                'audio' => $exist, 'url' => $urlId,
+                'up' => $up, 'update' => $update, 'download' => $dl
+            );
+        }
+        $result['log'] = $arr;
+
+        // 更新
+        $u = $Song->update(
+            array('download' => $download ? : -1),
+            array('site' => $this->site_id, 'song' => $songId)
+        );
+
+        __END__:
+        $result['download'] = array('download' => $download, 'update' => $u);
+
+        $msg = '';
+        return [
+            'msg' => $msg,
+            'result' => $result,
+            'pageCount' => $count,
+        ];
+    }
+
+    public function download($url, $song, $au, $ur)
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
+        $filename = "$this->cache_dir/audio/$song-$au-$ur.$ext";
+        $data = file_get_contents($url);
+        $put = file_put_contents($filename, $data);
+        return array('put' => $put, 'ext' => $ext, 'url' => $url, 'filename' => $filename);
     }
 }
