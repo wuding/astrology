@@ -57,6 +57,8 @@ class Database
             'username' => $this->user,
             'password' => $this->password,
             'driver_options' => $this->driver_options,
+            'table_name' => $this->table_name,
+            'primary_key' => $this->primary_key,
         ];
         $this->getAdapter($this->driver, $arg);
     }
@@ -244,7 +246,7 @@ class Database
         if ($where) {
             $sql .= " WHERE $where";
         }
-        $row = $this->logs($sql, 'count') ? : self::$adapter->find($sql);
+        $row = $this->logs($sql, 'count') ? : self::$adapter->get($sql);
         return $num = $row ? (is_object($row) ? $row->num : $row) : 0;
     }
 

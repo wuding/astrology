@@ -9,6 +9,7 @@ class MusicArtist extends \Astrology\Database
     public $db_name = 'audio';
     public $table_name = 'music_artist';
     public $primary_key = 'id';
+    # public $return = ['count'];
 
     /**
      * 检测
@@ -69,5 +70,17 @@ class MusicArtist extends \Astrology\Database
         $offset = $page * $limit - $limit;
         $option = [$order, "$offset,$limit"];
         return $all = $this->_select($where, $column, $option);
+    }
+
+    public function offset($offset = null, $site_id = null)
+    {
+        $sql = "SELECT * 
+FROM $this->table_name 
+WHERE `site` = '$site_id'
+ORDER BY `id` 
+LIMIT 1 
+OFFSET $offset";
+
+        return $row = self::$adapter->get($sql);
     }
 }
