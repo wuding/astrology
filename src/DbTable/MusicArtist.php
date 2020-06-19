@@ -6,7 +6,7 @@ namespace DbTable;
 
 class MusicArtist extends DbAudio
 {
-    public $table_name = 'music_artist';
+    public $table_name = 'music_site_artist';
     # public $return = ['count'];
 
     /**
@@ -45,12 +45,11 @@ class MusicArtist extends DbAudio
             }
             $keys = array_keys($diff);
             # print_r([$diff, $data, $keys]);exit;
-            $data['updated'] = $time;
-            $data['status'] = -2;
+            $data['updated'] = $data['compared'] = $time;
+            $data['compares'] = $row->compares + 1;
             $data['diff'] = implode(',', $keys);
             return $result = $this->update($data, $row->{$primary_key});
         }
-
         return $row->{$primary_key};
     }
 

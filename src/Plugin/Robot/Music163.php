@@ -164,11 +164,20 @@ class Music163 extends \Plugin\Robot
                 'info' => [__FILE__, __LINE__, $file],
             ];
         }
+        $result = array('size' => $size);
+
+        // 艺术家
+        $data = [
+            'site' => $this->site_id,
+            'artist' => $artistId,
+            'status' => 2,
+        ];
+        $result['exist'] = $Artist->exist($data);
 
         $msg = '';
         return [
             'msg' => $msg,
-            'result' => $size,
+            'result' => $result,
             'pageCount' => $count,
         ];
     }
@@ -178,19 +187,21 @@ class Music163 extends \Plugin\Robot
         $page = $this->attr['page'];
         $Artist = new MusicArtist;
         $Song = new MusicSong;
-        $arr = null;
+        $arr = $status = null;
         $time = time();
-
-        // 处理结果
-        $result = [
-            'artist' => -1,
-            'song' => [],
-        ];
+        $songs = [];
 
         // 获取总量和艺术家 ID
         $count = $Artist->count("site = $this->site_id");
         $row = $Artist->offset($page - 1, $this->site_id);
         $artistId = $row->artist;
+        $pk = $row->id;
+
+        // 处理结果
+        $result = [
+            'artist' => $artistId,
+            'song_exist' => [],
+        ];
 
         // 解析 HTML
         $str = $this->getPathContents(self::URL_ARTIST_PAGE, $artistId);
@@ -199,7 +210,7 @@ class Music163 extends \Plugin\Robot
                 'updated' => $time,
                 'status' => -3,
             ];
-            $result['update'] = $Artist->update($data, $artistId);
+            $result['update'] = $Artist->update($data, $pk);
             goto __END__;
         }
         $doc = new \DOMDocument('1.0', 'utf-8');
@@ -226,6 +237,7 @@ class Music163 extends \Plugin\Robot
             if (preg_match('/<textarea id=\"song-list-pre-data\" style=\"display:none;\">(.*)<\/textarea>/', $str, $matches)) {
                 $put = file_put_contents($filename, $matches[1]);
             } else {
+                $status = 3;
                 goto __AR__;
             }
             $son = file_get_contents($filename);
@@ -236,6 +248,7 @@ class Music163 extends \Plugin\Robot
                 exit;
             }
         }
+        $status = 4;
 
         // 调试
         if (isset($_GET['debug']) && 'test' == $_GET['debug']) {
@@ -263,7 +276,20 @@ class Music163 extends \Plugin\Robot
                 'mv' => $row->mvid,
                 'alias' => $alias,
             ];
-            $result['song'][] = $exist = $Song->exist($data);
+            $result['song_exist'][] = $exist = $Song->exist($data);
+            if (!is_string($exist) || preg_match('/\s+/', $exist)) {
+                if (!is_array($exist)) {
+                    var_dump($exist);
+                    print_r(array($data, __FILE__, __LINE__));
+                    exit;
+                }
+            }
+            $key = $this->site_id .'_'. $row->id;
+            if (isset($songs[$key])) {
+                $songs[$key]++;
+            } else {
+                $songs[$key] = 1;
+            }
 
             // 探测
             /*
@@ -288,6 +314,7 @@ class Music163 extends \Plugin\Robot
 
             $i++;
         }
+        $result['songs'] = $songs;
 
         __AR__:
         // 艺术家
@@ -295,8 +322,12 @@ class Music163 extends \Plugin\Robot
             'site' => $this->site_id,
             'artist' => $artistId,
             'name' => $name,
+            'songs' => count($songs),
         ];
-        $result['artist'] = $exist = $Artist->exist($data);
+        if ($status) {
+            $data['status'] = $status;
+        }
+        $result['artist_exist'] = $Artist->exist($data);
 
         __END__:
         $msg = '';

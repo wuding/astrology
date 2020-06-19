@@ -360,7 +360,7 @@ class Database
             $condition .= " LIMIT $limit";
         }
         $sql .= $condition;
-        $exec = $this->logs($sql, $call ? : 'update') ? : $this->exec($sql);
+        $exec = $this->logs($sql, $call ? : 'update') ? : array($this->exec($sql));
         /*
         if ('update.status' == $this->return) {
             if ($exec) {

@@ -6,7 +6,7 @@ namespace DbTable;
 
 class MusicSong extends DbAudio
 {
-    public $table_name = 'music_song';
+    public $table_name = 'music_site_song';
 
     /**
      * 检测
@@ -44,9 +44,9 @@ class MusicSong extends DbAudio
             }
             $keys = array_keys($diff);
             # print_r([$diff, $data, $keys]);exit;
-            $data['updated'] = $time;
-            $data['status'] = -2;
-            $data['note'] = implode(',', $keys);
+            $data['updated'] = $data['compared'] = $time;
+            $data['compares'] = $row->compares + 1;
+            $data['diff'] = implode(',', $keys);
             return $result = $this->update($data, $row->{$primary_key});
         }
 
