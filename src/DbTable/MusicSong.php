@@ -4,18 +4,16 @@
  */
 namespace DbTable;
 
-class MusicSong extends \Astrology\Database
+class MusicSong extends DbAudio
 {
-    public $db_name = 'audio';
     public $table_name = 'music_song';
-    public $primary_key = 'id';
 
     /**
      * 检测
      * @param  array  $arr 查询及设置数据
      * @return integer     条目ID或更新状态
      */
-    public function exist($arr, $ignore = null)
+    public function exist($arr, $ignore = null, $variable = null)
     {
         $ignore = $ignore ? ['refresh_time'] : [];
         $primary_key = $this->primary_key;

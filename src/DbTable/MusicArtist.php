@@ -4,11 +4,9 @@
  */
 namespace DbTable;
 
-class MusicArtist extends \Astrology\Database
+class MusicArtist extends DbAudio
 {
-    public $db_name = 'audio';
     public $table_name = 'music_artist';
-    public $primary_key = 'id';
     # public $return = ['count'];
 
     /**
@@ -16,7 +14,7 @@ class MusicArtist extends \Astrology\Database
      * @param  array  $arr 查询及设置数据
      * @return integer     条目ID或更新状态
      */
-    public function exist($arr, $ignore = null)
+    public function exist($arr, $ignore = null, $variable = null)
     {
         $ignore = $ignore ? ['refresh_time'] : [];
         $primary_key = $this->primary_key;
@@ -49,7 +47,7 @@ class MusicArtist extends \Astrology\Database
             # print_r([$diff, $data, $keys]);exit;
             $data['updated'] = $time;
             $data['status'] = -2;
-            $data['note'] = implode(',', $keys);
+            $data['diff'] = implode(',', $keys);
             return $result = $this->update($data, $row->{$primary_key});
         }
 
@@ -70,17 +68,5 @@ class MusicArtist extends \Astrology\Database
         $offset = $page * $limit - $limit;
         $option = [$order, "$offset,$limit"];
         return $all = $this->_select($where, $column, $option);
-    }
-
-    public function offset($offset = null, $site_id = null)
-    {
-        $sql = "SELECT * 
-FROM $this->table_name 
-WHERE `site` = '$site_id'
-ORDER BY `id` 
-LIMIT 1 
-OFFSET $offset";
-
-        return $row = self::$adapter->get($sql);
     }
 }
