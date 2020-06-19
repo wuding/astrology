@@ -141,9 +141,18 @@ class Music163 extends \Plugin\Robot
 
     public function downloadArtist()
     {
-        $size = $this->putFileCurl(null, self::URL_ARTIST_PAGE, $this->attr['page']);
+        $page = $this->attr['page'];
+        $Artist = new MusicArtist;
+
+        // 获取总量和艺术家 ID
+        $count = $Artist->count("site = $this->site_id");
+        $row = $Artist->offset($page - 1, $this->site_id);
+        $artistId = $row->artist;
+
+        // 下载
+        $size = $this->putFileCurl(null, self::URL_ARTIST_PAGE, $artistId);
         if (!$size) {
-            $file = $this->getProp(self::URL_ARTIST_PAGE, 'paths', $this->attr['page']);
+            $file = $this->getProp(self::URL_ARTIST_PAGE, 'paths', $artistId);
             return [
                 'code' => 1,
                 'msg' => $_SERVER['REQUEST_URI'],
@@ -151,23 +160,27 @@ class Music163 extends \Plugin\Robot
             ];
         }
 
-        $list = [];
         $msg = '';
-
         return [
             'msg' => $msg,
-            'result' => $list,
-            'pageCount' => $_SESSION['total_page'],
+            'result' => $size,
+            'pageCount' => $count,
         ];
     }
 
     public function parseArtist()
     {
+        $page = $this->attr['page'];
         $Artist = new MusicArtist;
         $Song = new MusicSong;
 
+        // 获取总量和艺术家 ID
+        $count = $Artist->count("site = $this->site_id");
+        $row = $Artist->offset($page - 1, $this->site_id);
+        $artistId = $row->artist;
+
         // 解析 HTML
-        $str = $this->getPathContents(self::URL_ARTIST_PAGE, $this->attr['page']);
+        $str = $this->getPathContents(self::URL_ARTIST_PAGE, $artistId);
         $doc = new \DOMDocument('1.0', 'utf-8');
         @$doc->loadHTML($str);
         $ar = $doc->getElementById('artist-name');
@@ -176,40 +189,69 @@ class Music163 extends \Plugin\Robot
         $song = $so->nodeValue;
         $arr = json_decode($song);
         $result = [
-            'artist' => -1,
+            'artists' => -1,
             'song' => [],
         ];
 
         // 热门歌曲
         $i = 1;
         foreach ($arr as $row) {
+            $pieces = [];
+            foreach ($row->artists as $value) {
+                $pieces[] = $value->id;
+            }
+            $alias = json_encode($row->alias);
+
             $data = [
                 'site' => $this->site_id,
-                'artist' => $this->attr['page'],
+                'artists' => implode(',', $pieces),
                 'album' => $row->album->id,
                 'song' => $row->id,
                 'top' => $i,
                 'name' => $row->name,
                 'duration' => $row->duration,
+                'mv' => $row->mvid,
+                'alias' => $alias,
             ];
             $result['song'][] = $exist = $Song->exist($data);
+
+            // 探测
+            /*
+            copyrightId 0 -1
+            status 0 3
+            fee 0 8
+            score 100 95
+            transNames []
+            */
+            $string = 'ftype,publishTime,djid,type';
+            $variable = explode(',', $string);
+            $val = null;
+            foreach ($variable as $value) {
+                if ($row->$value) {
+                    $val = $value;
+                }
+            }
+            if ($val) {
+                print_r(array($val, $row, __FILE__, __LINE__));
+                exit;
+            }
+
             $i++;
         }
 
         // 艺术家
         $data = [
             'site' => $this->site_id,
-            'artist' => $this->attr['page'],
+            'artist' => $artistId,
             'name' => $name,
         ];
         $result['artist'] = $exist = $Artist->exist($data);
 
         $msg = '';
-
         return [
             'msg' => $msg,
             'result' => $result,
-            'pageCount' => '',
+            'pageCount' => $count,
         ];
     }
 }
