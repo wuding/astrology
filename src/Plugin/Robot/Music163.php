@@ -257,15 +257,17 @@ class Music163 extends \Plugin\Robot
         }
 
         // 歌曲列表
+        $json = null;
         $so = $doc->getElementById('song-list-pre-data');
         if ($so) {
-            $song = $so->nodeValue;
-            $arr = json_decode($song);
+            $json = $so->nodeValue;
+            $arr = json_decode($json);
         }
         if (!is_array($arr)) {
             $filename = $this->cache_dir . '/artist.json';
             if (preg_match('/<textarea id=\"song-list-pre-data\" style=\"display:none;\">(.*)<\/textarea>/', $str, $matches)) {
-                $put = file_put_contents($filename, $matches[1]);
+                $json = $matches[1];
+                $put = file_put_contents($filename, $json);
             } else {
                 $status = 3;
                 goto __AR__;
@@ -279,6 +281,10 @@ class Music163 extends \Plugin\Robot
             }
         }
         $status = 4;
+
+        // 日志
+        $filename = "$this->cache_dir/logs/artist/$artistId.json";
+        $result['log'] = $this->log($filename, $json);
 
         // 调试
         if (isset($_GET['debug']) && 'test' == $_GET['debug']) {
@@ -385,6 +391,8 @@ class Music163 extends \Plugin\Robot
         $songId = $row->song;
         $json = $api->lyric($songId);
         $obj = json_decode($json);
+        $filename = "$this->cache_dir/logs/lyric/$songId.json";
+        $result['log'] = $this->log($filename, $json);
 
         // 属性检测
         if (isset($obj->nolyric)) {
@@ -477,25 +485,8 @@ class Music163 extends \Plugin\Robot
         }
         $json = $api->url($songId);
         $row = json_decode($json);
-        $md5 = md5($json);
-
-        // 日志
-        $filename = "$this->cache_dir/logs/url/$songId.json";
-        $contents = @file_get_contents($filename);
-        if (false === $contents) {
-            $arr = [];
-            $arr[$md5] = $row;
-            $data = json_encode($arr);
-            $put = file_put_contents($filename, $data);
-
-        } else {
-            $log = (array) json_decode($contents);
-            if (!isset($log[$md5])) {
-                $log[$md5] = $row;
-                $data = json_encode($log);
-                $put = file_put_contents($filename, $data);
-            }
-        }
+        $filename = "$this->cache_dir/logs/audio/$songId.json";
+        $result['log'] = $this->log($filename, $json);
 
         // 写入
         $arr = [];
@@ -562,7 +553,7 @@ class Music163 extends \Plugin\Robot
                 'up' => $up, 'update' => $update, 'download' => $dl
             );
         }
-        $result['log'] = $arr;
+        $result['each'] = $arr;
 
         // 更新
         $u = $Song->update(
@@ -587,7 +578,35 @@ class Music163 extends \Plugin\Robot
         $ext = pathinfo($path, PATHINFO_EXTENSION);
         $filename = "$this->cache_dir/audio/$song-$au-$ur.$ext";
         $data = file_get_contents($url);
+        # 超时问题
         $put = file_put_contents($filename, $data);
         return array('put' => $put, 'ext' => $ext, 'url' => $url, 'filename' => $filename);
+    }
+
+    // 日志
+    public function log($filename, $json)
+    {
+        $md5 = md5($json);
+        $row = json_decode($json);
+        $put = null;
+        $contents = @file_get_contents($filename);
+        if (false === $contents) {
+            $arr = [];
+            $arr[$md5] = $row;
+            $data = json_encode($arr);
+            $put = file_put_contents($filename, $data);
+
+        } else {
+            $log = (array) json_decode($contents);
+            if (!isset($log[$md5])) {
+                $log[$md5] = $row;
+                $data = json_encode($log);
+                $put = file_put_contents($filename, $data);
+            }
+        }
+        return array(
+            'filename' => $filename,
+            'put' => $put,
+        );
     }
 }
