@@ -23,10 +23,22 @@ class Music163 extends \Plugin\Robot
 
     const URL_ARTIST_PAGE = 0;
     const URL_ARTIST_LIST = 1;
+    const URL_ARTIST_PAGE_GZ = 2;
+    const URL_ARTIST_ALBUM = 3;
+    const URL_ALBUM_PAGE = 4;
+    const URL_SONG_PAGE = 5;
+    const URL_SONG_LYRIC = 6;
+    const URL_SONG_AUDIO = 7;
 
     public $urls = [
         "https://music.163.com/artist?id=%1",
-        "https://music.163.com/discover/artist/cat?id=%1&initial=%2"
+        "https://music.163.com/discover/artist/cat?id=%1&initial=%2",
+        "https://music.163.com/artist?id=%1",
+        "https://music.163.com/artist/album?id=%1",
+        "https://music.163.com/album?id=%1",
+        "https://music.163.com/song?id=%1",
+        "https://music.163.com/weapi/song/lyric?csrf_token=",
+        "https://music.163.com/weapi/song/enhance/player/url/v1?csrf_token=",
     ];
 
     public function _init()
@@ -35,6 +47,7 @@ class Music163 extends \Plugin\Robot
         $this->paths = [
             $cache_dir . "/artist/%1.html",
             $cache_dir . "/discover/artist/cat/%1/cat%2.htm",
+            $cache_dir . "/artists/%1.html.gz",
         ];
     }
 
@@ -155,9 +168,10 @@ class Music163 extends \Plugin\Robot
         $artistId = $row->artist;
 
         // 下载
-        $size = $this->putFileCurl(null, self::URL_ARTIST_PAGE, $artistId);
+        $http_header = ['Accept-Encoding: gzip, deflate, br'];
+        $size = $this->putFileCurl($http_header, self::URL_ARTIST_PAGE_GZ, $artistId);
         if (!$size) {
-            $file = $this->getProp(self::URL_ARTIST_PAGE, 'paths', $artistId);
+            $file = $this->getProp(self::URL_ARTIST_PAGE_GZ, 'paths', $artistId);
             return [
                 'code' => 1,
                 'msg' => $_SERVER['REQUEST_URI'],
@@ -203,8 +217,22 @@ class Music163 extends \Plugin\Robot
             'song_exist' => [],
         ];
 
-        // 解析 HTML
-        $str = $this->getPathContents(self::URL_ARTIST_PAGE, $artistId);
+        // 获取内容
+        $str = $this->getPathContents(self::URL_ARTIST_PAGE_GZ, $artistId);
+        $filename = $this->getProp(self::URL_ARTIST_PAGE_GZ, 'paths', $artistId);
+        $contentType = mime_content_type($filename);
+        if ('application/x-gzip' == $contentType) {
+            $str = gzdecode($str);
+        } elseif (false === $str) {
+            print_r(array($filename, $artistId, __FILE__, __LINE__));
+            exit;
+        } else {
+            print_r(array($filename, $artistId, __FILE__, __LINE__));
+            var_dump($type);
+            exit;
+        }
+
+        // 检测内容
         if ('0' === $str) {
             $data = [
                 'updated' => $time,
@@ -213,6 +241,8 @@ class Music163 extends \Plugin\Robot
             $result['update'] = $Artist->update($data, $pk);
             goto __END__;
         }
+
+        // 解析 HTML
         $doc = new \DOMDocument('1.0', 'utf-8');
         @$doc->loadHTML($str);
 

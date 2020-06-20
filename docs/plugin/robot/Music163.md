@@ -2,6 +2,8 @@ https://github.com/Binaryify/NeteaseCloudMusicApi
 
 https://github.com/metowolf/Meting
 
+https://github.com/QiuYaohong/kuwoMusicApi
+
 获取歌词
 
 https://music.163.com/weapi/song/lyric?csrf_token=
