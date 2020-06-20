@@ -519,6 +519,7 @@ class Music163 extends \Plugin\Robot
                 if (1 == $exist->status) {
                     goto __LOG__;
                 }
+                $exist = $exist->id;
 
             } elseif (!is_numeric($exist) || !$exist) {
                 var_dump($exist);
