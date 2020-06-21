@@ -594,7 +594,7 @@ class Music163 extends \Plugin\Robot
     }
 
     // 日志
-    public function log($filename, $json)
+    public function log($filename, $json, $gzip = true)
     {
         $md5 = md5($json);
         $row = json_decode($json);
@@ -603,14 +603,17 @@ class Music163 extends \Plugin\Robot
         if (false === $contents) {
             $arr = [];
             $arr[$md5] = $row;
-            $data = json_encode($arr);
+            $dat = json_encode($arr);
+            $data = $this->gzip($dat, $gzip);
             $put = Filesystem::putContents($filename, $data);
 
         } else {
+            $contents = $this->gz($filename, $contents);
             $log = (array) json_decode($contents);
             if (!isset($log[$md5])) {
                 $log[$md5] = $row;
-                $data = json_encode($log);
+                $dat = json_encode($log);
+                $data = $this->gzip($dat, $gzip);
                 $put = Filesystem::putContents($filename, $data);
             }
         }
@@ -618,5 +621,28 @@ class Music163 extends \Plugin\Robot
             'filename' => $filename,
             'put' => $put,
         );
+    }
+
+    // 压缩
+    public function gzip($data, $gzip = null)
+    {
+        if (!$gzip) {
+            return $data;
+        }
+        return gzencode($data);
+    }
+
+    public function gz($filename, $data= null)
+    {
+        $data = null === $data ? Filesystem::getContents($filename) : $data;
+        $contentType = mime_content_type($filename);
+        if ('application/x-gzip' == $contentType) {
+            return gzdecode($data);
+        } else {
+            var_dump($contentType);
+            print_r(array($filename, __FILE__, __LINE__));
+            exit;
+        }
+        return $data;
     }
 }
