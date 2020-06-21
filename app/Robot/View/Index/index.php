@@ -102,6 +102,18 @@ function api_reset(url, xhr) {
 //XHR 执行
 function api(url)
 {
+	if (!REQ[url]) {
+		REQ[url] = 1
+	} else {
+		REQ[url]++
+	}
+
+	if (5 < REQ[url]) {
+		message('max request times')
+		throw new Error('exit')
+		return false
+	}
+
 	var d = new Date();
 	var nowtime = d.getTime();
 	lasttime = nowtime;
@@ -239,6 +251,9 @@ function api_change(json, func)
 					if ('final' != url2) {
 						document.getElementById('url').value = url2;
 						
+						if (json.data.timeout) {
+							document.getElementById('timeout').value = json.data.timeout
+						}
 						var timeout = document.getElementById('timeout').value;
 						if (!timeout) {
 							timeout = 500;
