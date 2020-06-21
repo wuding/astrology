@@ -638,7 +638,7 @@ class Music163 extends \Plugin\Robot
         $contentType = mime_content_type($filename);
         if ('application/x-gzip' == $contentType) {
             return gzdecode($data);
-        } else {
+        } elseif (!in_array($contentType, $this->gzIgnoreTypes)) {
             var_dump($contentType);
             print_r(array($filename, __FILE__, __LINE__));
             exit;

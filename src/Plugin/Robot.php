@@ -25,6 +25,7 @@ class Robot
     public $ignore = ['last_time' => 0]; //覆盖,忽略条目最后编辑时间
     public $min_size = 1; //不重新下载所需的最小文件大小
     public $returnVars = null;
+    public $gzIgnoreTypes = ['text/plain'];
     
     // 动态变量
     public $attr = [
