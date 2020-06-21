@@ -12,6 +12,7 @@ use DbTable\MusicSong;
 use DbTable\MusicSiteLyric;
 use DbTable\MusicSiteAudio;
 use DbTable\MusicSiteAudioUrl;
+use Ext\Filesystem;
 use Metowolf\Meting;
 
 class Music163 extends \Plugin\Robot
@@ -201,7 +202,7 @@ class Music163 extends \Plugin\Robot
         $page = $this->attr['page'];
         $Artist = new MusicArtist;
         $Song = new MusicSong;
-        $arr = $status = null;
+        $arr = $status = $name = $json = null;
         $time = time();
         $songs = [];
 
@@ -228,7 +229,7 @@ class Music163 extends \Plugin\Robot
             exit;
         } else {
             print_r(array($filename, $artistId, __FILE__, __LINE__));
-            var_dump($type);
+            var_dump($contentType);
             exit;
         }
 
@@ -240,11 +241,18 @@ class Music163 extends \Plugin\Robot
             ];
             $result['update'] = $Artist->update($data, $pk);
             goto __END__;
+        } elseif (!trim($str)) {
+            print_r(array($filename, $artistId, __FILE__, __LINE__));
+            exit;
         }
 
         // 解析 HTML
         $doc = new \DOMDocument('1.0', 'utf-8');
-        @$doc->loadHTML($str);
+        $loadHtml = @$doc->loadHTML($str);
+        if (false === $loadHtml) {
+            print_r(array($filename, $artistId, __FILE__, __LINE__));
+            exit;
+        }
 
         // 艺术家名称
         $ar = $doc->getElementById('artist-name');
@@ -257,7 +265,6 @@ class Music163 extends \Plugin\Robot
         }
 
         // 歌曲列表
-        $json = null;
         $so = $doc->getElementById('song-list-pre-data');
         if ($so) {
             $json = $so->nodeValue;
@@ -267,12 +274,12 @@ class Music163 extends \Plugin\Robot
             $filename = $this->cache_dir . '/artist.json';
             if (preg_match('/<textarea id=\"song-list-pre-data\" style=\"display:none;\">(.*)<\/textarea>/', $str, $matches)) {
                 $json = $matches[1];
-                $put = file_put_contents($filename, $json);
+                $put = Filesystem::putContents($filename, $json);
             } else {
                 $status = 3;
                 goto __AR__;
             }
-            $son = file_get_contents($filename);
+            $son = Filesystem::getContents($filename);
             $arr = json_decode($son);
             $unlink = unlink($filename);
             if (!is_array($arr)) {
@@ -357,9 +364,11 @@ class Music163 extends \Plugin\Robot
         $data = [
             'site' => $this->site_id,
             'artist' => $artistId,
-            'name' => $name,
             'songs' => count($songs),
         ];
+        if (trim($name)) {
+            $data['name'] = $name;
+        }
         if ($status) {
             $data['status'] = $status;
         }
@@ -444,8 +453,9 @@ class Music163 extends \Plugin\Robot
         $ext = $arr[$type];
         $Lyric = new MusicSiteLyric;
         $filename = "$this->cache_dir/lyric/$songId-$obj->version.$ext";
-        $put = file_put_contents($filename, $obj->lyric);
-        if (false === $put) {
+        $put = Filesystem::putContents($filename, $obj->lyric);
+        if (false === $put || null === $put) {
+            var_dump($put);
             print_r(array($filename, $put, $obj, __FILE__, __LINE__));
             exit;
         }
@@ -577,9 +587,9 @@ class Music163 extends \Plugin\Robot
         $path = parse_url($url, PHP_URL_PATH);
         $ext = pathinfo($path, PATHINFO_EXTENSION);
         $filename = "$this->cache_dir/audio/$song-$au-$ur.$ext";
-        $data = file_get_contents($url);
+        $data = Filesystem::getContents($url);
         # 超时问题
-        $put = file_put_contents($filename, $data);
+        $put = Filesystem::putContents($filename, $data);
         return array('put' => $put, 'ext' => $ext, 'url' => $url, 'filename' => $filename);
     }
 
@@ -589,19 +599,19 @@ class Music163 extends \Plugin\Robot
         $md5 = md5($json);
         $row = json_decode($json);
         $put = null;
-        $contents = @file_get_contents($filename);
+        $contents = Filesystem::getContents($filename);
         if (false === $contents) {
             $arr = [];
             $arr[$md5] = $row;
             $data = json_encode($arr);
-            $put = file_put_contents($filename, $data);
+            $put = Filesystem::putContents($filename, $data);
 
         } else {
             $log = (array) json_decode($contents);
             if (!isset($log[$md5])) {
                 $log[$md5] = $row;
                 $data = json_encode($log);
-                $put = file_put_contents($filename, $data);
+                $put = Filesystem::putContents($filename, $data);
             }
         }
         return array(
