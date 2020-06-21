@@ -603,7 +603,8 @@ class Music163 extends \Plugin\Robot
         $row = json_decode($json);
         $put = null;
         $contents = Filesystem::getContents($filename);
-        if (false === $contents) {
+        // 文件不存在或为空
+        if (false === $contents || null === $contents) {
             $arr = [];
             $arr[$md5] = $row;
             $dat = json_encode($arr);
