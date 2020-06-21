@@ -12,6 +12,7 @@ use DbTable\MusicSong;
 use DbTable\MusicSiteLyric;
 use DbTable\MusicSiteAudio;
 use DbTable\MusicSiteAudioUrl;
+use Ext\Fileinfo;
 use Ext\Filesystem;
 use Metowolf\Meting;
 
@@ -221,13 +222,13 @@ class Music163 extends \Plugin\Robot
         // 获取内容
         $str = $this->getPathContents(self::URL_ARTIST_PAGE_GZ, $artistId);
         $filename = $this->getProp(self::URL_ARTIST_PAGE_GZ, 'paths', $artistId);
-        $contentType = mime_content_type($filename);
+        $contentType = Fileinfo::contentType($filename);
         if ('application/x-gzip' == $contentType) {
             $str = gzdecode($str);
         } elseif (false === $str) {
             print_r(array($filename, $artistId, __FILE__, __LINE__));
             exit;
-        } else {
+        } elseif ($contentType) {
             print_r(array($filename, $artistId, __FILE__, __LINE__));
             var_dump($contentType);
             exit;
@@ -635,10 +636,10 @@ class Music163 extends \Plugin\Robot
     public function gz($filename, $data= null)
     {
         $data = null === $data ? Filesystem::getContents($filename) : $data;
-        $contentType = mime_content_type($filename);
+        $contentType = Fileinfo::contentType($filename);
         if ('application/x-gzip' == $contentType) {
             return gzdecode($data);
-        } elseif (!in_array($contentType, $this->gzIgnoreTypes)) {
+        } elseif ($contentType && !in_array($contentType, $this->gzIgnoreTypes)) {
             var_dump($contentType);
             print_r(array($filename, __FILE__, __LINE__));
             exit;
