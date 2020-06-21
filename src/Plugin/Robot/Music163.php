@@ -407,6 +407,15 @@ class Music163 extends \Plugin\Robot
         $result['log'] = $this->log($filename, $json);
 
         // 属性检测
+        if (!is_object($obj)) {
+            if (null === $obj || is_bool($obj)) {
+                $obj = new \stdClass;
+            } else {
+                print_r(array('json_decode error', $obj, __FILE__, __LINE__));
+                exit;
+            }
+        }
+        // 第 2 级
         if (isset($obj->nolyric)) {
             if (1 == $obj->nolyric) {
                 goto __END__;
@@ -414,12 +423,13 @@ class Music163 extends \Plugin\Robot
             print_r(array($obj, __FILE__, __LINE__));
             exit;
         }
-        if (!isset($obj->klyric)) {
+        if (!isset($obj->klyric) || !is_object($obj->klyric)) {
             $obj->klyric = new \stdClass;
         }
         if (!isset($obj->tlyric)) {
             $obj->tlyric = new \stdClass;
         }
+        // 第 3 级
         if (!isset($obj->klyric->lyric)) {
             $obj->klyric->lyric = null;
         }
