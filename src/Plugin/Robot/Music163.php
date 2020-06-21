@@ -203,7 +203,7 @@ class Music163 extends \Plugin\Robot
         $page = $this->attr['page'];
         $Artist = new MusicArtist;
         $Song = new MusicSong;
-        $arr = $status = $name = $json = null;
+        $arr = $status = $name = $json = $timeout = null;
         $time = time();
         $songs = [];
 
@@ -226,8 +226,9 @@ class Music163 extends \Plugin\Robot
         if ('application/x-gzip' == $contentType) {
             $str = gzdecode($str);
         } elseif (false === $str) {
-            print_r(array($filename, $artistId, __FILE__, __LINE__));
-            exit;
+            $timeout = 10000;
+            # print_r(array('str is false', $filename, $artistId, __FILE__, __LINE__));
+            # exit;
         } elseif ($contentType) {
             print_r(array($filename, $artistId, __FILE__, __LINE__));
             var_dump($contentType);
@@ -376,11 +377,12 @@ class Music163 extends \Plugin\Robot
         $result['artist_exist'] = $Artist->exist($data);
 
         __END__:
-        $msg = '';
+        $msg = $timeout ? '/test' : '';
         return [
             'msg' => $msg,
             'result' => $result,
             'pageCount' => $count,
+            'timeout' => $timeout,
         ];
     }
 
