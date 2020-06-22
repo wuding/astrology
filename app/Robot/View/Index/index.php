@@ -110,7 +110,7 @@ function api(url)
 
 	if (5 < REQ[url]) {
 		message('max request times')
-		throw new Error('exit')
+		// throw new Error('exit')
 		return false
 	}
 
@@ -163,6 +163,15 @@ function api(url)
     XHR[xhr].send(null);
 }
 
+function setItemName(url)
+{
+	search = url.search(/\?/)
+	itm = url.substring(0, search)
+	itm = itm.replace(/^http:\/+/gi, '')
+	itm = itm.replace(/:\/+/gi, '.')
+	document.getElementById('item').value = itm.replace(/\//gi, '.')
+}
+
 //XHR 回调
 function api_change(json, func)
 {
@@ -188,15 +197,15 @@ function api_change(json, func)
 		
 			var item = document.getElementById('item').value;
 			var url = document.getElementById('url').value;
+			var urlMsg = url
+			var urlPre = url
 			if (json.code) {
 				
 				
 				if (item) {
 					localStorage.setItem(item, url);
 				} else {
-					search = url.search(/\?/);
-					itm = url.substring(1, search);
-					document.getElementById('item').value = itm.replace(/\//gi, '.');
+					setItemName(url)
 					localStorage.setItem(document.getElementById('item').value, url);
 				}
 					
@@ -208,15 +217,22 @@ function api_change(json, func)
 				//JSON[func] = json;
 				//eval("api_" + func + "()");
 				var str = 0;
-				search = json.msg.search(/\?/);
-					substr = json.msg.substr(search + 1);//message(substr);
+				urlMsg = json.msg || urlMsg;
+				search = urlMsg.search(/\?/);
+				searchStr = ''
+				if (-1 == search) {
+					prefix = urlMsg
+				} else {
+					prefix = urlMsg.substr(0, search) + '?'
+					substr = urlMsg.substr(search + 1);//message(substr);
 					split = substr.split(/&/);
 					for (i=0; i<split.length; i++) {
 						srch = split[i].search(/=/);
 						substring = split[i].substring(0, srch);
+						val = split[i].substr(srch + 1)
 						//message(substring);
 						if ('page' == substring) {
-							str = parseInt(split[i].substr(srch + 1));
+							str = parseInt(val);
 							
 							
 							var tm = d.getHours() +':'+ d.getMinutes() +':'+ d.getSeconds() +'.'+ d.getMilliseconds();
@@ -228,9 +244,17 @@ function api_change(json, func)
 							document.getElementById('last_time').value = tm;
 							//document.getElementById('last_use').value = timeover;
 							document.getElementById('last_use').value = sec_milli;
-							break;
+							// break;
+							if (!json.msg) {
+								str = val = str + 1
+							}
+						}
+						if (substring) {
+							searchStr += '&' + substring + '=' + val
 						}
 					}
+					searchStr = searchStr.replace(/^&/, '')
+				}
 				
 				var max_page = parseInt(document.getElementById('max_page').value);
 				var in_page = 1;
@@ -247,8 +271,14 @@ function api_change(json, func)
 				
 				if (in_page) {
 					//var url2 = 'http://localhost.urlnk.com' + json.msg;
-					var url2 = json.msg;
-					if ('final' != url2) {
+					var url2 = prefix + searchStr
+					if (json.msg) {
+						url2 = json.msg
+					}
+					if (urlPre == url2) {
+						message('url previous')
+
+					} else if (url2 && 'final' != url2) {
 						document.getElementById('url').value = url2;
 						
 						if (json.data.timeout) {
@@ -263,12 +293,10 @@ function api_change(json, func)
 						t = setTimeout("api('"+ url2 +"')", timeout);
 										//message(t);
 						if (item) {
-							localStorage.setItem(item, json.msg);
+							localStorage.setItem(item, url2);
 							//console.log(localStorage.length);
 						} else {
-							search = json.msg.search(/\?/);
-							itm = json.msg.substring(1, search);
-							document.getElementById('item').value = itm.replace(/\//gi, '.');
+							setItemName(url2)
 						}
 						
 						/*
