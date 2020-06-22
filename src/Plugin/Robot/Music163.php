@@ -494,10 +494,14 @@ class Music163 extends \Plugin\Robot
         if ($this->api_cookie) {
             $api->cookie($this->api_cookie);
         }
+        $download = $u = null;
 
         // 获取总量和歌曲 ID
         $count = $Song->count("site = $this->site_id");
         $row = $Song->offset($page - 1, $this->site_id);
+        if (!$row) {
+            goto __END__;
+        }
         $songId = $row->song;
         $result = ['song' => $songId];
 
@@ -506,7 +510,7 @@ class Music163 extends \Plugin\Robot
         if ($download = $u->download) {
             goto __END__;
         }
-        $json = $api->url($songId);
+        $json = $api->url($songId, $GLOBALS['CONFIG']['bitrate']);
         $row = json_decode($json);
         $filename = "$this->cache_dir/logs/audio/$songId.json";
         $result['log'] = $this->log($filename, $json);
