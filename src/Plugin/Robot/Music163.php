@@ -465,7 +465,7 @@ class Music163 extends \Plugin\Robot
         $arr = ['_', 'lrc', 'xml', 'txt'];
         $ext = $arr[$type];
         $Lyric = new MusicSiteLyric;
-        $filename = "$this->cache_dir/lyric/$songId-$obj->version.$ext";
+        $filename = "$this->cache_dir/lyrics/$ext/$songId-$obj->version.$ext";
         $put = Filesystem::putContents($filename, $obj->lyric);
         if (false === $put || null === $put) {
             var_dump($put);
