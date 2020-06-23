@@ -92,7 +92,7 @@ function api_reset(url, xhr) {
 		REQ[url]++
 	}
 	
-	if (5 > REQ[url]) {
+	if (123 > REQ[url]) {
 		api()
 	} else {
 		message('Problem retrieving(' + XHR[xhr].status + '):' + XHR[xhr].statusText)
@@ -108,7 +108,7 @@ function api(url)
 		REQ[url]++
 	}
 
-	if (5 < REQ[url]) {
+	if (123 < REQ[url]) {
 		message('max request times')
 		// throw new Error('exit')
 		return false
