@@ -62,6 +62,7 @@ var exec_task = 0;
 REQ = []
 timeout_id = null
 timeout_milliseconds = 1017000
+timeoutApi = 1000
 
 //Local Storage 列表生成
 var ele_request_log = document.getElementById('request_log');
@@ -113,6 +114,8 @@ function api(url)
 		message('max request times')
 		// throw new Error('exit')
 		return false
+	} else {
+		timeoutApi = 500 + REQ[url] * 1000
 	}
 
 	var d = new Date();
@@ -291,6 +294,7 @@ function api_change(json, func)
 						} else {
 							//document.title = timeout;
 						}
+						timeout = timeout + timeoutApi
 						t = setTimeout("api('"+ url2 +"')", timeout);
 										//message(t);
 						if (item) {
