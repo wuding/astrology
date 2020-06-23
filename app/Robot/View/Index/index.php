@@ -104,7 +104,18 @@ function api_reset(url, xhr) {
 //XHR 执行
 function api(url)
 {
-	if (!REQ[url]) {
+	var d = new Date();
+	var nowtime = d.getTime();
+	lasttime = nowtime;
+	var tm = d.getHours() +':'+ d.getMinutes() +':'+ d.getSeconds() +'.'+ d.getMilliseconds();
+	document.getElementById('execute_time').value = tm;
+			
+    stop = 0;
+    if (!url) {
+        url = document.getElementById('url').value;
+    }
+
+    if (!REQ[url]) {
 		REQ[url] = 1
 	} else {
 		REQ[url]++
@@ -117,19 +128,6 @@ function api(url)
 	} else {
 		timeoutApi = 500 + REQ[url] * 1000
 	}
-
-	var d = new Date();
-	var nowtime = d.getTime();
-	lasttime = nowtime;
-	var tm = d.getHours() +':'+ d.getMinutes() +':'+ d.getSeconds() +'.'+ d.getMilliseconds();
-	document.getElementById('execute_time').value = tm;
-			
-    stop = 0;
-    if (!url) {
-        url = document.getElementById('url').value;
-    }
-
-
 
     var xhr = nowtime;
     clearTimeout( timeout_id )
