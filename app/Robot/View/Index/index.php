@@ -93,7 +93,8 @@ function api_reset(url, xhr) {
 	}
 	
 	if (123 > REQ[url]) {
-		api()
+		timeoutRest = 500 + REQ[url] * 1000
+		setTimeout("api()", timeoutRest)
 	} else {
 		message('Problem retrieving(' + XHR[xhr].status + '):' + XHR[xhr].statusText)
 	}
