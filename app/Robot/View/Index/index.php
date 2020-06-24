@@ -64,6 +64,7 @@ timeout_id = null
 timeout_milliseconds = 1017000
 timeoutApi = 100
 timeoutVal = 1
+pageNo = 1
 
 //Local Storage 列表生成
 var ele_request_log = document.getElementById('request_log');
@@ -219,7 +220,7 @@ function api_change(json, func)
 				//message(func +'_'+ json.msg);
 				//JSON[func] = json;
 				//eval("api_" + func + "()");
-				var str = 0;
+				pageNo = 0
 				urlMsg = json.msg || urlMsg;
 				search = urlMsg.search(/\?/);
 				searchStr = ''
@@ -235,7 +236,7 @@ function api_change(json, func)
 						val = split[i].substr(srch + 1)
 						//message(substring);
 						if ('page' == substring) {
-							str = parseInt(val);
+							pageNo = parseInt(val)
 							
 							
 							var tm = d.getHours() +':'+ d.getMinutes() +':'+ d.getSeconds() +'.'+ d.getMilliseconds();
@@ -243,13 +244,13 @@ function api_change(json, func)
 							
 							//lasttime = d.getTime();
 							var sec_milli = format_second(timeover);
-							document.title = str +'('+ sec_milli +')'+ tm;
+							document.title = pageNo +'('+ sec_milli +')'+ tm;
 							document.getElementById('last_time').value = tm;
 							//document.getElementById('last_use').value = timeover;
 							document.getElementById('last_use').value = sec_milli;
 							// break;
 							if (!json.msg) {
-								str = val = str + 1
+								pageNo = val = pageNo + 1
 							}
 						}
 						if (substring) {
@@ -266,10 +267,10 @@ function api_change(json, func)
 					start(1);
 					
 				} else if (max_page) {
-							if (str > max_page) {//message(str +'>'+ max_page);
-								in_page = 0;
-								start(1);
-							}
+					if (pageNo > max_page) {//message(pageNo +'>'+ max_page);
+						in_page = 0;
+						start(1);
+					}
 				}
 				
 				if (in_page) {
