@@ -60,6 +60,8 @@ class Music163 extends \Plugin\Robot
         $cat = $this->attr['cat'];
         if (1 == $page) {
             $page = 0;
+        } elseif (65 > $page) {
+            $page = 65;
         }
 
         $size = $this->putFileCurl(null, self::URL_ARTIST_LIST, $cat, $page);
@@ -100,6 +102,8 @@ class Music163 extends \Plugin\Robot
         $cat = $this->attr['cat'] ?? 1001;
         if (1 == $page) {
             $page = 0;
+        } elseif (65 > $page) {
+            $page = 65;
         }
 
         $Artist = new MusicArtist;
@@ -487,6 +491,7 @@ class Music163 extends \Plugin\Robot
     public function downloadAudio()
     {
         $page = $this->attr['page'];
+        $again = $this->attr['again'] ?? null;
         $Audio = new MusicSiteAudio;
         $Url = new MusicSiteAudioUrl;
         $Song = new MusicSong;
@@ -507,10 +512,14 @@ class Music163 extends \Plugin\Robot
 
         // 主要
         $u = $Song->get(array('site' => $this->site_id, 'song' => $songId), 'download');
-        if ($download = $u->download) {
+        if (!$again && $download = $u->download) {
             goto __END__;
         }
         $json = $api->url($songId, $GLOBALS['CONFIG']['bitrate']);
+        if (!$json) {
+            print_r(array("song $songId json is null", __FILE__, __LINE__));
+            exit;
+        }
         $row = json_decode($json);
         $filename = "$this->cache_dir/logs/audio/$songId.json";
         $result['log'] = $this->log($filename, $json);
