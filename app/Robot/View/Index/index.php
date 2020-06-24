@@ -8,11 +8,11 @@
 <main class="main-page">
 <fieldset>
 	<legend>请求</legend>
-	请求地址 <input id="url" name="" value="<?=$url?>" style="width:500px">
+	请求地址 <input id="url" name="" value="<?=$url?>" style="width:650px">
 	<button type="button" onclick="start();" id="btn-request">开始</button>
 	<button type="button" onclick="document.getElementById('item').value='';start();">更改</button> 
 	<p>
-	请求键名 <input id="item" name="" value="" style="width:200px"> 
+	请求键名 <input id="item" name="" value="" style="width:650px">
 	<button type="button" onclick="_continue(1);">恢复</button>
 	<button type="button" onclick="removeItem();">清除</button>
 	
@@ -62,7 +62,7 @@ var exec_task = 0;
 REQ = []
 timeout_id = null
 timeout_milliseconds = 1017000
-timeoutApi = 1000
+timeoutApi = 100
 
 //Local Storage 列表生成
 var ele_request_log = document.getElementById('request_log');
@@ -94,8 +94,8 @@ function api_reset(url, xhr) {
 	}
 	
 	if (123 > REQ[url]) {
-		timeoutRest = 500 + REQ[url] * 1000
-		setTimeout("api()", timeoutRest)
+		timeoutReset = 100 + REQ[url] * 100
+		setTimeout("api()", timeoutReset)
 	} else {
 		message('Problem retrieving(' + XHR[xhr].status + '):' + XHR[xhr].statusText)
 	}
@@ -126,7 +126,7 @@ function api(url)
 		// throw new Error('exit')
 		return false
 	} else {
-		timeoutApi = 500 + REQ[url] * 1000
+		timeoutApi = 100 + REQ[url] * 100
 	}
 
     var xhr = nowtime;
@@ -288,7 +288,7 @@ function api_change(json, func)
 						}
 						var timeout = document.getElementById('timeout').value;
 						if (!timeout) {
-							timeout = 500;
+							timeout = 100;
 						} else {
 							//document.title = timeout;
 						}
