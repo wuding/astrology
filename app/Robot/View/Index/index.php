@@ -63,6 +63,7 @@ REQ = []
 timeout_id = null
 timeout_milliseconds = 1017000
 timeoutApi = 100
+timeoutVal = 1
 
 //Local Storage 列表生成
 var ele_request_log = document.getElementById('request_log');
@@ -286,14 +287,12 @@ function api_change(json, func)
 						if (json.data.timeout) {
 							document.getElementById('timeout').value = json.data.timeout
 						}
-						var timeout = document.getElementById('timeout').value;
-						if (!timeout) {
-							timeout = 100;
-						} else {
-							//document.title = timeout;
+						timeoutVal = document.getElementById('timeout').value
+						if (!timeoutVal) {
+							timeoutVal = 100
 						}
-						timeout = timeout + timeoutApi
-						t = setTimeout("api('"+ url2 +"')", timeout);
+						timeoutVal = timeoutVal + timeoutApi
+						t = setTimeout("api('"+ url2 +"')", timeoutVal)
 										//message(t);
 						if (item) {
 							localStorage.setItem(item, url2);
