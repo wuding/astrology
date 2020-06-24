@@ -291,7 +291,7 @@ function api_change(json, func)
 						if (!timeoutVal) {
 							timeoutVal = 100
 						}
-						timeoutVal = timeoutVal + timeoutApi
+						timeoutVal = parseInt(timeoutVal) + timeoutApi
 						t = setTimeout("api('"+ url2 +"')", timeoutVal)
 										//message(t);
 						if (item) {
