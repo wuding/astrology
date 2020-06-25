@@ -260,7 +260,7 @@ function api_change(json, func)
 					searchStr = searchStr.replace(/^&/, '')
 				}
 				
-				var max_page = parseInt(document.getElementById('max_page').value);
+				max_page = parseInt(document.getElementById('max_page').value) || json.data.pageCount
 				var in_page = 1;
 				if (json.data.lastTime) {
 					in_page = 0;
