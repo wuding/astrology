@@ -405,9 +405,13 @@ class Music163 extends \Plugin\Robot
         $count = $Song->count("site = $this->site_id");
         $row = $Song->offset($page - 1, $this->site_id);
         $songId = $row->song;
+        $filename = "$this->cache_dir/logs/lyric/$songId.json";
+        $result['exists'] = $exists = file_exists($filename);
+        if ($exists) {
+            goto __END__;
+        }
         $json = $api->lyric($songId);
         $obj = json_decode($json);
-        $filename = "$this->cache_dir/logs/lyric/$songId.json";
         $result['log'] = $this->log($filename, $json);
 
         // 属性检测
