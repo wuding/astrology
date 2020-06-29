@@ -45,6 +45,7 @@
 <fieldset>
 	<legend>消息</legend>
 	<div id="msg"></div>
+	<div id="note"></div>
 </fieldset>
 <script>
 var d = new Date();
@@ -283,8 +284,6 @@ function api_change(json, func)
 						message('url previous')
 
 					} else if (url2 && 'final' != url2) {
-						document.getElementById('url').value = url2;
-						
 						if (json.data.timeout) {
 							document.getElementById('timeout').value = json.data.timeout
 						}
@@ -293,8 +292,13 @@ function api_change(json, func)
 							timeoutVal = 100
 						}
 						timeoutVal = parseInt(timeoutVal) + timeoutApi
-						t = setTimeout("api('"+ url2 +"')", timeoutVal)
-										//message(t);
+						urlPrefix = url2.trim().search(/^(http|\/)/i)
+						t = '-'
++						if (-1 < urlPrefix) {
++							document.getElementById('url').value = url2
+							t = setTimeout("api('"+ url2 +"')", timeoutVal)
++						}
++						message('t' + t + ' \r\n urlPrefix ' + urlPrefix, 'note')
 						if (item) {
 							localStorage.setItem(item, url2);
 							//console.log(localStorage.length);
@@ -431,8 +435,9 @@ function format_second(timeover) {
 }
 
 //消息
-function message(msg) {
-	document.getElementById('msg').innerHTML = msg;
+function message(msg, id) {
+	id = id || 'msg'
+	document.getElementById(id).innerHTML = msg
 }
 
 if (typeof(Storage) !== 'function') {
