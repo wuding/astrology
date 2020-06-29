@@ -222,7 +222,14 @@ function api_change(json, func)
 				//JSON[func] = json;
 				//eval("api_" + func + "()");
 				pageNo = 0
-				urlMsg = json.msg || urlMsg;
+				urlJson = json.msg
+				if (urlJson) {
+					search = urlJson.trim().search(/^(http|\/)/i)
+					if (-1 == search) {
+						urlJson = ''
+					}
+				}
+				urlMsg = urlJson || urlMsg
 				search = urlMsg.search(/\?/);
 				searchStr = ''
 				if (-1 == search) {
@@ -250,7 +257,7 @@ function api_change(json, func)
 							//document.getElementById('last_use').value = timeover;
 							document.getElementById('last_use').value = sec_milli;
 							// break;
-							if (!json.msg) {
+							if (!urlJson) {
 								pageNo = val = pageNo + 1
 							}
 						}
@@ -277,6 +284,7 @@ function api_change(json, func)
 				if (in_page) {
 					//var url2 = 'http://localhost.urlnk.com' + json.msg;
 					var url2 = prefix + searchStr
+					url3 = url2
 					if (json.msg) {
 						url2 = json.msg
 					}
@@ -294,11 +302,12 @@ function api_change(json, func)
 						timeoutVal = parseInt(timeoutVal) + timeoutApi
 						urlPrefix = url2.trim().search(/^(http|\/)/i)
 						t = '-'
-+						if (-1 < urlPrefix) {
-+							document.getElementById('url').value = url2
-							t = setTimeout("api('"+ url2 +"')", timeoutVal)
-+						}
-+						message('t' + t + ' \r\n urlPrefix ' + urlPrefix, 'note')
+						if (-1 == urlPrefix) {
+							url2 = url3
+						}
+						document.getElementById('url').value = url2
+						t = setTimeout("api('"+ url2 +"')", timeoutVal)
+						message('t' + t + ' urlPrefix ' + urlPrefix + ' ' + url2, 'note')
 						if (item) {
 							localStorage.setItem(item, url2);
 							//console.log(localStorage.length);
