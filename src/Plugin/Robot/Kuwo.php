@@ -17,9 +17,13 @@ class Kuwo extends \Plugin\Robot
     public $site_id = 2;
 
     const URL_ARTIST_PAGE = 0;
+    const URL_ARTIST_MUSIC = 1;
+    const URL_ARTIST_INFO = 2;
 
     public $urls = [
-        "http://bd.kuwo.cn/singer_detail/%1"
+        "http://bd.kuwo.cn/singer_detail/%1",
+        "http://bd.kuwo.cn/api/www/artist/artistMusic?artistid=%1&pn=1&rn=2000&httpsStatus=1&reqId=",
+        "http://kuwo.cn/api/www/artist/artistInfo?category=0&prefix=%1&pn=%2&rn=100&httpsStatus=1&reqId="
     ];
 
     public function _init()
@@ -27,7 +31,27 @@ class Kuwo extends \Plugin\Robot
         $this->cache_dir = $cache_dir = CACHE_ROOT . '/https/kuwo.cn';
         $this->paths = [
             $cache_dir . "/artist/%1.html",
+            $cache_dir . "/artist_music/%1.json",
+            $cache_dir . "/artist_info/%1-%2.json",
         ];
+    }
+
+    public function downloadInfo()
+    {
+        $http_header = ['X-HTTP-Method-Override: GET'];
+        $http_header[] = 'Cookie: kw_token=IN5AILKBNE8';
+        $http_header[] = 'csrf: IN5AILKBNE8';
+        echo $size = $this->putFileCurl($http_header, self::URL_ARTIST_INFO, 'B', $this->attr['page']);
+        # echo $u = $this->getProp(self::URL_ARTIST_INFO, 'urls', 'A', $this->attr['page']);
+    }
+
+    public function downloadMusic()
+    {
+        $http_header = ['X-HTTP-Method-Override: GET'];
+        $http_header[] = 'Cookie: kw_token=IN5AILKBNE8';
+        $http_header[] = 'csrf: IN5AILKBNE8';
+        echo $size = $this->putFileCurl($http_header, self::URL_ARTIST_MUSIC, $this->attr['page']);
+        echo $u = $this->getProp(self::URL_ARTIST_MUSIC, 'urls', $this->attr['page']);
     }
 
     public function downloadArtist()
