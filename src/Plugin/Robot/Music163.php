@@ -13,7 +13,7 @@ use DbTable\MusicSiteLyric;
 use DbTable\MusicSiteAudio;
 use DbTable\MusicSiteAudioUrl;
 use Ext\Fileinfo;
-use Ext\Filesystem;
+use Ext\File;
 use Metowolf\Meting;
 
 class Music163 extends \Plugin\Robot
@@ -280,12 +280,12 @@ class Music163 extends \Plugin\Robot
             $filename = $this->cache_dir . '/artist.json';
             if (preg_match('/<textarea id=\"song-list-pre-data\" style=\"display:none;\">(.*)<\/textarea>/', $str, $matches)) {
                 $json = $matches[1];
-                $put = Filesystem::putContents($filename, $json);
+                $put = File::putContents($filename, $json);
             } else {
                 $status = 3;
                 goto __AR__;
             }
-            $son = Filesystem::getContents($filename);
+            $son = File::getContents($filename);
             $arr = json_decode($son);
             $unlink = unlink($filename);
             if (!is_array($arr)) {
@@ -405,9 +405,42 @@ class Music163 extends \Plugin\Robot
         $count = $Song->count("site = $this->site_id");
         $row = $Song->offset($page - 1, $this->site_id);
         $songId = $row->song;
-        $filename = "$this->cache_dir/logs/lyric/$songId.json";
-        $result['exists'] = $exists = file_exists($filename);
+        $md5 = md5($songId);
+        $hash = substr($md5, 0, 2);
+        $oldLog = "$this->cache_dir/logs/lyric/$songId.json";
+        $lrcLog = "$this->cache_dir/logs/lyrics/$hash/$songId.json";
+        $rename = null;
+        if (451471 < $page) {
+            $exists = file_exists($lrcLog);
+            if (!$exists) {
+                $exists = file_exists($oldLog);
+                if ($exists) {
+                    $rename = File::rename($oldLog, $lrcLog);
+                    if (!$rename) {
+                        print_r([var_dump($rename), $oldLog, $lrcLog, __FILE__, __LINE__]);
+                        exit;
+                    }
+                }
+            }
+            $filename = $lrcLog;
+        } else {
+            $exists = file_exists($oldLog);
+            if (!$exists) {
+                $exists = file_exists($lrcLog);
+            } else {
+                $rename = File::rename($oldLog, $lrcLog);
+                if (!$rename) {
+                    print_r([var_dump($rename), $oldLog, $lrcLog, __FILE__, __LINE__]);
+                    exit;
+                }
+            }
+            $filename = $lrcLog;
+        }
+
+        $result['exists'] = $exists;
+        $result['rename'] = $rename;
         if ($exists) {
+            $result['filename'] = $filename;
             goto __END__;
         }
         $json = $api->lyric($songId);
@@ -470,20 +503,36 @@ class Music163 extends \Plugin\Robot
         if (!trim($obj->lyric)) {
             return -1;
         }
+        $size = strlen($obj->lyric);
+        $site = $this->site_id;
         $arr = ['_', 'lrc', 'xml', 'txt'];
         $ext = $arr[$type];
         $Lyric = new MusicSiteLyric;
-        $filename = "$this->cache_dir/lyrics/$ext/$songId-$obj->version.$ext";
-        $put = Filesystem::putContents($filename, $obj->lyric);
+        # $filename = "$this->cache_dir/lyrics/$ext/$songId-$obj->version.$ext";
+        $name = "$site-$songId-$type-$obj->version-$size";
+        $md5 = md5($name);
+        $hash = substr($md5, 0, 2);
+        $filename = "$this->downloadDir\lyric\\$site\\$ext\\$hash\\$name.$ext";
+
+        // 检测
+        if (file_exists($filename) && $filesize = filesize($filename)) {
+            print_r(array("filesize $filesize", $filename, $obj, __FILE__, __LINE__));
+            exit;
+        }
+
+        // 写入
+        $put = File::putContents($filename, $obj->lyric);
         if (false === $put || null === $put) {
-            var_dump($put);
-            print_r(array($filename, $put, $obj, __FILE__, __LINE__));
+            print_r(array(var_dump($put), $filename, $obj, __FILE__, __LINE__));
+            exit;
+        } elseif ($size != $put) {
+            print_r(array("size $size != put", var_dump($put), $filename, $obj, __FILE__, __LINE__));
             exit;
         }
 
         // 检测
         $data = [
-            'site' => $this->site_id,
+            'site' => $site,
             'song' => $songId,
             'version' => $obj->version,
             'size' => $put,
@@ -571,7 +620,7 @@ class Music163 extends \Plugin\Robot
             }
 
             // 下载
-            $dl = $this->download($value->url, $songId, $exist, $urlId);
+            $dl = $this->download($value->url, $songId, $exist, $urlId, $value);
             $size = $dl['put'];
             $status = $size ? 1 : -3;
             if ($size) {
@@ -612,14 +661,23 @@ class Music163 extends \Plugin\Robot
         ];
     }
 
-    public function download($url, $song, $au, $ur)
+    public function download($url, $song, $au, $ur, $obj = null)
     {
+        $site = $this->site_id;
         $path = parse_url($url, PHP_URL_PATH);
         $ext = pathinfo($path, PATHINFO_EXTENSION);
-        $filename = "$this->cache_dir/audio/$song-$au-$ur.$ext";
-        $data = Filesystem::getContents($url);
+        if ('mp3' != $ext) {
+            print_r(array("ext $ext", $obj, __FILE__, __LINE__));
+            exit;
+        }
+        $name = "$site-$song-$ext-$obj->br-$obj->size";
+        $md5 = md5($name);
+        $hash = substr($md5, 0, 2);
+        # $filename = "$this->cache_dir/audio/$song-$au-$ur.$ext";
+        $filename = "$this->downloadDir/music/$site/$ext/$hash/$ur-$au-$song.$ext";
+        $data = File::getContents($url);
         # 超时问题
-        $put = Filesystem::putContents($filename, $data);
+        $put = File::putContents($filename, $data);
         return array('put' => $put, 'ext' => $ext, 'url' => $url, 'filename' => $filename);
     }
 
@@ -629,14 +687,14 @@ class Music163 extends \Plugin\Robot
         $md5 = md5($json);
         $row = json_decode($json);
         $put = null;
-        $contents = Filesystem::getContents($filename);
+        $contents = File::getContents($filename);
         // 文件不存在或为空
         if (false === $contents || null === $contents) {
             $arr = [];
             $arr[$md5] = $row;
             $dat = json_encode($arr);
             $data = $this->gzip($dat, $gzip);
-            $put = Filesystem::putContents($filename, $data);
+            $put = File::putContents($filename, $data);
 
         } else {
             $contents = $this->gz($filename, $contents);
@@ -645,7 +703,7 @@ class Music163 extends \Plugin\Robot
                 $log[$md5] = $row;
                 $dat = json_encode($log);
                 $data = $this->gzip($dat, $gzip);
-                $put = Filesystem::putContents($filename, $data);
+                $put = File::putContents($filename, $data);
             }
         }
         return array(
@@ -665,7 +723,7 @@ class Music163 extends \Plugin\Robot
 
     public function gz($filename, $data= null)
     {
-        $data = null === $data ? Filesystem::getContents($filename) : $data;
+        $data = null === $data ? File::getContents($filename) : $data;
         $contentType = Fileinfo::contentType($filename);
         if ('application/x-gzip' == $contentType) {
             return gzdecode($data);
