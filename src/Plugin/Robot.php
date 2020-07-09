@@ -39,13 +39,14 @@ class Robot
      *
      * 调用初始化函数
      */
-    public function __construct($arg = null)
+    public function __construct($arg = null, $vars = [])
     {
         if ($arg) {
             $this->initialization($arg);
         }
         $config = include 'Robot/config/robot.php';
         $this->setVars($config['var']);
+        $this->setVars($vars);
         $this->_init();
     }
     

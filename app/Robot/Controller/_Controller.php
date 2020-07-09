@@ -27,7 +27,7 @@ class _Controller extends \Astrology\Controller
         $vars = [
             'downloadDir' => $downloadDir,
         ];
-        $this->robotVars = array_merge($this->query_args, $vars);
+        $this->robotVars = $vars;
     }
     /*
     public function _NotFound()
@@ -108,7 +108,7 @@ class _Controller extends \Astrology\Controller
         $type = $route->getParam(1);
         $class = '\Plugin\Robot\\' . $route->fixName($name);
 
-        $robot = new $class($this->robotVars);
+        $robot = new $class($this->query_args, $this->robotVars);
         if (!empty($robot->func_format)) {
             $type .= ' ' . $robot->func_format;
         }
