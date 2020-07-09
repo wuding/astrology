@@ -23,7 +23,7 @@ class _Controller extends \Astrology\Controller
             'type' => '',
         ];
         $this->query_args = $this->array_variable($arr, 1);
-        $downloadDir = $GLOBALS['_CONFIG']['downloadDir'];
+        $downloadDir = $GLOBALS['CONFIG']['downloadDir'];
         $vars = [
             'downloadDir' => $downloadDir,
         ];
