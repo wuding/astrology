@@ -18,7 +18,7 @@
         "php": ">=5.4",
         "catfan/medoo": "^1.5",
         "league/plates": "^3.3",
-        "wuding/php-ext": "dev-master",
+        "wuding/php-ext": "^20.192.141",
         "metowolf/meting": "^1.5"
     },
     "autoload": {
