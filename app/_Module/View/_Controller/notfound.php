@@ -8,9 +8,9 @@
 
 <body style="margin: 0">
 <?=$html?>
-<!--div>
-<?=$info?>
-</div-->
+<div>
+<?//=$info?>
+</div>
 <?php
 include __DIR__ . '/../_helper/tongji.php';
 ?>
