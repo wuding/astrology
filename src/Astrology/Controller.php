@@ -11,7 +11,7 @@ class Controller
     public $_enable_view = 1;
     public $_session_id = null;
     public $_init = null;
-    
+
     public function __construct($init = null)
     {
         // 开启会话
@@ -26,7 +26,7 @@ class Controller
         }
         $this->_init = $init;
     }
-    
+
     public function _getConfig($section = null, $key = null, $default = null)
     {
         $arr = isset($GLOBALS['CONFIG']) ? $GLOBALS['CONFIG'] : [];
@@ -40,7 +40,7 @@ class Controller
         $instance = new static(1);
         return $instance->array_variable($arr, $query_merge);
     }
-    
+
     public function array_variable($arr = array(), $query_merge = null)
     {
         $result = $query_result = array();
@@ -51,7 +51,7 @@ class Controller
         foreach ($arr as $key => $value) {
             $idx = $key;
             if (is_numeric($key)) {
-                $idx = $key = $value;               
+                $idx = $key = $value;
                 $value = null;
             }
 
@@ -64,7 +64,7 @@ class Controller
             } else {
                 $result[$idx] = $this->_var($key, $value);
             }
-            
+
         }
 
         // 合并数组
@@ -73,10 +73,10 @@ class Controller
                 $result = array_merge($query_result, $result);
                 break;
         }
-        
+
         return $result;
     }
-    
+
     /*
      * 输入 - 变量
      */
@@ -86,7 +86,7 @@ class Controller
         if (null === $_variables) {
             $_variables = $_GET;
         }
-        
+
         $var = isset($_variables[$key]) ? $_variables[$key] : null;
         if (null !== $var) {
             if (is_array($var)) {
@@ -95,7 +95,7 @@ class Controller
             if (is_array($filter)) {
                 if (in_array($var, $filter)) {
                     $var = false;
-                } 
+                }
             } elseif (null !== $filter) {
                 $var = filter_var($var, $filter);
             }
@@ -105,7 +105,7 @@ class Controller
         }
         return $default;
     }
-    
+
     /**
      * 获取变量参数
      */
@@ -118,18 +118,18 @@ class Controller
             } elseif (is_array($filter)) {
                 if (in_array($var, $filter)) {
                     $var = false;
-                } 
+                }
             } elseif (null !== $filter) {
                 $var = filter_var($var, $filter);
             }
-            
+
             if (false !== $var) {
                 return $var;
             }
         }
         return $default;
     }
-    
+
     /**
      * 未找到动作
      */
@@ -137,7 +137,7 @@ class Controller
     {
         print_r([__METHOD__, __FILE__, __LINE__]);
     }
-    
+
     /**
      * 获取类的所有方法
      */
@@ -145,7 +145,7 @@ class Controller
     {
         return self::$_methods = get_class_methods($this);
     }
-    
+
     /**
      * 获取动作方法
      */
@@ -154,14 +154,14 @@ class Controller
         if (false !== self::$_method_name) {
             return self::$_method_name;
         }
-        
+
         $methods = $this->_getMethods();
         if (!in_array($GLOBALS['METHOD_NAME'], $methods) && false === array_search('__call', $methods)) {
             $GLOBALS['METHOD_NAME'] = in_array('_Action', $methods) ? '_Action' : '_NotFound';
         }
         return self::$_method_name = $GLOBALS['METHOD_NAME'];
     }
-    
+
     /**
      * 执行动作
      */
@@ -170,7 +170,7 @@ class Controller
         $method = $this->_getMethodName();
         return $this->$method();
     }
-    
+
     /**
      * 析构函数
      */
@@ -184,9 +184,9 @@ class Controller
         // 调试
         if (isset($_GET['debug']) && is_numeric($_GET['debug'])) {
             print_r([$arr, __FILE__, __LINE__]);
-            exit; # 
+            exit;
         }
-        
+
         // 视图渲染
         if ($this->_enable_view) {
             if ('info' === $this->_enable_view) {
@@ -200,11 +200,11 @@ class Controller
                 $tpl = new \League\Plates\Engine(APP_PATH . "/$m/View");
                 echo $html = $tpl->render($script, $arr);
             }
-            
+
         // 直接输出
         } else {
-            $variables = is_array($arr) ? print_r($arr, true) : $arr;# 
-            echo $variables;# 
+            $variables = is_array($arr) ? print_r($arr, true) : $arr;
+            echo $variables;
         }
         # print_r($GLOBALS);
     }
