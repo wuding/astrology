@@ -4,9 +4,9 @@
  */
 namespace DbTable;
 
-class MusicSong extends DbAudio
+class MusicSong extends DbMusic
 {
-    public $table_name = 'music_site_song';
+    public $table_name = 'site_song';
 
     /**
      * 检测
