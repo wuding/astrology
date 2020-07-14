@@ -12,6 +12,7 @@ use DbTable\MusicSong;
 use DbTable\MusicSiteLyric;
 use DbTable\MusicSiteAudio;
 use DbTable\MusicSiteAudioUrl;
+use Ext\APCu;
 use Ext\Fileinfo;
 use Ext\File;
 use Metowolf\Meting;
@@ -402,8 +403,19 @@ class Music163 extends \Plugin\Robot
         }
 
         // 获取总量和歌曲 ID
-        $count = $Song->count("site = $this->site_id");
-        $row = $Song->offset($page - 1, $this->site_id);
+        $cacheKey = "count_song_site_$this->site_id";
+        $count = APCu::fetch($cacheKey);
+        if (false === $count) {
+            $count = $Song->count("site = $this->site_id");
+            $stored = APCu::store($cacheKey, $count);
+            if (!$stored) {
+                var_dump($stored);
+                print_r([$cacheKey, $count, __FILE__, __LINE__]);
+                exit;
+            }
+        }
+
+        $row = $Song->offset($page - 1, $this->site_id, 'song');
         $songId = $row->song;
         $md5 = md5($songId);
         $hash = substr($md5, 0, 2);
