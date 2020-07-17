@@ -20,8 +20,10 @@ OFFSET $offset";
      * @param  array  $arr 查询及设置数据
      * @return integer     条目ID或更新状态
      */
-    public function exist($arr, $return = null, $variable = null)
+    public function exist($arr, $return = null, $variable = null, $column = '*')
     {
+        // $column = 0 = $arr
+        // $column = 1 = $variable
         $primary_key = $this->primary_key;
         $time = time();
         $variable = $variable ? : $this->exist_fields;
@@ -29,7 +31,7 @@ OFFSET $offset";
         foreach ($variable as $key => $value) {
             $where[$value] = $arr[$value];
         }
-        $row = $this->get($where, '*');
+        $row = $this->get($where, $column);
 
         if (!$row) {
             $data = [
@@ -37,10 +39,14 @@ OFFSET $offset";
                 'created' => $time,
                 'updated' => $time,
             ];
+            // $data = $this->insert_attaches
             $arr += $data;
             return $this->insert($arr);
         }
 
+        // $where = exist_fields = $arr
+        // $column = $row
+        // $arr === $row 时不需要比较
         $diff = $this->array_diff_kv($arr, (array) $row);
         if ($diff) {
             $data = [];
