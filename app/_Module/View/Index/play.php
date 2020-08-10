@@ -30,10 +30,10 @@
     <ul>
     <?php
     $i = 0;
-    foreach ($arr as $key => $value) {
+    foreach ($arr as $value) {
         $i++;
-        $tt = $value->title ? $value->title : $value->m3u8_id;
-        $id = $value->name ? $value->name : $value->m3u8_id;
+        $tt = $value->title ?: $value->m3u8_id;
+        $id = $value->name ?: $value->m3u8_id;
         echo "<li><a href='/play/$id'>$tt</a></li>"; //<b>$i. </b>
     }
     ?>
