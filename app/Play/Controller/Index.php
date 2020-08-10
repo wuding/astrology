@@ -102,7 +102,7 @@ class Index extends _Controller
                 $id = mt_rand(1, $max);
             }
             // 单条
-            $row = $rows ? : $m3u8->sel(['m3u8_id' => $id], 'title,url');
+            $row = $rows ? : $m3u8->get(['m3u8_id' => $id], 'title,url');
             if ($row) {
                 $url = $row->url;
                 $title = $row->title;
