@@ -19,7 +19,7 @@ class Index extends _Controller
 	public function index()
 	{
 		$tongji = $this->tongji;
-		$location = 'urlnk.com' != $_SERVER['HTTP_HOST'] ? 'http://urlnk.com' : '';
+		$location = 'urlnk.com' != ($_SERVER['HTTP_HOST'] ?? null) ? 'http://urlnk.com' : '';
 		$redirect = $this->redirect;
 		return get_defined_vars();
 		include APP_PATH . '/_Module/View/Index/index.php';
