@@ -22,7 +22,7 @@ class HlsM3u8 extends \Astrology\Database
         $where = [
             $field => $name,
         ];
-        return $row = $this->sel($where, '*');
+        return $row = $this->get($where, '*');
     }
     /**
      * 根据条件查找所有
