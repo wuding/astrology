@@ -10,35 +10,35 @@
 	<legend>请求</legend>
 	请求地址 <input id="url" name="" value="<?=$url?>" style="width:650px">
 	<button type="button" onclick="start();" id="btn-request">开始</button>
-	<button type="button" onclick="document.getElementById('item').value='';start();">更改</button> 
+	<button type="button" onclick="document.getElementById('item').value='';start();">更改</button>
 	<p>
 	请求键名 <input id="item" name="" value="" style="width:650px">
 	<button type="button" onclick="_continue(1);">恢复</button>
 	<button type="button" onclick="removeItem();">清除</button>
-	
+
 	<p>
 	请求记录 <select id="request_log" onchange="select_change(this)">
 		<option></option>
 	</select>
 	<p>
-	请求延时 <input id="timeout" name="" value="1" style="width:200px"> 
+	请求延时 <input id="timeout" name="" value="1" style="width:200px">
 	<p>
-	最大页码 <input id="max_page" name="" value="" style="width:200px"> 
+	最大页码 <input id="max_page" name="" value="" style="width:200px">
 </fieldset>
 <fieldset>
 	<legend>计划</legend>
-	任务代码 <input id="code" name="" value="task()" style="width:500px"> 
+	任务代码 <input id="code" name="" value="task()" style="width:500px">
 	<button type="button" onclick="autoTask();" id="btn-task">开始</button>
 	<p>间隔毫秒 <input id="millisec" name="" value="<?=$millisec ? : 1000?>" style="width:200px">
-	<p>下次任务 <input id="next_task" name="" value="" style="width:500px"> 
+	<p>下次任务 <input id="next_task" name="" value="" style="width:500px">
 </fieldset>
 <fieldset>
 	<legend>统计</legend>
 	开始时间 <input id="start_time" name="" value="" style="width:200px"> 上次完成 <input id="last_time" name="" value="" style="width:200px"> 本次执行 <input id="execute_time" name="" value="" style="width:200px">
 	<p>
-	总计用时 <input id="use_time" name="" value="0" style="width:200px"> 
+	总计用时 <input id="use_time" name="" value="0" style="width:200px">
 	<p>
-	请求次数 <input id="requests" name="" value="0" style="width:200px"> 
+	请求次数 <input id="requests" name="" value="0" style="width:200px">
 	<p>
 	平均用时 <input id="avg_time" name="" value="0" style="width:200px"> 上次用时 <input id="last_use" name="" value="0" style="width:200px"> s
 </fieldset>
@@ -66,6 +66,7 @@ timeout_milliseconds = 1017000
 timeoutApi = 100
 timeoutVal = 1
 pageNo = 1
+lastUrl = null
 
 //Local Storage 列表生成
 var ele_request_log = document.getElementById('request_log');
@@ -84,7 +85,7 @@ for(var i=0; i<localStorage.length; i++){
 
 //Local Storage 列表操作
 function select_change(obj) {
-    start(1);   
+    start(1);
     document.getElementById('item').value = ele_request_log.options[ele_request_log.selectedIndex].text;
     document.getElementById('url').value = obj.value;
 }
@@ -92,10 +93,10 @@ function select_change(obj) {
 function api_reset(url, xhr) {
 	if (!REQ[url]) {
 		REQ[url] = 1
-	} else {		
+	} else {
 		REQ[url]++
 	}
-	
+
 	if (123 > REQ[url]) {
 		timeoutReset = 100 + REQ[url] * 100
 		setTimeout("api()", timeoutReset)
@@ -112,10 +113,16 @@ function api(url)
 	lasttime = nowtime;
 	var tm = d.getHours() +':'+ d.getMinutes() +':'+ d.getSeconds() +'.'+ d.getMilliseconds();
 	document.getElementById('execute_time').value = tm;
-			
+
     stop = 0;
     if (!url) {
         url = document.getElementById('url').value;
+    }
+
+    // 同一地址非连续请求无次数限制
+    if (lastUrl != url) {
+        REQ[url] = -1
+        lastUrl = url
     }
 
     if (!REQ[url]) {
@@ -138,7 +145,7 @@ function api(url)
     XHR[xhr] = new XMLHttpRequest();
     XHR[xhr].onreadystatechange = function() {
         if (4 == XHR[xhr].readyState) {
-        	clearTimeout( timeout_id )
+            clearTimeout( timeout_id )
             if (200 == XHR[xhr].status) {
                 var text = XHR[xhr].responseText;
                 if (text) {
@@ -154,7 +161,7 @@ function api(url)
                 message('Problem retrieving data(' + XHR[xhr].status + '):' + XHR[xhr].statusText);
             }
         } else if (1 != XHR[xhr].readyState && 2 != XHR[xhr].readyState && 3 != XHR[xhr].readyState) {
-        	clearTimeout( timeout_id )
+            clearTimeout( timeout_id )
             message('Problem(' + XHR[xhr].status + '):' + XHR[xhr].readyState);
         }
     };
@@ -182,7 +189,7 @@ function api_change(json, func)
 {
 	if (json) {
 		var type = Object.prototype.toString.call(json);
-		
+
 		if ("[object Object]" != type) {
 			message(type);
 		} else {
@@ -197,26 +204,22 @@ function api_change(json, func)
 					offsettime = 0;
 				}
 			}
-			document.getElementById('use_time').value = parseInt(nowtime) - parseInt(firsttime) - offset;
-			document.getElementById('avg_time').value = parseInt(document.getElementById('use_time').value) / parseInt(document.getElementById('requests').value);
-		
+			document.getElementById('use_time').value = (parseInt(nowtime) - parseInt(firsttime) - offset) / 1000;
+			document.getElementById('avg_time').value = parseInt(document.getElementById('use_time').value) / parseInt(document.getElementById('requests').value) / 1000;
+
 			var item = document.getElementById('item').value;
 			var url = document.getElementById('url').value;
 			var urlMsg = url
 			var urlPre = url
 			if (json.code) {
-				
-				
 				if (item) {
 					localStorage.setItem(item, url);
 				} else {
 					setItemName(url)
 					localStorage.setItem(document.getElementById('item').value, url);
 				}
-					
 				message(json.msg);
 				start();
-				
 			} else if (!stop) {
 				//message(func +'_'+ json.msg);
 				//JSON[func] = json;
@@ -245,11 +248,8 @@ function api_change(json, func)
 						//message(substring);
 						if ('page' == substring) {
 							pageNo = parseInt(val)
-							
-							
 							var tm = d.getHours() +':'+ d.getMinutes() +':'+ d.getSeconds() +'.'+ d.getMilliseconds();
 							timeover = parseInt(d.getTime()) - parseInt(lasttime);
-							
 							//lasttime = d.getTime();
 							var sec_milli = format_second(timeover);
 							document.title = pageNo +'('+ sec_milli +')'+ tm;
@@ -267,20 +267,18 @@ function api_change(json, func)
 					}
 					searchStr = searchStr.replace(/^&/, '')
 				}
-				
 				max_page = parseInt(document.getElementById('max_page').value) || json.data.pageCount
 				var in_page = 1;
 				if (json.data.lastTime) {
 					in_page = 0;
 					start(1);
-					
 				} else if (max_page) {
 					if (pageNo > max_page) {//message(pageNo +'>'+ max_page);
 						in_page = 0;
 						start(1);
 					}
 				}
-				
+
 				if (in_page) {
 					//var url2 = 'http://localhost.urlnk.com' + json.msg;
 					var url2 = prefix + searchStr
@@ -314,7 +312,7 @@ function api_change(json, func)
 						} else {
 							setItemName(url2)
 						}
-						
+
 						/*
 						message(json.data.result);
 						if (json.data) {
@@ -326,16 +324,16 @@ function api_change(json, func)
 							}
 						}*/
 					}
-					
+
 				} else {
 					message('max page! ' + json.data.lastTime);
 				}
-				
+
 			} else {
 				message('pause');
 			}
 		}
-		
+
 	} else {
 		message('api_change ERROR');
 	}
@@ -350,7 +348,7 @@ function start(s) {
 		step = 0;
 	}
 	//console.log(JSON.stringify([s, step]));
-	
+
     btn = document.getElementById('btn-request');
     if (s || 1 == step) {
         btn.innerHTML = '继续';
@@ -365,7 +363,7 @@ function start(s) {
 		document.getElementById('start_time').value = start_time;
 		//offsettime = 0;
     } else {
-		
+
     }
     document.title = offsettime;
 }
@@ -419,7 +417,6 @@ function task() {
 	var d = new Date();
 	var start_time = d.getHours() +':'+ d.getMinutes() +':'+ d.getSeconds() +'.'+ d.getMilliseconds();
 	document.title = d.getSeconds() +'.'+ d.getMilliseconds();
-	
 }
 function autoTask() {
 	if (exec_task) {
