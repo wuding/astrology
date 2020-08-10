@@ -491,7 +491,7 @@ class Music163 extends \Plugin\Robot
         }
 
         // 写入
-        if (isset($obj->lrc) && $obj->lrc->lyric) {
+        if (isset($obj->lrc) && isset($obj->lrc->lyric)) {
             $result['lrc'] = $this->lyric($songId, $obj->lrc, 1);
         }
         if ($obj->klyric->lyric) {
