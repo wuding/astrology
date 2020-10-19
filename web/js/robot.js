@@ -241,7 +241,7 @@ function apiCall(json, func) {
             }
             useTime = parseInt(nowTime) - parseInt(firstTime) - offset
             uTime = useTime / 1000
-            console.log([nowTime, firstTime, offset, uTime])
+            //console.log([nowTime, firstTime, offset, uTime])
             ele('use_time').value = uTime
             ele('avg_time').value = uTime / num('requests')
 
