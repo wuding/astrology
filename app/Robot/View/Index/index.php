@@ -58,7 +58,7 @@
 	<div id="msg"></div>
 	<div id="note"></div>
 </fieldset>
-<script type="text/javascript" src="/js/robot.js?v=20201019"></script>
+<script type="text/javascript" src="/js/robot.js?v=20210831.2"></script>
 <script type="text/javascript">
 <?php
 if ($start) {

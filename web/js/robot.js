@@ -103,6 +103,11 @@ function localLog() {
         opt = document.createElement("option")
         opt.innerHTML = key = localStorage.key(i)
         val = localStorage.getItem(key)
+        regex = /^\{/i
+        result = regex.test(val)
+        if (!result) {
+            continue
+        }
         obj = JSON.parse(val)
         url = obj.url
         opt.setAttribute('value', url)
